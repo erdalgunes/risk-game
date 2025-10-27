@@ -7,6 +7,7 @@ import { areTerritoriesAdjacent } from '@/constants/map';
 import { PlayersList } from './PlayersList';
 import { TerritoriesList } from './TerritoriesList';
 import { GameControls } from './GameControls';
+import { GameAnnouncer } from './GameAnnouncer';
 import type { Territory, AttackResult } from '@/types/game';
 import { useToast } from '@/lib/hooks/useToast';
 
@@ -183,9 +184,9 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4 mx-auto" aria-hidden="true"></div>
           <p className="text-white text-lg">Loading game...</p>
         </div>
       </div>
@@ -194,7 +195,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
 
   if (error || !game) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen" role="alert">
         <div className="text-center text-red-500">
           <p className="text-xl">Error loading game</p>
           <p className="text-sm mt-2">{error?.message || 'Game not found'}</p>
@@ -209,14 +210,19 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
     const winnerTerritories = territories.filter((t) => t.owner_id === game.winner_id);
 
     return (
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4" role="main">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="bg-gradient-to-br from-yellow-900 to-yellow-800 rounded-lg p-8 max-w-2xl w-full border-4 border-yellow-600 shadow-2xl">
+          <section
+            className="bg-gradient-to-br from-yellow-900 to-yellow-800 rounded-lg p-8 max-w-2xl w-full border-4 border-yellow-600 shadow-2xl"
+            role="alert"
+            aria-live="assertive"
+            aria-label="Game finished"
+          >
             <div className="text-center">
               <h1 className="text-6xl font-bold text-white mb-4">
                 Victory!
               </h1>
-              <div className="text-8xl mb-6">🏆</div>
+              <div className="text-8xl mb-6" aria-hidden="true">🏆</div>
 
               {winner && (
                 <div className="mb-8">
@@ -224,6 +230,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
                   <p
                     className="text-5xl font-bold capitalize mb-4"
                     style={{ color: winner.color }}
+                    role="status"
                   >
                     {winner.username}
                   </p>
@@ -253,18 +260,20 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
                 <a
                   href="/"
                   className="block w-full px-8 py-4 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-xl transition text-white"
+                  aria-label="Return to lobby"
                 >
                   Return to Lobby
                 </a>
                 <a
                   href={`/game/${gameId}`}
                   className="block w-full px-8 py-4 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition text-white"
+                  aria-label="View final game board"
                 >
                   View Final Board
                 </a>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     );
@@ -272,8 +281,11 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
 
   return (
     <div className="container mx-auto p-4">
+      {/* Screen reader announcer */}
+      <GameAnnouncer game={game} currentPlayer={currentPlayerData} players={players} />
+
       {/* Header */}
-      <div className="bg-gray-800 rounded-lg p-6 mb-4 border border-gray-700">
+      <header className="bg-gray-800 rounded-lg p-6 mb-4 border border-gray-700">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
@@ -285,15 +297,15 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-400">Status</p>
-            <p className="text-xl font-bold text-white capitalize">{game.status}</p>
+            <p className="text-xl font-bold text-white capitalize" role="status">{game.status}</p>
             {game.phase && (
-              <p className="text-sm text-gray-400 capitalize">
+              <p className="text-sm text-gray-400 capitalize" role="status">
                 Phase: {game.phase}
               </p>
             )}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Start Game Button */}
       {game.status === 'waiting' && (
