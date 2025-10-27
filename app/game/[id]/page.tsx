@@ -11,7 +11,7 @@ export default async function GamePage({
   const { playerId } = await searchParams;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+    <main id="main-content" className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <GameBoard gameId={id} playerId={playerId} />
     </main>
   );
