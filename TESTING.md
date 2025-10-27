@@ -401,26 +401,76 @@ test('user can create and join game', async ({ page }) => {
 
 ## 🚦 CI/CD Integration
 
-### GitHub Actions (Future)
+### GitHub Actions Workflows
 
-```yaml
-# .github/workflows/test.yml
-name: Tests
+Three workflows are configured for automated testing and deployment:
 
-on: [push, pull_request]
+#### 1. Test Workflow (`.github/workflows/test.yml`)
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm ci
-      - run: npm run type-check
-      - run: npm run test -- --coverage
-      - run: npx playwright install
-      - run: npm run test:e2e
+Runs on push to `main`/`develop` and on pull requests:
+
+**Jobs:**
+- **test**: Unit & integration tests with coverage reporting to Codecov
+- **e2e**: Playwright tests across Chromium, Firefox, WebKit
+- **lint**: ESLint checks
+- **build**: Application build with size reporting
+- **status-check**: Aggregates all job results
+
+**Triggers:**
+```bash
+git push origin main          # Runs full test suite
+gh pr create                  # Runs on PR to main/develop
 ```
+
+#### 2. Deploy Workflow (`.github/workflows/deploy.yml`)
+
+Deploys to production on main branch pushes and version tags:
+
+**Steps:**
+1. Type checking
+2. Full test suite (unit + E2E)
+3. Deploy to Vercel (on success)
+4. Create deployment summary
+
+**Required Secrets:**
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
+#### 3. Health Check Workflow (`.github/workflows/cron-health-check.yml`)
+
+Periodic production health monitoring:
+
+**Schedule:** Every 6 hours
+**Checks:** Application endpoint availability
+**Manual trigger:** `gh workflow run cron-health-check.yml`
+
+### Setting Up CI/CD
+
+1. **Add Secrets** (GitHub repo → Settings → Secrets):
+   ```bash
+   VERCEL_TOKEN=<your-vercel-token>
+   VERCEL_ORG_ID=<your-org-id>
+   VERCEL_PROJECT_ID=<your-project-id>
+   CODECOV_TOKEN=<your-codecov-token>  # Optional
+   ```
+
+2. **Verify Workflows**:
+   ```bash
+   # Check workflow status
+   gh workflow list
+
+   # View recent runs
+   gh run list --workflow=test.yml
+
+   # Watch live run
+   gh run watch
+   ```
+
+3. **Branch Protection** (Recommended):
+   - Require status checks to pass before merging
+   - Require `All Tests Passed` check
+   - Enable for `main` branch
 
 ## 🐛 Debugging Tests
 
