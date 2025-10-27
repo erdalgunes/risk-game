@@ -169,7 +169,7 @@ describe('TerritoriesList', () => {
       });
       const currentPlayer = player;
       const game = createTestGame({
-        game_id: mockGameId,
+        id: mockGameId,
         status: 'setup',
         current_player_order: 0,
       });
@@ -208,7 +208,7 @@ describe('TerritoriesList', () => {
         armies_available: 5,
       });
       const game = createTestGame({
-        game_id: mockGameId,
+        id: mockGameId,
         status: 'setup',
         current_player_order: 0,
       });
@@ -247,7 +247,7 @@ describe('TerritoriesList', () => {
         armies_available: 0,
       });
       const game = createTestGame({
-        game_id: mockGameId,
+        id: mockGameId,
         status: 'setup',
         current_player_order: 0,
       });
@@ -286,7 +286,7 @@ describe('TerritoriesList', () => {
         armies_available: 5,
       });
       const game = createTestGame({
-        game_id: mockGameId,
+        id: mockGameId,
         status: 'playing',
         phase: 'attack',
         current_player_order: 0,
@@ -326,7 +326,7 @@ describe('TerritoriesList', () => {
         armies_available: 5,
       });
       const game = createTestGame({
-        game_id: mockGameId,
+        id: mockGameId,
         status: 'playing',
         phase: 'reinforcement',
         current_player_order: 0,
@@ -366,7 +366,7 @@ describe('TerritoriesList', () => {
         armies_available: 5,
       });
       const game = createTestGame({
-        game_id: mockGameId,
+        id: mockGameId,
         status: 'setup',
         current_player_order: 0,
       });
@@ -401,7 +401,7 @@ describe('TerritoriesList', () => {
         armies_available: 0,
       });
       const game = createTestGame({
-        game_id: mockGameId,
+        id: mockGameId,
         status: 'setup',
         current_player_order: 0,
       });

@@ -35,7 +35,17 @@ describe('GameBoard', () => {
     vi.clearAllMocks();
     vi.mocked(gameActions.startGame).mockResolvedValue({ success: true });
     vi.mocked(gameActions.placeArmies).mockResolvedValue({ success: true });
-    vi.mocked(gameActions.attackTerritory).mockResolvedValue({ success: true });
+    vi.mocked(gameActions.attackTerritory).mockResolvedValue({
+      success: true,
+      result: {
+        success: true,
+        attackerDice: [6],
+        defenderDice: [1],
+        attackerLosses: 0,
+        defenderLosses: 1,
+        conquered: true,
+      },
+    });
     vi.mocked(gameActions.fortifyTerritory).mockResolvedValue({ success: true });
   });
 
@@ -362,7 +372,7 @@ describe('GameBoard', () => {
         id: mockPlayerId,
         username: 'You',
         armies_available: 10,
-        color: 'red',
+        color: 'red' as const,
       };
       const game = createTestGame({ status: 'playing' });
       const territories = [
