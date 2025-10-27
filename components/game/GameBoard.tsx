@@ -8,6 +8,7 @@ import { PlayersList } from './PlayersList';
 import { TerritoriesList } from './TerritoriesList';
 import { GameControls } from './GameControls';
 import type { Territory, AttackResult } from '@/types/game';
+import { useToast } from '@/lib/hooks/useToast';
 
 interface GameBoardProps {
   gameId: string;
@@ -17,6 +18,7 @@ interface GameBoardProps {
 export function GameBoard({ gameId, playerId }: GameBoardProps) {
   const { game, players, territories, currentPlayer, loading, error } =
     useGameState(gameId);
+  const { addToast } = useToast();
   const [starting, setStarting] = useState(false);
   const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
   const [armyCount, setArmyCount] = useState(1);
@@ -41,11 +43,11 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
     try {
       const result = await startGame(gameId);
       if (!result.success) {
-        alert(result.error || 'Failed to start game');
+        addToast(result.error || 'Failed to start game', 'error');
       }
     } catch (error) {
       console.error('Error starting game:', error);
-      alert('Failed to start game');
+      addToast('Failed to start game', 'error');
     } finally {
       setStarting(false);
     }
@@ -108,7 +110,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
     try {
       const result = await attackTerritory(gameId, playerId, attackFrom.id, attackTo.id);
       if (!result.success) {
-        alert(result.error || 'Failed to attack');
+        addToast(result.error || 'Failed to attack', 'error');
       } else {
         setAttackResult(result.result || null);
         // Clear attack selection after showing result
@@ -120,7 +122,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       }
     } catch (error) {
       console.error('Error attacking:', error);
-      alert('Failed to attack');
+      addToast('Failed to attack', 'error');
     } finally {
       setAttacking(false);
     }
@@ -138,14 +140,14 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
         armyCount
       );
       if (!result.success) {
-        alert(result.error || 'Failed to place armies');
+        addToast(result.error || 'Failed to place armies', 'error');
       } else {
         setSelectedTerritory(null);
         setArmyCount(1);
       }
     } catch (error) {
       console.error('Error placing armies:', error);
-      alert('Failed to place armies');
+      addToast('Failed to place armies', 'error');
     } finally {
       setPlacing(false);
     }
@@ -164,7 +166,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
         fortifyCount
       );
       if (!result.success) {
-        alert(result.error || 'Failed to fortify');
+        addToast(result.error || 'Failed to fortify', 'error');
       } else {
         // Clear fortify selection
         setFortifyFrom(null);
@@ -173,7 +175,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       }
     } catch (error) {
       console.error('Error fortifying:', error);
-      alert('Failed to fortify');
+      addToast('Failed to fortify', 'error');
     } finally {
       setFortifying(false);
     }

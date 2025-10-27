@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { endTurn, changePhase } from '@/app/actions/game';
 import type { Game, Territory, Player } from '@/types/game';
+import { useToast } from '@/lib/hooks/useToast';
 
 interface GameControlsProps {
   game: Game;
@@ -20,6 +21,7 @@ export function GameControls({
   playerId,
 }: GameControlsProps) {
   const [transitioning, setTransitioning] = useState(false);
+  const { addToast } = useToast();
 
   async function handleEndTurn() {
     if (!playerId) return;
@@ -27,11 +29,11 @@ export function GameControls({
     try {
       const result = await endTurn(gameId, playerId);
       if (!result.success) {
-        alert(result.error || 'Failed to end turn');
+        addToast(result.error || 'Failed to end turn', 'error');
       }
     } catch (error) {
       console.error('Error ending turn:', error);
-      alert('Failed to end turn');
+      addToast('Failed to end turn', 'error');
     } finally {
       setTransitioning(false);
     }
@@ -43,11 +45,11 @@ export function GameControls({
     try {
       const result = await changePhase(gameId, playerId, 'fortify');
       if (!result.success) {
-        alert(result.error || 'Failed to change phase');
+        addToast(result.error || 'Failed to change phase', 'error');
       }
     } catch (error) {
       console.error('Error changing phase:', error);
-      alert('Failed to change phase');
+      addToast('Failed to change phase', 'error');
     } finally {
       setTransitioning(false);
     }
@@ -59,11 +61,11 @@ export function GameControls({
     try {
       const result = await changePhase(gameId, playerId, 'attack');
       if (!result.success) {
-        alert(result.error || 'Failed to change phase');
+        addToast(result.error || 'Failed to change phase', 'error');
       }
     } catch (error) {
       console.error('Error changing phase:', error);
-      alert('Failed to change phase');
+      addToast('Failed to change phase', 'error');
     } finally {
       setTransitioning(false);
     }
