@@ -1,11 +1,34 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 import { SkipLink } from "@/components/SkipLink";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: "#1e3a8a",
+};
+
 export const metadata: Metadata = {
-  title: "Risk Game Clone",
-  description: "Multiplayer Risk board game built with Next.js 15 and Supabase",
+  title: "Risk Game - Multiplayer Strategy",
+  description: "Play the classic Risk board game online with friends. Conquer territories, deploy armies, and dominate the world!",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "Risk Game",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
