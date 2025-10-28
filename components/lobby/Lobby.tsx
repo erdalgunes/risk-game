@@ -159,12 +159,14 @@ export function Lobby() {
             </button>
           </div>
 
-          <div className="space-y-3 max-h-96 overflow-y-auto" role="list" aria-label="Available games">
-            {availableGames.length === 0 ? (
+          {availableGames.length === 0 ? (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               <p className="text-gray-400 text-center py-8" role="status">
                 No games available. Create one!
               </p>
-            ) : (
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto" role="list" aria-label="Available games">{
               availableGames.map((game) => (
                 <article
                   key={game.id}
@@ -204,8 +206,9 @@ export function Lobby() {
                   </div>
                 </article>
               ))
-            )}
-          </div>
+            }
+            </div>
+          )}
         </section>
       </div>
 
