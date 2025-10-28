@@ -10,6 +10,7 @@ import {
 } from '@/tests/factories';
 import * as useGameState from '@/lib/hooks/useGameState';
 import * as gameActions from '@/app/actions/game';
+import { ToastProvider } from '@/components/Toast';
 
 // Mock the useGameState hook
 vi.mock('@/lib/hooks/useGameState', () => ({
@@ -24,8 +25,9 @@ vi.mock('@/app/actions/game', () => ({
   fortifyTerritory: vi.fn(),
 }));
 
-// Mock window.alert
-global.alert = vi.fn();
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
 
 describe('GameBoard', () => {
   const mockGameId = 'game-123';
@@ -60,7 +62,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByText(/loading game/i)).toBeInTheDocument();
       const spinner = document.querySelector('.animate-spin');
@@ -79,7 +81,7 @@ describe('GameBoard', () => {
         error: new Error('Failed to load game'),
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByText(/error loading game/i)).toBeInTheDocument();
       expect(screen.getByText(/failed to load game/i)).toBeInTheDocument();
@@ -95,7 +97,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByText(/game not found/i)).toBeInTheDocument();
     });
@@ -119,7 +121,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByRole('heading', { name: /victory!/i })).toBeInTheDocument();
       expect(screen.getByText('🏆')).toBeInTheDocument();
@@ -142,7 +144,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByText('Champion')).toBeInTheDocument();
       expect(screen.getByText('50')).toBeInTheDocument(); // Turn count
@@ -163,7 +165,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       const lobbyLink = screen.getByRole('link', { name: /return to lobby/i });
       expect(lobbyLink).toHaveAttribute('href', '/');
@@ -184,7 +186,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByRole('heading', { name: /waiting for players/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /start game/i })).toBeInTheDocument();
@@ -203,7 +205,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByText(/3 \/ 6 players joined/i)).toBeInTheDocument();
     });
@@ -221,7 +223,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       const startButton = screen.getByRole('button', { name: /start game/i });
       expect(startButton).toBeDisabled();
@@ -242,7 +244,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       const startButton = screen.getByRole('button', { name: /start game/i });
       await user.click(startButton);
@@ -252,7 +254,7 @@ describe('GameBoard', () => {
       });
     });
 
-    it('should show alert when start game fails', async () => {
+    it('should show toast notification when start game fails', async () => {
       const user = userEvent.setup();
       vi.mocked(gameActions.startGame).mockResolvedValue({
         success: false,
@@ -271,13 +273,13 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       const startButton = screen.getByRole('button', { name: /start game/i });
       await user.click(startButton);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Not enough players');
+        expect(screen.getByText(/not enough players/i)).toBeInTheDocument();
       });
     });
   });
@@ -296,7 +298,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByRole('heading', { name: /risk game/i })).toBeInTheDocument();
       expect(screen.getByText(/game id:/i)).toBeInTheDocument();
@@ -315,7 +317,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByText(/status/i)).toBeInTheDocument();
       expect(screen.getByText(/playing/i)).toBeInTheDocument();
@@ -337,7 +339,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByText(/current turn/i)).toBeInTheDocument();
       expect(screen.getByText(/turn #6/i)).toBeInTheDocument();
@@ -357,7 +359,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       const yourTurnElements = screen.getAllByText(/your turn/i);
       expect(yourTurnElements.length).toBeGreaterThan(0);
@@ -390,7 +392,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByRole('heading', { name: /your info/i })).toBeInTheDocument();
       expect(screen.getByText(/armies available:/i)).toBeInTheDocument();
@@ -415,7 +417,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.queryByRole('heading', { name: /place armies/i })).not.toBeInTheDocument();
     });
@@ -445,7 +447,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       // Click territory to open modal
       const territoryElement = screen.getByText(/alaska/i);
@@ -480,7 +482,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       // GameControls renders attack phase controls
       expect(screen.getByText(/attack enemy territories/i)).toBeInTheDocument();
@@ -501,7 +503,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByRole('heading', { name: /players/i })).toBeInTheDocument();
     });
@@ -524,7 +526,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       expect(screen.getByRole('heading', { name: /territories/i })).toBeInTheDocument();
       expect(screen.getByText(/alaska/i)).toBeInTheDocument();
@@ -557,7 +559,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       // Click your territory (with 2+ armies)
       const alaskaTerritory = screen.getByText(/alaska/i);
@@ -596,7 +598,7 @@ describe('GameBoard', () => {
         error: null,
       });
 
-      render(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
+      renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
 
       // Click first territory
       const alaskaTerritory = screen.getByText(/alaska/i);

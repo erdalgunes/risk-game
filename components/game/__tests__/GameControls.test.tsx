@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { GameControls } from '../GameControls';
 import { createTestGame, createTestPlayer } from '@/tests/factories';
 import * as gameActions from '@/app/actions/game';
+import { ToastProvider } from '@/components/Toast';
 
 // Mock game actions
 vi.mock('@/app/actions/game', () => ({
@@ -11,8 +12,9 @@ vi.mock('@/app/actions/game', () => ({
   changePhase: vi.fn(),
 }));
 
-// Mock window.alert
-global.alert = vi.fn();
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
 
 describe('GameControls', () => {
   const mockGameId = 'game-123';
@@ -29,7 +31,7 @@ describe('GameControls', () => {
       const game = createTestGame({ status: 'waiting' });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -45,7 +47,7 @@ describe('GameControls', () => {
     it('should not render when currentPlayerData is undefined', () => {
       const game = createTestGame({ status: 'waiting' });
 
-      const { container } = render(
+      const { container } = renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={undefined}
@@ -68,7 +70,7 @@ describe('GameControls', () => {
         armies_available: 10,
       });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -91,7 +93,7 @@ describe('GameControls', () => {
         armies_available: 25,
       });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -110,7 +112,7 @@ describe('GameControls', () => {
       const game = createTestGame({ status: 'playing', current_player_order: 1 });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -137,7 +139,7 @@ describe('GameControls', () => {
         armies_available: 5,
       });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -164,7 +166,7 @@ describe('GameControls', () => {
         armies_available: 0,
       });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -192,7 +194,7 @@ describe('GameControls', () => {
         armies_available: 0,
       });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -222,7 +224,7 @@ describe('GameControls', () => {
         armies_available: 3,
       });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -247,7 +249,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -269,7 +271,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -291,7 +293,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -319,7 +321,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -341,7 +343,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -365,7 +367,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -396,7 +398,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -428,7 +430,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -442,7 +444,7 @@ describe('GameControls', () => {
       await user.click(skipButton);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Invalid phase transition');
+        expect(screen.getByText(/invalid phase transition/i)).toBeInTheDocument();
       });
     });
 
@@ -460,7 +462,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -474,7 +476,7 @@ describe('GameControls', () => {
       await user.click(endTurnButton);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Not your turn');
+        expect(screen.getByText(/not your turn/i)).toBeInTheDocument();
       });
     });
 
@@ -489,7 +491,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}
@@ -503,7 +505,7 @@ describe('GameControls', () => {
       await user.click(skipButton);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Failed to change phase');
+        expect(screen.getByText(/failed to change phase/i)).toBeInTheDocument();
       });
     });
   });
@@ -522,7 +524,7 @@ describe('GameControls', () => {
       });
       const player = createTestPlayer({ id: mockPlayerId, turn_order: 0 });
 
-      render(
+      renderWithProviders(
         <GameControls
           game={game}
           currentPlayerData={player}

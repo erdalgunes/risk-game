@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Lobby } from '../Lobby';
 import * as queries from '@/lib/supabase/queries';
+import { ToastProvider } from '@/components/Toast';
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -24,8 +25,9 @@ vi.mock('@/lib/supabase/queries', () => ({
   getAvailableGames: vi.fn(),
 }));
 
-// Mock window.alert
-global.alert = vi.fn();
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
 
 describe('Lobby', () => {
   beforeEach(() => {
@@ -40,28 +42,28 @@ describe('Lobby', () => {
 
   describe('Initial Rendering', () => {
     it('should render lobby with title and description', () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       expect(screen.getByRole('heading', { name: 'Risk' })).toBeInTheDocument();
       expect(screen.getByText('Multiplayer Strategy Game')).toBeInTheDocument();
     });
 
     it('should render create game and join game sections', () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       expect(screen.getByRole('heading', { name: 'Create Game' })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'Available Games' })).toBeInTheDocument();
     });
 
     it('should render how to play instructions', () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       expect(screen.getByRole('heading', { name: 'How to Play' })).toBeInTheDocument();
       expect(screen.getByText(/Enter your username and choose a color/i)).toBeInTheDocument();
     });
 
     it('should load available games on mount', async () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       await waitFor(() => {
         expect(queries.getAvailableGames).toHaveBeenCalledTimes(1);
@@ -72,7 +74,7 @@ describe('Lobby', () => {
   describe('Form Inputs', () => {
     it('should allow entering username', async () => {
       const user = userEvent.setup();
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -82,7 +84,7 @@ describe('Lobby', () => {
 
     it('should allow selecting color', async () => {
       const user = userEvent.setup();
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const colorSelects = screen.getAllByRole('combobox');
       const colorSelect = colorSelects[0];
@@ -94,7 +96,7 @@ describe('Lobby', () => {
 
     it('should allow selecting max players', async () => {
       const user = userEvent.setup();
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const maxPlayersSelect = screen.getAllByRole('combobox')[1];
 
@@ -104,7 +106,7 @@ describe('Lobby', () => {
     });
 
     it('should have all player color options', () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const colorSelect = screen.getAllByRole('combobox')[0];
       const options = within(colorSelect).getAllByRole('option');
@@ -115,7 +117,7 @@ describe('Lobby', () => {
     });
 
     it('should have max player options from 2 to 6', () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const maxPlayersSelect = screen.getAllByRole('combobox')[1];
       const options = within(maxPlayersSelect).getAllByRole('option');
@@ -133,7 +135,7 @@ describe('Lobby', () => {
 
   describe('Create Game Button', () => {
     it('should disable create button when username is empty', () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const createButton = screen.getByRole('button', { name: /create game/i });
 
@@ -142,7 +144,7 @@ describe('Lobby', () => {
 
     it('should enable create button when username is provided', async () => {
       const user = userEvent.setup();
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -154,7 +156,7 @@ describe('Lobby', () => {
 
     it('should show alert when trying to create game without username', async () => {
       const user = userEvent.setup();
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       // Force click on disabled button (in case it's enabled)
       const createButton = screen.getByRole('button', { name: /create game/i });
@@ -171,7 +173,7 @@ describe('Lobby', () => {
       vi.mocked(queries.createGame).mockResolvedValue(mockGame as any);
       vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -193,7 +195,7 @@ describe('Lobby', () => {
       vi.mocked(queries.createGame).mockResolvedValue(mockGame as any);
       vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -213,7 +215,7 @@ describe('Lobby', () => {
       );
       vi.mocked(queries.joinGame).mockResolvedValue({ id: 'player-123' } as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -229,7 +231,7 @@ describe('Lobby', () => {
       const user = userEvent.setup();
       vi.mocked(queries.createGame).mockRejectedValue(new Error('Creation failed'));
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -238,14 +240,14 @@ describe('Lobby', () => {
       await user.click(createButton);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith('Failed to create game. Please try again.');
+        expect(screen.getByText(/failed to create game. please try again./i)).toBeInTheDocument();
       });
     });
   });
 
   describe('Available Games List', () => {
     it('should show "no games available" message when list is empty', async () => {
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       await waitFor(() => {
         expect(screen.getByText(/no games available/i)).toBeInTheDocument();
@@ -270,7 +272,7 @@ describe('Lobby', () => {
 
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       await waitFor(() => {
         expect(screen.getByText(/Game #game-abc/)).toBeInTheDocument();
@@ -290,7 +292,7 @@ describe('Lobby', () => {
 
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       await waitFor(() => {
         expect(screen.getByText(/players: 2 \/ 4/i)).toBeInTheDocument();
@@ -299,7 +301,7 @@ describe('Lobby', () => {
 
     it('should refresh games list when refresh button is clicked', async () => {
       const user = userEvent.setup();
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const refreshButton = screen.getByRole('button', { name: /refresh/i });
       await user.click(refreshButton);
@@ -322,7 +324,7 @@ describe('Lobby', () => {
 
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       await waitFor(() => {
         const joinButton = screen.getByRole('button', { name: /join/i });
@@ -342,7 +344,7 @@ describe('Lobby', () => {
 
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await userEvent.setup().type(usernameInput, 'TestPlayer');
@@ -368,7 +370,7 @@ describe('Lobby', () => {
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
       vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -400,7 +402,7 @@ describe('Lobby', () => {
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
       vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -427,7 +429,7 @@ describe('Lobby', () => {
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
       vi.mocked(queries.joinGame).mockRejectedValue(new Error('Join failed'));
 
-      render(<Lobby />);
+      renderWithProviders(<Lobby />);
 
       const usernameInput = screen.getAllByPlaceholderText(/enter your username/i)[0];
       await user.type(usernameInput, 'TestPlayer');
@@ -436,9 +438,7 @@ describe('Lobby', () => {
       await user.click(joinButton);
 
       await waitFor(() => {
-        expect(global.alert).toHaveBeenCalledWith(
-          'Failed to join game. Color may be taken or game is full.'
-        );
+        expect(screen.getByText(/failed to join game\. color may be taken or game is full\./i)).toBeInTheDocument();
       });
     });
   });
