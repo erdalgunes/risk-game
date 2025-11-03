@@ -6,11 +6,11 @@ import { getGameState } from '@/lib/supabase/queries';
 import type { Game, Player, Territory } from '@/types/game';
 import type { RealtimeChannel, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 
-export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
+export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting' | 'polling';
 
 /**
  * Hook to subscribe to game state with real-time updates
- * Enhanced with reconnection logic and error handling
+ * Enhanced with reconnection logic, error handling, and polling fallback
  */
 export function useGameState(gameId: string | null) {
   const [game, setGame] = useState<Game | null>(null);
@@ -22,7 +22,9 @@ export function useGameState(gameId: string | null) {
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const maxReconnectAttempts = 5;
+  const pollingIntervalMs = 5000; // Poll every 5 seconds when WebSocket fails
 
   const fetchGameData = useCallback(async () => {
     if (!gameId) return;
@@ -33,11 +35,38 @@ export function useGameState(gameId: string | null) {
       setPlayers(state.players);
       setTerritories(state.territories);
       setError(null);
+      return true;
     } catch (err) {
       console.error('Error fetching game state:', err);
       setError(err as Error);
+      return false;
     }
   }, [gameId]);
+
+  const startPollingFallback = useCallback(() => {
+    // Clear any existing polling interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+
+    console.log('Starting polling fallback (WebSocket unavailable)');
+    setConnectionStatus('polling');
+
+    // Poll immediately
+    fetchGameData();
+
+    // Then poll at regular intervals
+    pollingIntervalRef.current = setInterval(() => {
+      fetchGameData();
+    }, pollingIntervalMs);
+  }, [fetchGameData, pollingIntervalMs]);
+
+  const stopPollingFallback = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
 
   const setupRealtimeSubscription = useCallback(() => {
     if (!gameId) return;
@@ -110,6 +139,7 @@ export function useGameState(gameId: string | null) {
         if (status === 'SUBSCRIBED') {
           setConnectionStatus('connected');
           reconnectAttemptsRef.current = 0;
+          stopPollingFallback(); // Stop polling if we reconnected
           setLoading(false);
         } else if (status === 'CHANNEL_ERROR') {
           console.error('Channel error:', err);
@@ -134,11 +164,9 @@ export function useGameState(gameId: string | null) {
               setupRealtimeSubscription();
             }, backoffMs);
           } else {
-            setError(
-              new Error(
-                'Failed to connect after multiple attempts. Please refresh the page.'
-              )
-            );
+            // All reconnection attempts failed, fall back to polling
+            console.warn('All reconnection attempts failed, using polling fallback');
+            startPollingFallback();
           }
         } else if (status === 'CLOSED') {
           setConnectionStatus('disconnected');
@@ -146,7 +174,7 @@ export function useGameState(gameId: string | null) {
       });
 
     channelRef.current = channel;
-  }, [gameId, fetchGameData, maxReconnectAttempts]);
+  }, [gameId, fetchGameData, maxReconnectAttempts, startPollingFallback, stopPollingFallback]);
 
   useEffect(() => {
     if (!gameId) {
@@ -162,8 +190,9 @@ export function useGameState(gameId: string | null) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
+      stopPollingFallback();
     };
-  }, [gameId, fetchGameData, setupRealtimeSubscription]);
+  }, [gameId, fetchGameData, setupRealtimeSubscription, stopPollingFallback]);
 
   // Refetch data when tab becomes visible (handles backgrounded tabs)
   useEffect(() => {

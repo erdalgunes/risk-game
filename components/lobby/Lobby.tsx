@@ -6,6 +6,7 @@ import { createGame, joinGame, getAvailableGames } from '@/lib/supabase/queries'
 import { PLAYER_COLORS } from '@/constants/map';
 import { useToast } from '@/lib/hooks/useToast';
 import { validateUsername } from '@/lib/validation/username';
+import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
 
 export function Lobby() {
   const router = useRouter();
@@ -58,6 +59,14 @@ export function Lobby() {
       return;
     }
 
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.CREATE_GAME;
+    if (!rateLimiter.check('create-game', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('create-game');
+      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
+      return;
+    }
+
     setLoading(true);
     try {
       const game = await createGame(maxPlayers);
@@ -77,6 +86,14 @@ export function Lobby() {
     if (!validation.isValid) {
       setUsernameError(validation.error || 'Invalid username');
       addToast(validation.error || 'Please enter a valid username', 'warning');
+      return;
+    }
+
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.JOIN_GAME;
+    if (!rateLimiter.check('join-game', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('join-game');
+      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
       return;
     }
 
