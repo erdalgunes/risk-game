@@ -12,12 +12,24 @@ import {
 } from '@/lib/game-engine';
 import { canAttack, canFortify } from '@/lib/game-engine/validation';
 import type { Player, Territory, AttackResult } from '@/types/game';
+import { z } from 'zod';
+import {
+  startGameSchema,
+  placeArmiesSchema,
+  endTurnSchema,
+  changePhaseSchema,
+  attackSchema,
+  fortifySchema,
+} from '@/lib/validation/schemas';
+import { verifyPlayerSession, createPlayerSession } from '@/lib/session/player-session';
 
 /**
  * Start the game - distribute territories and set initial armies
  */
 export async function startGame(gameId: string) {
   try {
+    // Validate input
+    const validated = startGameSchema.parse({ gameId });
     const supabase = createServerClient();
 
     // Get all players
@@ -81,6 +93,12 @@ export async function startGame(gameId: string) {
     return { success: true };
   } catch (error) {
     console.error('Error starting game:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -98,6 +116,23 @@ export async function placeArmies(
   count: number
 ) {
   try {
+    // Validate inputs
+    const validated = placeArmiesSchema.parse({
+      gameId,
+      playerId,
+      territoryId,
+      count,
+    });
+
+    // Verify player session
+    const isValidSession = await verifyPlayerSession(gameId, playerId);
+    if (!isValidSession) {
+      return {
+        success: false,
+        error: 'Invalid session. Please rejoin the game.',
+      };
+    }
+
     const supabase = createServerClient();
 
     // Get player
@@ -171,6 +206,12 @@ export async function placeArmies(
     return { success: true };
   } catch (error) {
     console.error('Error placing armies:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -183,6 +224,18 @@ export async function placeArmies(
  */
 export async function endTurn(gameId: string, playerId: string) {
   try {
+    // Validate inputs
+    const validated = endTurnSchema.parse({ gameId, playerId });
+
+    // Verify player session
+    const isValidSession = await verifyPlayerSession(gameId, playerId);
+    if (!isValidSession) {
+      return {
+        success: false,
+        error: 'Invalid session. Please rejoin the game.',
+      };
+    }
+
     const supabase = createServerClient();
 
     // Get game and players
@@ -248,6 +301,12 @@ export async function endTurn(gameId: string, playerId: string) {
     return { success: true };
   } catch (error) {
     console.error('Error ending turn:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -264,6 +323,18 @@ export async function changePhase(
   newPhase: 'attack' | 'fortify'
 ) {
   try {
+    // Validate inputs
+    const validated = changePhaseSchema.parse({ gameId, playerId, newPhase });
+
+    // Verify player session
+    const isValidSession = await verifyPlayerSession(gameId, playerId);
+    if (!isValidSession) {
+      return {
+        success: false,
+        error: 'Invalid session. Please rejoin the game.',
+      };
+    }
+
     const supabase = createServerClient();
 
     // Get game
@@ -301,6 +372,12 @@ export async function changePhase(
     return { success: true };
   } catch (error) {
     console.error('Error changing phase:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -318,6 +395,23 @@ export async function attackTerritory(
   toTerritoryId: string
 ) {
   try {
+    // Validate inputs
+    const validated = attackSchema.parse({
+      gameId,
+      playerId,
+      fromTerritoryId,
+      toTerritoryId,
+    });
+
+    // Verify player session
+    const isValidSession = await verifyPlayerSession(gameId, playerId);
+    if (!isValidSession) {
+      return {
+        success: false,
+        error: 'Invalid session. Please rejoin the game.',
+      };
+    }
+
     const supabase = createServerClient();
 
     // Get game, player, and territories
@@ -445,6 +539,12 @@ export async function attackTerritory(
     return { success: true, result };
   } catch (error) {
     console.error('Error attacking territory:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -463,6 +563,24 @@ export async function fortifyTerritory(
   armyCount: number
 ) {
   try {
+    // Validate inputs
+    const validated = fortifySchema.parse({
+      gameId,
+      playerId,
+      fromTerritoryId,
+      toTerritoryId,
+      armyCount,
+    });
+
+    // Verify player session
+    const isValidSession = await verifyPlayerSession(gameId, playerId);
+    if (!isValidSession) {
+      return {
+        success: false,
+        error: 'Invalid session. Please rejoin the game.',
+      };
+    }
+
     const supabase = createServerClient();
 
     // Get game, player, territories, and all territories for connectivity check
@@ -527,6 +645,12 @@ export async function fortifyTerritory(
     return { success: true };
   } catch (error) {
     console.error('Error fortifying territory:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

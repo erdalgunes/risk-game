@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import type { Game, Player, Territory, GameAction } from '@/types/game';
+import { usernameSchema, maxPlayersSchema, gameIdSchema } from '@/lib/validation/schemas';
 
 /**
  * Fetch a game with all related data
@@ -34,10 +35,13 @@ export async function getGameState(gameId: string) {
  * Create a new game
  */
 export async function createGame(maxPlayers: number = 4) {
+  // Validate input
+  const validatedMaxPlayers = maxPlayersSchema.parse(maxPlayers);
+
   const { data, error } = await supabase
     .from('games')
     .insert({
-      max_players: maxPlayers,
+      max_players: validatedMaxPlayers,
       status: 'waiting',
     })
     .select()
@@ -55,19 +59,23 @@ export async function joinGame(
   username: string,
   color: string
 ) {
+  // Validate inputs
+  const validatedGameId = gameIdSchema.parse(gameId);
+  const validatedUsername = usernameSchema.parse(username);
+
   // Get current player count
   const { count } = await supabase
     .from('players')
     .select('*', { count: 'exact', head: true })
-    .eq('game_id', gameId);
+    .eq('game_id', validatedGameId);
 
   const turnOrder = count || 0;
 
   const { data, error } = await supabase
     .from('players')
     .insert({
-      game_id: gameId,
-      username,
+      game_id: validatedGameId,
+      username: validatedUsername,
       color,
       turn_order: turnOrder,
       armies_available: 0,
