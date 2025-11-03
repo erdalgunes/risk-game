@@ -60,6 +60,8 @@ describe('GameBoard', () => {
         currentPlayer: null,
         loading: true,
         error: null,
+        connectionStatus: 'disconnected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -79,6 +81,8 @@ describe('GameBoard', () => {
         currentPlayer: null,
         loading: false,
         error: new Error('Failed to load game'),
+        connectionStatus: 'disconnected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -95,6 +99,8 @@ describe('GameBoard', () => {
         currentPlayer: null,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -119,6 +125,8 @@ describe('GameBoard', () => {
         currentPlayer: winner,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -142,6 +150,8 @@ describe('GameBoard', () => {
         currentPlayer: winner,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -163,6 +173,8 @@ describe('GameBoard', () => {
         currentPlayer: winner,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -184,6 +196,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -203,6 +217,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -221,6 +237,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -242,6 +260,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -271,6 +291,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -296,6 +318,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -315,6 +339,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -337,6 +363,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -357,6 +385,8 @@ describe('GameBoard', () => {
         currentPlayer: currentPlayerData,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -390,6 +420,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -415,6 +447,8 @@ describe('GameBoard', () => {
         currentPlayer: currentPlayerData,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -445,6 +479,8 @@ describe('GameBoard', () => {
         currentPlayer: currentPlayerData,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -480,6 +516,8 @@ describe('GameBoard', () => {
         currentPlayer: currentPlayerData,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -501,6 +539,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -524,6 +564,8 @@ describe('GameBoard', () => {
         currentPlayer: players[0],
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -557,6 +599,8 @@ describe('GameBoard', () => {
         currentPlayer: currentPlayerData,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
@@ -596,6 +640,8 @@ describe('GameBoard', () => {
         currentPlayer: currentPlayerData,
         loading: false,
         error: null,
+        connectionStatus: 'connected',
+        refetch: vi.fn(),
       });
 
       renderWithProviders(<GameBoard gameId={mockGameId} playerId={mockPlayerId} />);
