@@ -234,11 +234,11 @@ test.describe('Production Flow - Input Validation', () => {
   test('should reject XSS attempts in username', async ({ page }) => {
     await page.goto(PROD_URL);
 
-    // Attempt XSS injection
-    await page.fill('input[placeholder*="name" i], input[name="username"]', '<script>alert("xss")</script>');
+    // Attempt XSS injection (short payload to trigger alphanumeric check, not length)
+    await page.fill('input[placeholder*="name" i], input[name="username"]', '<script>');
 
     // Should show validation error immediately (client-side)
-    await expect(page.getByText(/invalid|only.*letters|alphanumeric/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/can only contain.*letters/i)).toBeVisible({ timeout: 5000 });
 
     // Button should be disabled when validation fails
     const button = page.locator('button:has-text("Create Game")');
