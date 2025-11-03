@@ -135,8 +135,9 @@ export function GameControls({
               onClick={handleMoveToAttack}
               disabled={transitioning}
               className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+              aria-busy={transitioning}
             >
-              Continue to Attack Phase
+              {transitioning ? 'Changing Phase...' : 'Continue to Attack Phase'}
             </button>
           )}
         </div>
@@ -153,8 +154,9 @@ export function GameControls({
               onClick={handleSkipToFortify}
               disabled={transitioning}
               className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+              aria-busy={transitioning}
             >
-              Skip to Fortify Phase
+              {transitioning ? 'Changing Phase...' : 'Skip to Fortify Phase'}
             </button>
           </div>
         </div>
@@ -171,6 +173,7 @@ export function GameControls({
               onClick={handleEndTurn}
               disabled={transitioning}
               className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+              aria-busy={transitioning}
             >
               {transitioning ? 'Ending Turn...' : 'End Turn'}
             </button>
