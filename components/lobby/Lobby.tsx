@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { createGame, joinGame, getAvailableGames } from '@/lib/supabase/queries';
 import { PLAYER_COLORS } from '@/constants/map';
 import { useToast } from '@/lib/hooks/useToast';
+import { validateUsername } from '@/lib/validation/username';
 
 export function Lobby() {
   const router = useRouter();
   const { addToast } = useToast();
   const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0]);
   const [availableGames, setAvailableGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,6 +23,23 @@ export function Lobby() {
     loadAvailableGames();
   }, []);
 
+  function handleUsernameChange(value: string) {
+    setUsername(value);
+
+    // Clear error when user starts typing
+    if (usernameError) {
+      setUsernameError(null);
+    }
+
+    // Validate on change (only if not empty)
+    if (value.trim()) {
+      const validation = validateUsername(value);
+      if (!validation.isValid) {
+        setUsernameError(validation.error || null);
+      }
+    }
+  }
+
   async function loadAvailableGames() {
     try {
       const games = await getAvailableGames();
@@ -31,15 +50,18 @@ export function Lobby() {
   }
 
   async function handleCreateGame() {
-    if (!username.trim()) {
-      addToast('Please enter your username', 'warning');
+    // Validate username
+    const validation = validateUsername(username);
+    if (!validation.isValid) {
+      setUsernameError(validation.error || 'Invalid username');
+      addToast(validation.error || 'Please enter a valid username', 'warning');
       return;
     }
 
     setLoading(true);
     try {
       const game = await createGame(maxPlayers);
-      const player = await joinGame(game.id, username, selectedColor);
+      const player = await joinGame(game.id, username.trim(), selectedColor);
       router.push(`/game/${game.id}?playerId=${player.id}`);
     } catch (error) {
       console.error('Error creating game:', error);
@@ -50,14 +72,17 @@ export function Lobby() {
   }
 
   async function handleJoinGame(gameId: string) {
-    if (!username.trim()) {
-      addToast('Please enter your username', 'warning');
+    // Validate username
+    const validation = validateUsername(username);
+    if (!validation.isValid) {
+      setUsernameError(validation.error || 'Invalid username');
+      addToast(validation.error || 'Please enter a valid username', 'warning');
       return;
     }
 
     setLoading(true);
     try {
-      const player = await joinGame(gameId, username, selectedColor);
+      const player = await joinGame(gameId, username.trim(), selectedColor);
       router.push(`/game/${gameId}?playerId=${player.id}`);
     } catch (error) {
       console.error('Error joining game:', error);
@@ -87,13 +112,24 @@ export function Lobby() {
                 id="username-create"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => handleUsernameChange(e.target.value)}
                 placeholder="Enter your username"
-                className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-blue-500"
+                className={`w-full px-4 py-2 rounded bg-gray-700 border text-white focus:outline-none ${
+                  usernameError
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-600 focus:border-blue-500'
+                }`}
                 aria-required="true"
-                aria-describedby="username-hint"
+                aria-describedby={usernameError ? "username-error" : "username-hint"}
+                aria-invalid={!!usernameError}
               />
-              <span id="username-hint" className="sr-only">Enter a username to identify yourself in the game</span>
+              {usernameError ? (
+                <p id="username-error" className="text-red-400 text-sm mt-1" role="alert">
+                  {usernameError}
+                </p>
+              ) : (
+                <span id="username-hint" className="sr-only">Enter a username to identify yourself in the game</span>
+              )}
             </div>
 
             <div>
@@ -136,7 +172,7 @@ export function Lobby() {
 
             <button
               type="submit"
-              disabled={loading || !username.trim()}
+              disabled={loading || !username.trim() || !!usernameError}
               className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-semibold transition text-white"
               aria-label={loading ? 'Creating game...' : 'Create game'}
               aria-busy={loading}
@@ -191,6 +227,7 @@ export function Lobby() {
                       disabled={
                         loading ||
                         !username.trim() ||
+                        !!usernameError ||
                         (game.players?.length || 0) >= game.max_players
                       }
                       className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white text-sm"
@@ -198,6 +235,7 @@ export function Lobby() {
                       aria-disabled={
                         loading ||
                         !username.trim() ||
+                        !!usernameError ||
                         (game.players?.length || 0) >= game.max_players
                       }
                     >
