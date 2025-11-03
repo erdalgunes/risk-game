@@ -167,12 +167,16 @@ export async function logGameAction(
 
 /**
  * Get available games to join
+ * Only shows games created in the last 24 hours to avoid stale games
  */
 export async function getAvailableGames() {
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
   const { data, error } = await supabase
     .from('games')
     .select('*, players(*)')
     .in('status', ['waiting', 'setup'])
+    .gte('created_at', twentyFourHoursAgo)
     .order('created_at', { ascending: false });
 
   if (error) throw error;

@@ -112,3 +112,26 @@ CREATE TRIGGER update_games_updated_at BEFORE UPDATE ON games
 
 CREATE TRIGGER update_territories_updated_at BEFORE UPDATE ON territories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Function to cleanup stale games
+-- Deletes games in 'waiting' status older than 24 hours
+-- Deletes games in 'setup' status older than 6 hours
+-- Uses ON DELETE CASCADE to automatically clean up related players, territories, and actions
+CREATE OR REPLACE FUNCTION cleanup_stale_games()
+RETURNS TABLE (deleted_count INTEGER) AS $$
+DECLARE
+  count_deleted INTEGER;
+BEGIN
+  -- Delete stale games
+  WITH deleted AS (
+    DELETE FROM games
+    WHERE
+      (status = 'waiting' AND created_at < NOW() - INTERVAL '24 hours')
+      OR (status = 'setup' AND updated_at < NOW() - INTERVAL '6 hours')
+    RETURNING id
+  )
+  SELECT COUNT(*)::INTEGER INTO count_deleted FROM deleted;
+
+  RETURN QUERY SELECT count_deleted;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
