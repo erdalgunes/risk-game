@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-const PROD_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://risk-flhvgi9gj-erdalgunes-projects.vercel.app';
+const PROD_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://risk-red.vercel.app';
 
 /**
  * E2E Production Flow Tests
@@ -30,8 +30,8 @@ test.describe('Production Flow - Game Creation & Join', () => {
     expect(gameId).toBeTruthy();
 
     // Verify Player 1 is in lobby
-    await expect(page.getByText(/Player1/i)).toBeVisible();
-    await expect(page.getByText(/waiting for players/i)).toBeVisible();
+    await expect(page.getByText(/Player1/i).first()).toBeVisible();
+    await expect(page.getByText(/waiting for players/i).first()).toBeVisible();
 
     // Open incognito context for Player 2
     const incognitoContext = await context.browser()!.newContext();
@@ -43,8 +43,8 @@ test.describe('Production Flow - Game Creation & Join', () => {
     await player2Page.click('button:has-text("Join Game")');
 
     // Wait for both players to appear
-    await expect(player2Page.getByText(/Player2/i)).toBeVisible();
-    await expect(page.getByText(/Player2/i)).toBeVisible({ timeout: 10000 });
+    await expect(player2Page.getByText(/Player2/i).first()).toBeVisible();
+    await expect(page.getByText(/Player2/i).first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(/2.*players joined/i)).toBeVisible();
 
     await incognitoContext.close();
@@ -189,11 +189,11 @@ test.describe('Production Flow - Realtime Updates', () => {
     await page.waitForTimeout(2000);
 
     // Player 1 should see Player 2 appear via Realtime
-    await expect(page.getByText(/Player2/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Player2/i).first()).toBeVisible({ timeout: 10000 });
 
     // Player 2 should also see both players
-    await expect(player2Page.getByText(/Player1/i)).toBeVisible();
-    await expect(player2Page.getByText(/Player2/i)).toBeVisible();
+    await expect(player2Page.getByText(/Player1/i).first()).toBeVisible();
+    await expect(player2Page.getByText(/Player2/i).first()).toBeVisible();
 
     // Verify player count updates
     await expect(page.getByText(/2.*players/i)).toBeVisible();
@@ -273,7 +273,7 @@ test.describe('Production Flow - Input Validation', () => {
 
     // Should successfully create game
     await expect(page).toHaveURL(/\/game\//, { timeout: 10000 });
-    await expect(page.getByText(/ValidUser_123/i)).toBeVisible();
+    await expect(page.getByText(/ValidUser_123/i).first()).toBeVisible();
   });
 });
 
