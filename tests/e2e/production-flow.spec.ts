@@ -236,10 +236,13 @@ test.describe('Production Flow - Input Validation', () => {
 
     // Attempt XSS injection
     await page.fill('input[placeholder*="name" i], input[name="username"]', '<script>alert("xss")</script>');
-    await page.click('button:has-text("Create Game")');
 
-    // Should show validation error
+    // Should show validation error immediately (client-side)
     await expect(page.getByText(/invalid|only.*letters|alphanumeric/i)).toBeVisible({ timeout: 5000 });
+
+    // Button should be disabled when validation fails
+    const button = page.locator('button:has-text("Create Game")');
+    await expect(button).toBeDisabled();
 
     // Should NOT create a game
     await expect(page).not.toHaveURL(/\/game\//);
@@ -249,20 +252,26 @@ test.describe('Production Flow - Input Validation', () => {
     await page.goto(PROD_URL);
 
     await page.fill('input[placeholder*="name" i], input[name="username"]', 'a');
-    await page.click('button:has-text("Create Game")');
 
-    // Should show validation error
+    // Should show validation error immediately (client-side)
     await expect(page.getByText(/at least 2 characters|too short/i)).toBeVisible({ timeout: 5000 });
+
+    // Button should be disabled when validation fails
+    const button = page.locator('button:has-text("Create Game")');
+    await expect(button).toBeDisabled();
   });
 
   test('should reject too long username', async ({ page }) => {
     await page.goto(PROD_URL);
 
     await page.fill('input[placeholder*="name" i], input[name="username"]', 'a'.repeat(20));
-    await page.click('button:has-text("Create Game")');
 
-    // Should show validation error
+    // Should show validation error immediately (client-side)
     await expect(page.getByText(/at most 16 characters|too long/i)).toBeVisible({ timeout: 5000 });
+
+    // Button should be disabled when validation fails
+    const button = page.locator('button:has-text("Create Game")');
+    await expect(button).toBeDisabled();
   });
 
   test('should accept valid usernames', async ({ page }) => {
