@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createGame, joinGame, getAvailableGames } from '@/lib/supabase/queries';
+import { getAvailableGames } from '@/lib/supabase/queries';
+import { createGameAction, joinGameAction } from '@/app/actions/game';
 import { PLAYER_COLORS } from '@/constants/map';
 import { useToast } from '@/lib/hooks/useToast';
 import { validateUsername } from '@/lib/validation/username';
@@ -69,9 +70,12 @@ export function Lobby() {
 
     setLoading(true);
     try {
-      const game = await createGame(maxPlayers);
-      const player = await joinGame(game.id, username.trim(), selectedColor);
-      router.push(`/game/${game.id}?playerId=${player.id}`);
+      const response = await createGameAction(username.trim(), selectedColor, maxPlayers);
+      if (response.success && response.result) {
+        router.push(`/game/${response.result.gameId}?playerId=${response.result.playerId}`);
+      } else {
+        throw new Error(response.error || 'Failed to create game');
+      }
     } catch (error) {
       console.error('Error creating game:', error);
       addToast('Failed to create game. Please try again.', 'error');
@@ -99,8 +103,12 @@ export function Lobby() {
 
     setLoading(true);
     try {
-      const player = await joinGame(gameId, username.trim(), selectedColor);
-      router.push(`/game/${gameId}?playerId=${player.id}`);
+      const response = await joinGameAction(gameId, username.trim(), selectedColor);
+      if (response.success && response.result) {
+        router.push(`/game/${response.result.gameId}?playerId=${response.result.playerId}`);
+      } else {
+        throw new Error(response.error || 'Failed to join game');
+      }
     } catch (error) {
       console.error('Error joining game:', error);
       addToast('Failed to join game. Color may be taken or game is full.', 'error');

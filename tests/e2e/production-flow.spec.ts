@@ -238,7 +238,8 @@ test.describe('Production Flow - Input Validation', () => {
     await page.fill('input[placeholder*="name" i], input[name="username"]', '<script>');
 
     // Should show validation error immediately (client-side)
-    await expect(page.getByText(/can only contain.*letters/i)).toBeVisible({ timeout: 5000 });
+    // Exact message: "Username can only contain letters, numbers, underscores, and hyphens"
+    await expect(page.getByText(/can only contain letters, numbers/i)).toBeVisible({ timeout: 5000 });
 
     // Button should be disabled when validation fails
     const button = page.locator('button:has-text("Create Game")');

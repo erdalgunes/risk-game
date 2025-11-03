@@ -20,8 +20,128 @@ import {
   changePhaseSchema,
   attackSchema,
   fortifySchema,
+  gameIdSchema,
+  usernameSchema,
 } from '@/lib/validation/schemas';
 import { verifyPlayerSession, createPlayerSession } from '@/lib/session/player-session';
+
+/**
+ * Create game and join as first player
+ */
+export async function createGameAction(username: string, color: string, maxPlayers: number = 4) {
+  try {
+    const supabase = createServerClient();
+
+    // Create game
+    const { data: game, error: gameError } = await supabase
+      .from('games')
+      .insert({
+        max_players: maxPlayers,
+        status: 'waiting',
+      })
+      .select()
+      .single();
+
+    if (gameError) throw gameError;
+
+    // Join as first player
+    const { data: player, error: playerError } = await supabase
+      .from('players')
+      .insert({
+        game_id: game.id,
+        username: usernameSchema.parse(username),
+        color,
+        turn_order: 0,
+        armies_available: 0,
+      })
+      .select()
+      .single();
+
+    if (playerError) throw playerError;
+
+    // Create session cookie
+    await createPlayerSession(game.id, player.id);
+
+    return {
+      success: true,
+      result: {
+        gameId: game.id,
+        playerId: player.id
+      }
+    };
+  } catch (error) {
+    console.error('Error creating game:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Join an existing game
+ */
+export async function joinGameAction(gameId: string, username: string, color: string) {
+  try {
+    // Validate inputs
+    const validatedGameId = gameIdSchema.parse(gameId);
+    const validatedUsername = usernameSchema.parse(username);
+
+    const supabase = createServerClient();
+
+    // Get current player count
+    const { count } = await supabase
+      .from('players')
+      .select('*', { count: 'exact', head: true })
+      .eq('game_id', validatedGameId);
+
+    const turnOrder = count || 0;
+
+    // Create player
+    const { data: player, error: playerError } = await supabase
+      .from('players')
+      .insert({
+        game_id: validatedGameId,
+        username: validatedUsername,
+        color,
+        turn_order: turnOrder,
+        armies_available: 0,
+      })
+      .select()
+      .single();
+
+    if (playerError) throw playerError;
+
+    // Create session cookie
+    await createPlayerSession(validatedGameId, player.id);
+
+    return {
+      success: true,
+      result: {
+        gameId: validatedGameId,
+        playerId: player.id
+      }
+    };
+  } catch (error) {
+    console.error('Error joining game:', error);
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.issues[0].message,
+      };
+    }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
 
 /**
  * Start the game - distribute territories and set initial armies
