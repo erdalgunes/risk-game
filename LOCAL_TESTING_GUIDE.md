@@ -276,6 +276,268 @@ npm run build
 
 ---
 
+## Tutorial Mode Testing (With Real Supabase)
+
+### Test Case: Complete Tutorial Flow
+
+**Duration:** 10-15 minutes
+**Requires:** Real Supabase credentials configured in `.env.local`
+
+**Setup:**
+1. Navigate to lobby (homepage): http://localhost:3000
+2. Verify "Learn to Play" section visible at top
+
+**Step-by-Step Flow:**
+
+**Step 0 - Welcome Screen (1 min)**
+1. Enter username in tutorial section (e.g., `TestPlayer`)
+2. Click **"Start Tutorial"**
+3. Game loads with tutorial overlay
+
+**Verify:**
+- ✅ Welcome screen displays with tutorial introduction
+- ✅ "Continue" button visible
+- ✅ Pre-configured territories visible in background:
+  - Player (blue): Alaska, Alberta, Ontario (3 territories, 9 armies total)
+  - AI (red): Northwest Territory, Greenland, Iceland, Great Britain, Scandinavia (5 territories, 10 armies total)
+
+4. Click **"Continue"**
+
+**Verify:**
+- ✅ Overlay dismisses
+- ✅ Tutorial step 1 begins
+
+---
+
+**Step 1 - Reinforcement Phase (2 min)**
+
+**Verify:**
+- ✅ Tutorial progress indicator shows "Step 1 of 5"
+- ✅ Objective: "Place your 5 armies on your territories"
+- ✅ Armies available: 5
+
+**Actions:**
+1. Click on Alaska (player territory)
+2. Place 2 armies
+3. Click on Alberta
+4. Place 2 armies
+5. Click on Ontario
+6. Place 1 army
+
+**Verify:**
+- ✅ Army counts update visually
+- ✅ Armies available decreases to 0
+- ✅ Auto-advances to next step when all armies placed
+- ✅ AI turn executes automatically (1.5s delay)
+- ✅ "AI Thinking..." indicator visible during AI turn
+- ✅ AI places armies on its territories
+
+---
+
+**Step 2 - Attack Phase (Selection) (1 min)**
+
+**Verify:**
+- ✅ Tutorial progress: "Step 2 of 5"
+- ✅ Objective: "Select Alaska and attack Northwest Territory"
+- ✅ Phase: Attack
+
+**Actions:**
+1. Click Alaska (should have 2+ armies)
+2. Click Northwest Territory (adjacent AI territory)
+3. Attack modal appears
+
+**Verify:**
+- ✅ Attack modal shows:
+  - From: Alaska (X armies)
+  - To: Northwest Territory (Y armies)
+  - Attack button enabled
+- ✅ Dice counts calculated correctly
+
+---
+
+**Step 3 - Attack Execution (1 min)**
+
+**Actions:**
+1. Click **"Attack!"** button
+2. Watch combat animation/results
+
+**Verify:**
+- ✅ Dice results displayed (attacker and defender)
+- ✅ Army losses calculated correctly
+- ✅ Territory either conquered or defender survives
+- ✅ If conquered: Ownership changes to player, armies moved
+- ✅ If failed: Army counts updated, can attack again
+- ✅ Tutorial advances to next step
+- ✅ AI turn executes (may attack player territories)
+
+---
+
+**Step 4 - Fortify Phase (2 min)**
+
+**Verify:**
+- ✅ Tutorial progress: "Step 4 of 5"
+- ✅ Objective: "Move armies from Alberta to Alaska"
+- ✅ Phase: Fortify
+
+**Actions:**
+1. Click Alberta (source territory)
+2. Click Alaska (destination territory, must be connected)
+3. Use slider to select army count (leave at least 1 in source)
+4. Click "Move X Armies"
+5. Click "End Turn"
+
+**Verify:**
+- ✅ Armies moved correctly between territories
+- ✅ Turn advances to AI
+- ✅ AI executes full turn (reinforcement, attack, fortify)
+- ✅ Tutorial advances to step 5
+
+---
+
+**Step 5 - Continue Playing (5-10 min)**
+
+**Verify:**
+- ✅ Tutorial progress: "Step 5 of 5"
+- ✅ Objective: "Conquer all AI territories to complete the tutorial"
+- ✅ All actions unlocked (no restrictions)
+
+**Actions:**
+1. Play freely using all game mechanics
+2. Continue attacking and conquering AI territories
+3. Aim to eliminate AI by conquering all its territories
+
+**Verify:**
+- ✅ Full reinforcement, attack, fortify cycle works
+- ✅ AI continues playing (places armies, attacks, fortifies)
+- ✅ Combat mechanics work correctly
+- ✅ Territory ownership changes reflected in real-time
+- ✅ When AI has 0 territories:
+  - AI marked as eliminated
+  - Game status changes to "finished"
+  - Winner ID set to player
+  - Victory screen displays
+
+---
+
+**Victory Screen**
+
+**Verify:**
+- ✅ Tutorial completion celebration displays
+- ✅ "What You Learned" summary shows:
+  - Reinforcement
+  - Attack
+  - Fortify
+  - Victory condition
+- ✅ "Play Multiplayer" button visible
+- ✅ "Replay Tutorial" button visible
+- ✅ Buttons navigate correctly
+
+---
+
+### Test Case: Network Interruption Recovery
+
+**Purpose:** Verify tutorial handles network issues gracefully
+
+**Setup:**
+1. Start tutorial, advance to step 3 (attack phase)
+2. Open DevTools → Network tab
+
+**Actions:**
+1. Set throttling to **"Offline"**
+2. Attempt to execute attack
+3. **Verify:** Error message displayed (not silent failure)
+4. Re-enable network
+5. Execute attack again
+
+**Verify:**
+- ✅ Graceful error handling during offline
+- ✅ Game state resumes correctly when back online
+- ✅ No duplicate attacks or state corruption
+- ✅ Supabase Realtime reconnects automatically
+
+---
+
+### Test Case: Concurrent Browser Tabs
+
+**Purpose:** Verify real-time sync works in tutorial mode
+
+**Setup:**
+1. Start tutorial in Tab 1
+2. Copy game URL from address bar
+3. Open same URL in Tab 2
+
+**Actions:**
+1. Execute action in Tab 1 (place armies)
+2. Watch Tab 2
+
+**Verify:**
+- ✅ Both tabs show same game state (Realtime sync)
+- ✅ Army placements visible in both tabs
+- ✅ AI turns visible in both tabs
+- ✅ Close Tab 2, Tab 1 continues without issues
+- ✅ No state corruption or duplicate actions
+
+---
+
+### Test Case: AI Elimination Victory (Edge Case)
+
+**Purpose:** Verify edge case where AI conquers all player territories
+
+**Setup:**
+1. Start tutorial
+2. Intentionally lose territories to AI
+
+**Actions:**
+1. Advance to attack phase
+2. Attack AI with weak armies (1-2 armies vs 5+ armies)
+3. Lose multiple attacks
+4. Allow AI to conquer player territories during AI turns
+5. Continue until player has 0 territories
+
+**Verify:**
+- ✅ Player marked as `is_eliminated: true` in database
+- ✅ Game status changes to "finished"
+- ✅ Winner ID set to AI player
+- ✅ Defeat screen displays appropriately
+- ✅ "Replay Tutorial" option available
+- ✅ No infinite loops or stuck states
+
+---
+
+### Test Case: Tutorial Database State
+
+**Purpose:** Verify database records created correctly
+
+**Setup:**
+1. Complete full tutorial flow
+2. Open Supabase dashboard
+
+**Verify in Database:**
+
+**games table:**
+- ✅ `is_tutorial = true`
+- ✅ `tutorial_step` ranges from 0 to 5
+- ✅ `max_players = 2`
+- ✅ `status` progresses: setup → playing → finished
+
+**players table:**
+- ✅ 2 players created (human + AI)
+- ✅ Human player: `is_ai = false`, chosen color
+- ✅ AI player: `is_ai = true`, username = "Tutorial AI", red color
+
+**territories table:**
+- ✅ 8 total territories (3 player, 5 AI initially)
+- ✅ Correct territory names (Alaska, Alberta, Ontario, etc.)
+- ✅ Ownership changes tracked correctly during game
+- ✅ Army counts update in real-time
+
+**game_actions table:**
+- ✅ All actions logged (place_armies, attack, fortify, end_turn)
+- ✅ Timestamps in correct order
+- ✅ Action details JSON valid
+
+---
+
 ## Component Testing
 
 ### Test Individual Components

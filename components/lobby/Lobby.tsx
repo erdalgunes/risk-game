@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAvailableGames } from '@/lib/supabase/queries';
 import { createGameAction, joinGameAction } from '@/app/actions/game';
+import { createTutorialGame } from '@/app/actions/tutorial';
 import { PLAYER_COLORS } from '@/constants/map';
 import { useToast } from '@/lib/hooks/useToast';
 import { validateUsername } from '@/lib/validation/username';
@@ -117,12 +118,81 @@ export function Lobby() {
     }
   }
 
+  async function handleStartTutorial() {
+    // Validate username
+    const validation = validateUsername(username);
+    if (!validation.isValid) {
+      setUsernameError(validation.error || 'Invalid username');
+      addToast(validation.error || 'Please enter a valid username', 'warning');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await createTutorialGame(username.trim());
+      if (response.success && response.result) {
+        router.push(`/game/${response.result.gameId}?playerId=${response.result.playerId}`);
+      } else {
+        throw new Error(response.error || 'Failed to create tutorial');
+      }
+    } catch (error) {
+      console.error('Error creating tutorial:', error);
+      addToast('Failed to start tutorial. Please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="w-full max-w-4xl">
       <div className="text-center mb-12">
         <h1 className="text-6xl font-bold mb-4 text-white">Risk</h1>
         <p className="text-xl text-gray-300">Multiplayer Strategy Game</p>
       </div>
+
+      {/* Tutorial Section */}
+      <section className="mb-8 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg p-6 border-2 border-purple-500" aria-labelledby="tutorial-heading">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h2 id="tutorial-heading" className="text-3xl font-bold mb-2 text-white flex items-center gap-3">
+              <span className="text-4xl" aria-hidden="true">🎓</span>
+              Learn to Play
+            </h2>
+            <p className="text-gray-300 mb-4">
+              New to Risk? Start with the interactive tutorial to learn the basics!
+            </p>
+            <div className="space-y-2">
+              <label htmlFor="username-tutorial" className="block text-sm font-medium text-gray-300">
+                Enter your name to begin
+              </label>
+              <div className="flex gap-3">
+                <input
+                  id="username-tutorial"
+                  type="text"
+                  value={username}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  placeholder="Your username"
+                  className={`flex-1 px-4 py-2 rounded bg-gray-700 border text-white focus:outline-none ${
+                    usernameError
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-600 focus:border-purple-500'
+                  }`}
+                  aria-required="true"
+                  aria-invalid={!!usernameError}
+                />
+                <button
+                  onClick={handleStartTutorial}
+                  disabled={loading || !username.trim() || !!usernameError}
+                  className="px-8 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-bold transition text-white whitespace-nowrap"
+                  aria-label="Start tutorial"
+                >
+                  {loading ? 'Starting...' : 'Start Tutorial'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Create Game Section */}

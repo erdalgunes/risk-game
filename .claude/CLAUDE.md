@@ -171,6 +171,54 @@ waiting → setup → playing
 2. Update adjacency map
 3. Run `npm run type-check` to verify TerritoryName union type
 
+## Tutorial Feature
+
+**Tutorial Mode**: Single-player vs AI for teaching game mechanics
+
+**Key Files:**
+- `/lib/ai/tutorial-ai.ts` - AI decision engine (pure functions, NO side effects)
+- `/constants/tutorial.ts` - Tutorial scenario & step definitions
+- `/app/actions/tutorial.ts` - Server Actions (createTutorialGame, executeAITurn, advanceTutorialStep)
+- `/components/tutorial/` - UI overlays (TutorialOverlay, TutorialProgress, TutorialVictory)
+
+**Architecture:**
+- AI engine follows same pure function pattern as game engine
+- Reuses existing game engine (combat, reinforcements, validation)
+- Tutorial scenario: Pre-configured territory distribution (player: 3, AI: 5)
+- 6-step guided flow: Welcome → Reinforcement → Attack (2 steps) → Fortify → Free Play
+
+**Adding New Tutorial Steps:**
+1. Edit `TUTORIAL_STEPS` array in `/constants/tutorial.ts`
+2. Add step definition with:
+   - `title`: Display name (e.g., "Learn to Attack")
+   - `description`: Instructional text
+   - `objective`: Clear goal (e.g., "Attack Northwest Territory from Alaska")
+   - `phase`: Game phase for this step ('setup', 'reinforcement', 'attack', 'fortify')
+   - `allowedActions`: Array of allowed actions ('place', 'attack', 'fortify', 'end_turn')
+3. Update `advanceTutorialStep()` in `/app/actions/tutorial.ts` if custom behavior needed
+4. Test full tutorial flow to ensure progression works correctly
+
+**Modifying AI Behavior:**
+1. Edit decision functions in `/lib/ai/tutorial-ai.ts`:
+   - `decidePlaceArmies()`: Where to place reinforcement armies
+   - `decideAttack()`: Which territory to attack from/to
+   - `decideFortify()`: How to move armies between territories
+   - `shouldContinueAttacking()`: Attack count limits per turn
+2. Maintain pure function pattern (NO side effects, NO mutations)
+3. Keep AI predictable and teaching-focused (not aggressive)
+4. Test against tutorial scenario territories
+
+**Important Constraints:**
+- Tutorial AI is intentionally simple and limited to 2 attacks/turn
+- DO NOT make AI too aggressive - defeats the learning purpose
+- Territory mutation bug: Always clone territories before modification (`.map(t => ({ ...t }))`)
+- AI turn has 1.5s delay for visual feedback - configurable via env var `NEXT_PUBLIC_TUTORIAL_AI_DELAY`
+
+**Testing Tutorial:**
+- Manual: Complete full flow (10-15 min) with real Supabase
+- Automated: Run `npm run test` (includes tutorial-ai.test.ts and tutorial.test.ts)
+- Edge cases: Network interruption, concurrent tabs, AI elimination victory
+
 ## Troubleshooting
 
 **"Missing Supabase environment variables":**

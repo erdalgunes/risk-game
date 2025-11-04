@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameState } from '@/lib/hooks/useGameState';
 import { startGame, placeArmies, attackTerritory, fortifyTerritory } from '@/app/actions/game';
+import { executeAITurn, advanceTutorialStep } from '@/app/actions/tutorial';
 import { areTerritoriesAdjacent } from '@/constants/map';
 import { PlayersList } from './PlayersList';
 import { TerritoriesList } from './TerritoriesList';
@@ -10,6 +11,9 @@ import { RiskMap } from './RiskMap';
 import { GameControls } from './GameControls';
 import { GameAnnouncer } from './GameAnnouncer';
 import { JoinGameModal } from './JoinGameModal';
+import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
+import { TutorialProgress } from '@/components/tutorial/TutorialProgress';
+import { TutorialVictory } from '@/components/tutorial/TutorialVictory';
 import type { Territory, AttackResult } from '@/types/game';
 import { useToast } from '@/lib/hooks/useToast';
 import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
@@ -41,7 +45,57 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   const [fortifyCount, setFortifyCount] = useState(1);
   const [fortifying, setFortifying] = useState(false);
 
+  // Tutorial state
+  const [executingAI, setExecutingAI] = useState(false);
+
   const currentPlayerData = players.find((p) => p.id === playerId);
+  const isTutorialMode = game?.is_tutorial || false;
+  const tutorialStep = game?.tutorial_step || 0;
+
+  // Ref for AI turn execution to avoid stale closures
+  const executeAITurnRef = useRef<(() => Promise<void>) | undefined>(undefined);
+
+  async function handleExecuteAITurn() {
+    if (executingAI) return;
+
+    setExecutingAI(true);
+    try {
+      const result = await executeAITurn(gameId);
+      if (!result.success) {
+        addToast(result.error || 'AI turn failed', 'error');
+      }
+    } catch (error) {
+      console.error('Error executing AI turn:', error);
+      addToast('AI turn failed', 'error');
+    } finally {
+      setExecutingAI(false);
+    }
+  }
+
+  // Update ref when function changes
+  useEffect(() => {
+    executeAITurnRef.current = handleExecuteAITurn;
+  }, [handleExecuteAITurn]);
+
+  // Auto-execute AI turn in tutorial mode
+  useEffect(() => {
+    if (!isTutorialMode || !game || !currentPlayer) return;
+    if (executingAI) return;
+    if (game.status !== 'playing') return;
+
+    // Check if it's AI's turn
+    const isAITurn = currentPlayer.is_ai && game.current_player_order === currentPlayer.turn_order;
+
+    if (isAITurn && executeAITurnRef.current) {
+      // Configurable AI turn delay (default 1500ms for visual feedback)
+      const aiDelay = parseInt(process.env.NEXT_PUBLIC_TUTORIAL_AI_DELAY || '1500', 10);
+      const timer = setTimeout(() => {
+        executeAITurnRef.current?.();
+      }, aiDelay);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isTutorialMode, game?.status, game?.current_player_order, currentPlayer?.is_ai, currentPlayer?.turn_order, executingAI]);
 
   async function handleStartGame() {
     setStarting(true);
@@ -165,6 +219,16 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       } else {
         setSelectedTerritory(null);
         setArmyCount(1);
+
+        // Tutorial: Check if all armies placed (step 1)
+        if (isTutorialMode && tutorialStep === 1) {
+          const newArmiesAvailable = currentPlayerData.armies_available - armyCount;
+          if (newArmiesAvailable === 0) {
+            setTimeout(async () => {
+              await advanceTutorialStep(gameId, playerId);
+            }, 1000);
+          }
+        }
       }
     } catch (error) {
       console.error('Error placing armies:', error);
@@ -236,6 +300,11 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   // Show join modal if no playerId
   if (!playerId) {
     return <JoinGameModal gameId={gameId} game={game} players={players} />;
+  }
+
+  // Tutorial Victory Screen
+  if (game.status === 'finished' && isTutorialMode) {
+    return <TutorialVictory gameId={gameId} />;
   }
 
   // Victory Screen
@@ -312,8 +381,22 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
 
   return (
     <div className="container mx-auto p-md3-4">
+      {/* Tutorial Overlay (Step 0 - Welcome) */}
+      {isTutorialMode && tutorialStep === 0 && playerId && (
+        <TutorialOverlay
+          gameId={gameId}
+          playerId={playerId}
+          currentStep={tutorialStep}
+        />
+      )}
+
       {/* Screen reader announcer */}
       <GameAnnouncer game={game} currentPlayer={currentPlayerData} players={players} />
+
+      {/* Tutorial Progress */}
+      {isTutorialMode && tutorialStep > 0 && (
+        <TutorialProgress currentStep={tutorialStep} />
+      )}
 
       {/* Header */}
       <header className="bg-surface-container-low rounded-md3-lg p-md3-6 mb-md3-4 border border-outline-variant shadow-md3-1">
@@ -338,8 +421,8 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
         </div>
       </header>
 
-      {/* Start Game Button */}
-      {game.status === 'waiting' && (
+      {/* Start Game Button (not shown in tutorial mode) */}
+      {game.status === 'waiting' && !isTutorialMode && (
         <div className="bg-tertiary-container rounded-md3-lg p-md3-6 mb-md3-4 border border-tertiary shadow-md3-2 animate-md3-spring-bounce">
           <div className="flex items-center justify-between">
             <div>
@@ -384,6 +467,12 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
               {currentPlayerData?.id === currentPlayer?.id && (
                 <div className="bg-tertiary px-md3-4 py-md3-2 rounded-md3-xl shadow-md3-2 animate-md3-spring-bounce">
                   <p className="text-label-large text-tertiary-on">Your Turn</p>
+                </div>
+              )}
+              {isTutorialMode && currentPlayer?.is_ai && (
+                <div className="bg-red-600 px-4 py-2 rounded-lg flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" aria-hidden="true"></div>
+                  <p className="font-semibold text-white">AI Thinking...</p>
                 </div>
               )}
             </div>
