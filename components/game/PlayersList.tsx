@@ -24,6 +24,8 @@ export function PlayersList({
           return (
             <div
               key={player.id}
+              data-testid={`player-${player.id}`}
+              data-player-username={player.username}
               className={`p-3 rounded-lg border ${
                 isCurrentTurn
                   ? 'bg-blue-900 border-blue-600'
@@ -36,7 +38,7 @@ export function PlayersList({
                     className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: player.color }}
                   />
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-white" data-testid="player-name">
                     {player.username}
                     {isYou && ' (You)'}
                   </span>
