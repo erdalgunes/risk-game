@@ -31,7 +31,7 @@ test.describe('Production Flow - Game Creation & Join', () => {
 
     // Wait for game page to load and Player 1 to appear in player list
     await expect(page.getByTestId('player-name').filter({ hasText: /Player1/i })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(/waiting|setup/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/waiting|setup/i).first()).toBeVisible({ timeout: 10000 });
 
     // Open incognito context for Player 2
     const incognitoContext = await context.browser()!.newContext();
@@ -70,6 +70,10 @@ test.describe('Production Flow - Session Security', () => {
   });
 
   test('should have HttpOnly session cookie', async ({ page }) => {
+    // Reload page to ensure Server Action cookie is synced
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
     const cookies = await page.context().cookies();
     const sessionCookie = cookies.find(c => c.name.startsWith('player_session_'));
 
@@ -254,7 +258,8 @@ test.describe('Production Flow - Input Validation', () => {
     await page.fill('#username-create', '<script>');
 
     // Should show validation error immediately (client-side)
-    await expect(page.getByText(/can only contain letters, numbers/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#username-error')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#username-error')).toContainText(/can only contain letters, numbers/i);
 
     // Button should be disabled when validation fails
     const button = page.locator('button:has-text("Create Game")');
@@ -270,7 +275,8 @@ test.describe('Production Flow - Input Validation', () => {
     await page.fill('#username-create', 'a');
 
     // Should show validation error immediately (client-side)
-    await expect(page.getByText(/at least 2 characters|too short/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#username-error')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#username-error')).toContainText(/at least 2 characters/i);
 
     // Button should be disabled when validation fails
     const button = page.locator('button:has-text("Create Game")');
@@ -283,7 +289,8 @@ test.describe('Production Flow - Input Validation', () => {
     await page.fill('#username-create', 'a'.repeat(20));
 
     // Should show validation error immediately (client-side)
-    await expect(page.getByText(/at most 16 characters|too long/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#username-error')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#username-error')).toContainText(/at most 16 characters/i);
 
     // Button should be disabled when validation fails
     const button = page.locator('button:has-text("Create Game")');
