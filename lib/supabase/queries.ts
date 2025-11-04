@@ -1,34 +1,37 @@
 import { supabase } from './client';
 import type { Game, Player, Territory, GameAction } from '@/types/game';
 import { usernameSchema, maxPlayersSchema, gameIdSchema } from '@/lib/validation/schemas';
+import { monitorQuery } from '@/lib/monitoring/performance';
 
 /**
  * Fetch a game with all related data
  */
 export async function getGameState(gameId: string) {
-  const [gameResult, playersResult, territoriesResult] = await Promise.all([
-    supabase.from('games').select('*').eq('id', gameId).single(),
-    supabase.from('players').select('*').eq('game_id', gameId).order('turn_order'),
-    supabase.from('territories').select('*').eq('game_id', gameId),
-  ]);
+  return monitorQuery('getGameState', 'games', async () => {
+    const [gameResult, playersResult, territoriesResult] = await Promise.all([
+      supabase.from('games').select('*').eq('id', gameId).single(),
+      supabase.from('players').select('*').eq('game_id', gameId).order('turn_order'),
+      supabase.from('territories').select('*').eq('game_id', gameId),
+    ]);
 
-  if (gameResult.error) throw gameResult.error;
-  if (playersResult.error) throw playersResult.error;
-  if (territoriesResult.error) throw territoriesResult.error;
+    if (gameResult.error) throw gameResult.error;
+    if (playersResult.error) throw playersResult.error;
+    if (territoriesResult.error) throw territoriesResult.error;
 
-  const game = gameResult.data as Game;
-  const players = playersResult.data as Player[];
-  const territories = territoriesResult.data as Territory[];
+    const game = gameResult.data as Game;
+    const players = playersResult.data as Player[];
+    const territories = territoriesResult.data as Territory[];
 
-  const currentPlayer =
-    players.find((p) => p.turn_order === game.current_player_order) || null;
+    const currentPlayer =
+      players.find((p) => p.turn_order === game.current_player_order) || null;
 
-  return {
-    game,
-    players,
-    territories,
-    currentPlayer,
-  };
+    return {
+      game,
+      players,
+      territories,
+      currentPlayer,
+    };
+  });
 }
 
 /**
