@@ -10,6 +10,7 @@ import { GameControls } from './GameControls';
 import { GameAnnouncer } from './GameAnnouncer';
 import type { Territory, AttackResult } from '@/types/game';
 import { useToast } from '@/lib/hooks/useToast';
+import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
 
 interface GameBoardProps {
   gameId: string;
@@ -107,6 +108,14 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   async function handleAttack() {
     if (!attackFrom || !attackTo || !playerId) return;
 
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.ATTACK;
+    if (!rateLimiter.check('attack', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('attack');
+      addToast(`Too many attacks. Please wait ${resetTime} seconds.`, 'warning');
+      return;
+    }
+
     setAttacking(true);
     try {
       const result = await attackTerritory(gameId, playerId, attackFrom.id, attackTo.id);
@@ -132,6 +141,14 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   async function handlePlaceArmies() {
     if (!selectedTerritory || !playerId || !currentPlayerData) return;
 
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.PLACE_ARMIES;
+    if (!rateLimiter.check('place-armies', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('place-armies');
+      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
+      return;
+    }
+
     setPlacing(true);
     try {
       const result = await placeArmies(
@@ -156,6 +173,14 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
 
   async function handleFortify() {
     if (!fortifyFrom || !fortifyTo || !playerId) return;
+
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.FORTIFY;
+    if (!rateLimiter.check('fortify', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('fortify');
+      addToast(`Too many fortifications. Please wait ${resetTime} seconds.`, 'warning');
+      return;
+    }
 
     setFortifying(true);
     try {

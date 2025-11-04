@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { endTurn, changePhase } from '@/app/actions/game';
 import type { Game, Territory, Player } from '@/types/game';
 import { useToast } from '@/lib/hooks/useToast';
+import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
 
 interface GameControlsProps {
   game: Game;
@@ -25,6 +26,15 @@ export function GameControls({
 
   async function handleEndTurn() {
     if (!playerId) return;
+
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.END_TURN;
+    if (!rateLimiter.check('end-turn', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('end-turn');
+      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
+      return;
+    }
+
     setTransitioning(true);
     try {
       const result = await endTurn(gameId, playerId);
@@ -41,6 +51,15 @@ export function GameControls({
 
   async function handleSkipToFortify() {
     if (!playerId) return;
+
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.CHANGE_PHASE;
+    if (!rateLimiter.check('change-phase', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('change-phase');
+      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
+      return;
+    }
+
     setTransitioning(true);
     try {
       const result = await changePhase(gameId, playerId, 'fortify');
@@ -57,6 +76,15 @@ export function GameControls({
 
   async function handleMoveToAttack() {
     if (!playerId) return;
+
+    // Rate limiting
+    const { limit, windowMs } = RATE_LIMITS.CHANGE_PHASE;
+    if (!rateLimiter.check('change-phase', limit, windowMs)) {
+      const resetTime = rateLimiter.getResetTime('change-phase');
+      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
+      return;
+    }
+
     setTransitioning(true);
     try {
       const result = await changePhase(gameId, playerId, 'attack');
