@@ -109,13 +109,37 @@ export function getWinner(
 }
 
 /**
- * Distribute territories randomly at game start
+ * Fisher-Yates shuffle algorithm for uniform random distribution
+ *
+ * CRITICAL: Do NOT use .sort(() => Math.random() - 0.5) as it creates biased results
+ * This implementation guarantees every permutation is equally likely.
+ *
+ * Time Complexity: O(n)
+ * Space Complexity: O(1) in-place
+ *
+ * @see https://en.wikipedia.org/wiki/Fisher–Yates_shuffle
+ * @see https://bost.ocks.org/mike/shuffle/
+ */
+export function fisherYatesShuffle<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Distribute territories randomly at game start using Fisher-Yates shuffle
+ *
+ * This ensures fair and unbiased territory distribution among all players.
+ * Every territory has an equal chance of being assigned to any player.
  */
 export function distributeTerritoriesRandomly(
   allTerritoryNames: TerritoryName[],
   players: Player[]
 ): Map<TerritoryName, string> {
-  const shuffled = [...allTerritoryNames].sort(() => Math.random() - 0.5);
+  const shuffled = fisherYatesShuffle(allTerritoryNames);
   const distribution = new Map<TerritoryName, string>();
 
   shuffled.forEach((territoryName, index) => {
