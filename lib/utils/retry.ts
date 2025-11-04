@@ -1,7 +1,7 @@
 /**
  * Retry utility for handling transient network failures
  *
- * Implements exponential backoff with configurable retry attempts
+ * Implements exponential backoff with jitter to prevent thundering herd problem
  */
 
 export interface RetryOptions {
@@ -9,6 +9,8 @@ export interface RetryOptions {
   delayMs?: number;
   backoffMultiplier?: number;
   maxDelayMs?: number;
+  /** Add random jitter (0-20% of delay) to prevent thundering herd */
+  jitter?: boolean;
   onRetry?: (error: Error, attempt: number) => void;
 }
 
@@ -17,6 +19,7 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
   delayMs: 1000,
   backoffMultiplier: 2,
   maxDelayMs: 10000,
+  jitter: true,
   onRetry: () => {},
 };
 
@@ -49,10 +52,16 @@ export async function retry<T>(
       config.onRetry(lastError, attempt);
 
       // Calculate delay with exponential backoff
-      const delay = Math.min(
+      let delay = Math.min(
         config.delayMs * Math.pow(config.backoffMultiplier, attempt - 1),
         config.maxDelayMs
       );
+
+      // Add jitter to prevent thundering herd (0-20% random variance)
+      if (config.jitter) {
+        const jitterAmount = delay * 0.2 * Math.random();
+        delay = Math.floor(delay + jitterAmount);
+      }
 
       // Wait before retrying
       await sleep(delay);
@@ -87,10 +96,16 @@ export async function retryOnError<T>(
 
       config.onRetry(lastError, attempt);
 
-      const delay = Math.min(
+      let delay = Math.min(
         config.delayMs * Math.pow(config.backoffMultiplier, attempt - 1),
         config.maxDelayMs
       );
+
+      // Add jitter to prevent thundering herd (0-20% random variance)
+      if (config.jitter) {
+        const jitterAmount = delay * 0.2 * Math.random();
+        delay = Math.floor(delay + jitterAmount);
+      }
 
       await sleep(delay);
     }
