@@ -98,20 +98,12 @@ export async function monitorQuery<T>(
 }
 
 /**
- * Log query metrics to console in development
+ * Log query metrics to Sentry (production) or console (development)
+ * Console logging removed for production readiness
  */
 function logQueryMetrics(metrics: QueryMetrics): void {
-  if (process.env.NODE_ENV === 'development') {
-    const { operation, table, duration, success, error } = metrics;
-    const emoji = success ? '✅' : '❌';
-    const slowWarning = duration > SLOW_QUERY_THRESHOLD ? ' ⚠️ SLOW' : '';
-
-    console.log(
-      `${emoji} DB Query: ${table}.${operation} (${duration.toFixed(2)}ms)${slowWarning}${
-        error ? ` - ${error}` : ''
-      }`
-    );
-  }
+  // Metrics are now only sent to Sentry via captureQueryMetrics()
+  // No console logging in production
 }
 
 /**

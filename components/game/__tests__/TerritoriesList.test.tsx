@@ -488,7 +488,7 @@ describe('TerritoriesList', () => {
         />
       );
 
-      const northAmericaSection = screen.getByText(/north america/i).closest('div');
+      const northAmericaSection = screen.getByText(/north america/i).closest('div')?.parentElement;
       expect(northAmericaSection).toBeInTheDocument();
 
       if (northAmericaSection) {

@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Lobby } from '../Lobby';
 import * as queries from '@/lib/supabase/queries';
+import * as gameActions from '@/app/actions/game';
 import { ToastProvider } from '@/components/Toast';
 
 // Mock Next.js router
@@ -23,6 +24,12 @@ vi.mock('@/lib/supabase/queries', () => ({
   createGame: vi.fn(),
   joinGame: vi.fn(),
   getAvailableGames: vi.fn(),
+}));
+
+// Mock Server Actions
+vi.mock('@/app/actions/game', () => ({
+  createGameAction: vi.fn(),
+  joinGameAction: vi.fn(),
 }));
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -165,13 +172,13 @@ describe('Lobby', () => {
       expect(createButton).toBeDisabled();
     });
 
-    it('should call createGame and joinGame when create button is clicked', async () => {
+    it('should call createGameAction when create button is clicked', async () => {
       const user = userEvent.setup();
-      const mockGame = { id: 'game-123', max_players: 4 };
-      const mockPlayer = { id: 'player-123', username: 'TestPlayer' };
 
-      vi.mocked(queries.createGame).mockResolvedValue(mockGame as any);
-      vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
+      vi.mocked(gameActions.createGameAction).mockResolvedValue({
+        success: true,
+        result: { gameId: 'game-123', playerId: 'player-456' }
+      });
 
       renderWithProviders(<Lobby />);
 
@@ -182,18 +189,17 @@ describe('Lobby', () => {
       await user.click(createButton);
 
       await waitFor(() => {
-        expect(queries.createGame).toHaveBeenCalledWith(4);
-        expect(queries.joinGame).toHaveBeenCalledWith('game-123', 'TestPlayer', 'red');
+        expect(gameActions.createGameAction).toHaveBeenCalledWith('TestPlayer', 'red', 4);
       });
     });
 
     it('should navigate to game page after successful creation', async () => {
       const user = userEvent.setup();
-      const mockGame = { id: 'game-123', max_players: 4 };
-      const mockPlayer = { id: 'player-456', username: 'TestPlayer' };
 
-      vi.mocked(queries.createGame).mockResolvedValue(mockGame as any);
-      vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
+      vi.mocked(gameActions.createGameAction).mockResolvedValue({
+        success: true,
+        result: { gameId: 'game-123', playerId: 'player-456' }
+      });
 
       renderWithProviders(<Lobby />);
 
@@ -210,10 +216,12 @@ describe('Lobby', () => {
 
     it('should show loading state during game creation', async () => {
       const user = userEvent.setup();
-      vi.mocked(queries.createGame).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: 'game-123' } as any), 100))
+      vi.mocked(gameActions.createGameAction).mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({
+          success: true,
+          result: { gameId: 'game-123', playerId: 'player-456' }
+        }), 100))
       );
-      vi.mocked(queries.joinGame).mockResolvedValue({ id: 'player-123' } as any);
 
       renderWithProviders(<Lobby />);
 
@@ -229,7 +237,10 @@ describe('Lobby', () => {
 
     it('should show alert on game creation failure', async () => {
       const user = userEvent.setup();
-      vi.mocked(queries.createGame).mockRejectedValue(new Error('Creation failed'));
+      vi.mocked(gameActions.createGameAction).mockResolvedValue({
+        success: false,
+        error: 'Creation failed'
+      });
 
       renderWithProviders(<Lobby />);
 
@@ -365,10 +376,12 @@ describe('Lobby', () => {
           players: [{ id: 'p1' }],
         },
       ];
-      const mockPlayer = { id: 'player-456', username: 'TestPlayer' };
 
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
-      vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
+      vi.mocked(gameActions.joinGameAction).mockResolvedValue({
+        success: true,
+        result: { gameId: 'game-123', playerId: 'player-456' }
+      });
 
       renderWithProviders(<Lobby />);
 
@@ -383,7 +396,7 @@ describe('Lobby', () => {
       await user.click(joinButton);
 
       await waitFor(() => {
-        expect(queries.joinGame).toHaveBeenCalledWith('game-123', 'TestPlayer', 'red');
+        expect(gameActions.joinGameAction).toHaveBeenCalledWith('game-123', 'TestPlayer', 'red');
       });
     });
 
@@ -397,10 +410,12 @@ describe('Lobby', () => {
           players: [{ id: 'p1' }],
         },
       ];
-      const mockPlayer = { id: 'player-999', username: 'TestPlayer' };
 
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
-      vi.mocked(queries.joinGame).mockResolvedValue(mockPlayer as any);
+      vi.mocked(gameActions.joinGameAction).mockResolvedValue({
+        success: true,
+        result: { gameId: 'game-789', playerId: 'player-999' }
+      });
 
       renderWithProviders(<Lobby />);
 
@@ -427,7 +442,10 @@ describe('Lobby', () => {
       ];
 
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
-      vi.mocked(queries.joinGame).mockRejectedValue(new Error('Join failed'));
+      vi.mocked(gameActions.joinGameAction).mockResolvedValue({
+        success: false,
+        error: 'Join failed'
+      });
 
       renderWithProviders(<Lobby />);
 

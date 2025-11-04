@@ -49,7 +49,7 @@ export function useGameState(gameId: string | null) {
       clearInterval(pollingIntervalRef.current);
     }
 
-    console.log('Starting polling fallback (WebSocket unavailable)');
+    // Starting polling fallback (WebSocket unavailable)
     setConnectionStatus('polling');
 
     // Poll immediately
@@ -134,8 +134,7 @@ export function useGameState(gameId: string | null) {
         }
       )
       .subscribe((status: REALTIME_SUBSCRIBE_STATES, err) => {
-        console.log('Realtime status:', status);
-
+        // Realtime connection status updated
         if (status === 'SUBSCRIBED') {
           setConnectionStatus('connected');
           reconnectAttemptsRef.current = 0;
@@ -153,9 +152,7 @@ export function useGameState(gameId: string | null) {
               30000
             );
 
-            console.log(
-              `Reconnecting in ${backoffMs}ms (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`
-            );
+            // Reconnecting with exponential backoff
             setConnectionStatus('reconnecting');
 
             setTimeout(() => {
