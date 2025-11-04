@@ -18,7 +18,11 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:all": "npm run type-check && npm run test run && npm run test:e2e"
+    "test:e2e:local": "playwright test --config=playwright.config.test.ts",
+    "test:e2e:local:ui": "playwright test --config=playwright.config.test.ts --ui",
+    "test:e2e:local:debug": "playwright test --config=playwright.config.test.ts --debug",
+    "test:e2e:prod": "PLAYWRIGHT_BASE_URL=https://risk-red.vercel.app playwright test",
+    "test:all": "npm run type-check && npm run test run && npm run test:e2e:local"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

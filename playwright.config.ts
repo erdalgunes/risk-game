@@ -1,7 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * See https://playwright.dev/docs/test-configuration
+ * Playwright Test Configuration - Production/Integration Environment
+ *
+ * This config is used for testing against real Supabase or production.
+ * For local testing with test database, use playwright.config.test.ts
+ *
+ * Usage:
+ * - npm run test:e2e          -> Uses .env.local (default Supabase)
+ * - npm run test:e2e:prod     -> Tests production URL
+ * - npm run test:e2e:local    -> Uses .env.test (local Supabase)
  */
 export default defineConfig({
   testDir: './tests/e2e',
