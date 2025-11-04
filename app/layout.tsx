@@ -3,6 +3,7 @@ import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 import { SkipLink } from "@/components/SkipLink";
 import { Analytics } from "@vercel/analytics/react";
+import "../sentry.client.config";
 
 export const viewport: Viewport = {
   width: "device-width",
