@@ -24,12 +24,29 @@ import {
   usernameSchema,
 } from '@/lib/validation/schemas';
 import { verifyPlayerSession, createPlayerSession } from '@/lib/session/player-session';
+import { checkRateLimit, SERVER_RATE_LIMITS, getClientIP, getRateLimitError } from '@/lib/middleware/rate-limit';
+import { headers } from 'next/headers';
 
 /**
  * Create game and join as first player
  */
 export async function createGameAction(username: string, color: string, maxPlayers: number = 4) {
   try {
+    // Server-side rate limiting (IP-based)
+    const headersList = await headers();
+    const clientIP = getClientIP(headersList);
+    const rateLimitResult = checkRateLimit({
+      identifier: `create-game:${clientIP}`,
+      ...SERVER_RATE_LIMITS.CREATE_GAME,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
+
     const supabase = createServerClient();
 
     // Create game
@@ -89,6 +106,21 @@ export async function createGameAction(username: string, color: string, maxPlaye
  */
 export async function joinGameAction(gameId: string, username: string, color: string) {
   try {
+    // Server-side rate limiting (IP-based)
+    const headersList = await headers();
+    const clientIP = getClientIP(headersList);
+    const rateLimitResult = checkRateLimit({
+      identifier: `join-game:${clientIP}`,
+      ...SERVER_RATE_LIMITS.JOIN_GAME,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
+
     // Validate inputs
     const validatedGameId = gameIdSchema.parse(gameId);
     const validatedUsername = usernameSchema.parse(username);
@@ -150,6 +182,20 @@ export async function startGame(gameId: string) {
   try {
     // Validate input
     const validated = startGameSchema.parse({ gameId });
+
+    // Server-side rate limiting (game-based)
+    const rateLimitResult = checkRateLimit({
+      identifier: `start-game:${gameId}`,
+      ...SERVER_RATE_LIMITS.START_GAME,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
+
     const supabase = createServerClient();
 
     // Get all players
@@ -243,6 +289,19 @@ export async function placeArmies(
       territoryId,
       count,
     });
+
+    // Server-side rate limiting (player-based)
+    const rateLimitResult = checkRateLimit({
+      identifier: `place-armies:${playerId}`,
+      ...SERVER_RATE_LIMITS.PLACE_ARMIES,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
 
     // Verify player session
     const isValidSession = await verifyPlayerSession(gameId, playerId);
@@ -347,6 +406,19 @@ export async function endTurn(gameId: string, playerId: string) {
     // Validate inputs
     const validated = endTurnSchema.parse({ gameId, playerId });
 
+    // Server-side rate limiting (player-based)
+    const rateLimitResult = checkRateLimit({
+      identifier: `end-turn:${playerId}`,
+      ...SERVER_RATE_LIMITS.END_TURN,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
+
     // Verify player session
     const isValidSession = await verifyPlayerSession(gameId, playerId);
     if (!isValidSession) {
@@ -446,6 +518,19 @@ export async function changePhase(
     // Validate inputs
     const validated = changePhaseSchema.parse({ gameId, playerId, newPhase });
 
+    // Server-side rate limiting (player-based)
+    const rateLimitResult = checkRateLimit({
+      identifier: `change-phase:${playerId}`,
+      ...SERVER_RATE_LIMITS.CHANGE_PHASE,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
+
     // Verify player session
     const isValidSession = await verifyPlayerSession(gameId, playerId);
     if (!isValidSession) {
@@ -522,6 +607,19 @@ export async function attackTerritory(
       fromTerritoryId,
       toTerritoryId,
     });
+
+    // Server-side rate limiting (player-based)
+    const rateLimitResult = checkRateLimit({
+      identifier: `attack:${playerId}`,
+      ...SERVER_RATE_LIMITS.ATTACK,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
 
     // Verify player session
     const isValidSession = await verifyPlayerSession(gameId, playerId);
@@ -691,6 +789,19 @@ export async function fortifyTerritory(
       toTerritoryId,
       armyCount,
     });
+
+    // Server-side rate limiting (player-based)
+    const rateLimitResult = checkRateLimit({
+      identifier: `fortify:${playerId}`,
+      ...SERVER_RATE_LIMITS.FORTIFY,
+    });
+
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: getRateLimitError(rateLimitResult.resetTime),
+      };
+    }
 
     // Verify player session
     const isValidSession = await verifyPlayerSession(gameId, playerId);
