@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { validateUsername } from './profanity-filter';
 
 /**
  * Username validation schema
@@ -12,7 +13,10 @@ export const usernameSchema = z
     /^[a-zA-Z0-9_-]+$/,
     'Username can only contain letters, numbers, hyphens, and underscores'
   )
-  .trim();
+  .trim()
+  .refine((username) => !validateUsername(username), {
+    message: 'Username contains inappropriate language',
+  });
 
 /**
  * UUID validation schemas for IDs
