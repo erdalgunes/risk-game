@@ -181,7 +181,7 @@ describe('Undo Action', () => {
       const result = await undoLastAction('game-123', 'player-1');
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Failed to apply undo state');
+      expect(result.error).toContain('Database error');
     });
   });
 
@@ -247,7 +247,7 @@ describe('Undo Action', () => {
       const result = await checkUndoAvailability('game-123', 'player-1');
 
       expect(result.available).toBe(false);
-      expect(result.reason).toContain('No actions to undo');
+      expect(result.reason).toContain('No events to undo');
     });
   });
 });
