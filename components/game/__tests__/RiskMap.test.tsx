@@ -135,7 +135,7 @@ describe('RiskMap', () => {
       pathElement.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
 
       await waitFor(() => {
-        expect(screen.getByText(/alaska/i)).toBeInTheDocument();
+        expect(screen.getByText('Alaska')).toBeInTheDocument();
       });
     });
   });
