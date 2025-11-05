@@ -204,15 +204,6 @@ export async function checkUndoAvailability(
   try {
     const supabase = await createServerClient();
 
-    // Verify session
-    const isSessionValid = await verifyPlayerSession(game_id, player_id);
-    if (!isSessionValid) {
-      return {
-        available: false,
-        reason: 'Invalid session or unauthorized',
-      };
-    }
-
     // Verify the player is part of the game
     const { data: playerExists, error: playerError } = await supabase
       .from('players')
