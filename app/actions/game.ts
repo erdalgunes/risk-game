@@ -12,6 +12,15 @@ import {
 } from '@/lib/game-engine';
 import { canAttack, canFortify } from '@/lib/game-engine/validation';
 import type { Player, Territory, AttackResult, Game } from '@/types/game';
+
+/**
+ * Extended attack result with optional metadata fields
+ */
+interface AttackResultWithMetadata extends AttackResult {
+  armiesToMove?: number;
+  gameFinished?: boolean;
+  winner?: string;
+}
 import { z } from 'zod';
 import {
   startGameSchema,
@@ -782,7 +791,7 @@ export async function attackTerritory(
     // Log event
     const eventStore = createEventStore(supabase);
     const correlationId = crypto.randomUUID();
-    const attackResult = result.result as any;
+    const attackResult = result.result as AttackResultWithMetadata;
 
     const events: Array<{
       event_type: GameEventType;

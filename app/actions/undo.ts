@@ -137,60 +137,41 @@ export async function undoLastAction(
     const targetSequence = events[lastPlayerEventIndex - 1]?.sequence_number;
     const replayedState = await eventStore.replay(game_id, targetSequence);
 
-    // Update database with replayed state
-    // This is a simplified version - full implementation would use a transaction
-    try {
-      // Update game
-      await supabase
-        .from('games')
-        .update({
+    // Apply undo atomically using stored procedure
+    const { data: undoResult, error: undoError } = await supabase
+      .rpc('apply_undo_state', {
+        p_game_id: game_id,
+        p_event_id: lastEvent.id,
+        p_game_state: {
           status: replayedState.game.status,
           phase: replayedState.game.phase,
           current_player_order: replayedState.game.current_player_order,
           winner_id: replayedState.game.winner_id,
-        })
-        .eq('id', game_id);
+        },
+        p_players_state: replayedState.players.map(player => ({
+          id: player.id,
+          armies_available: player.armies_available,
+          is_eliminated: player.is_eliminated,
+        })),
+        p_territories_state: replayedState.territories.map(territory => ({
+          id: territory.id,
+          owner_id: territory.owner_id,
+          army_count: territory.army_count,
+        })),
+      });
 
-      // Update players
-      for (const player of replayedState.players) {
-        await supabase
-          .from('players')
-          .update({
-            armies_available: player.armies_available,
-            is_eliminated: player.is_eliminated,
-          })
-          .eq('id', player.id);
-      }
-
-      // Update territories
-      for (const territory of replayedState.territories) {
-        await supabase
-          .from('territories')
-          .update({
-            owner_id: territory.owner_id,
-            army_count: territory.army_count,
-          })
-          .eq('id', territory.id);
-      }
-
-      // Mark event as undone (add metadata flag)
-      // For MVP, we'll delete the event instead
-      await supabase
-        .from('game_events')
-        .delete()
-        .eq('id', lastEvent.id);
-
-      return {
-        success: true,
-        message: `Undid ${lastEvent.event_type}`,
-        state: replayedState,
-      };
-    } catch (dbError: any) {
+    if (undoError || !undoResult?.success) {
       return {
         success: false,
-        error: `Failed to update database: ${dbError.message}`,
+        error: undoError?.message || undoResult?.error || 'Failed to apply undo',
       };
     }
+
+    return {
+      success: true,
+      message: `Undid ${lastEvent.event_type}`,
+      state: replayedState,
+    };
   } catch (error: any) {
     console.error('Undo error:', error);
     return {
@@ -222,8 +203,23 @@ export async function checkUndoAvailability(
 }> {
   try {
     const supabase = await createServerClient();
-    const eventStore = createEventStore(supabase);
 
+    // Verify the player is part of the game
+    const { data: playerExists, error: playerError } = await supabase
+      .from('players')
+      .select('id')
+      .eq('game_id', game_id)
+      .eq('id', player_id)
+      .single();
+
+    if (playerError || !playerExists) {
+      return {
+        available: false,
+        reason: 'Player not found in game',
+      };
+    }
+
+    const eventStore = createEventStore(supabase);
     const events = await eventStore.getEvents(game_id);
 
     if (events.length === 0) {

@@ -150,10 +150,11 @@ export class EventProjector {
     const { territory_id, owner_id } = event.payload;
 
     const territory = state.territories.find((t) => t.id === territory_id);
-    if (territory) {
-      territory.owner_id = owner_id;
-      territory.army_count = 1; // Initial claim = 1 army
+    if (!territory) {
+      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    territory.owner_id = owner_id;
+    territory.army_count = 1; // Initial claim = 1 army
   }
 
   private static applySetupArmyPlaced(
@@ -164,15 +165,17 @@ export class EventProjector {
 
     // Add armies to territory
     const territory = state.territories.find((t) => t.id === territory_id);
-    if (territory) {
-      territory.army_count += count;
+    if (!territory) {
+      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    territory.army_count += count;
 
     // Deduct from player's available armies
     const player = state.players.find((p) => p.id === player_id);
-    if (player) {
-      player.armies_available -= count;
+    if (!player) {
+      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
     }
+    player.armies_available -= count;
   }
 
   private static applyTurnStarted(state: GameState, event: StoredEvent): void {
@@ -188,9 +191,10 @@ export class EventProjector {
     const { player_id, armies } = event.payload;
 
     const player = state.players.find((p) => p.id === player_id);
-    if (player) {
-      player.armies_available = armies;
+    if (!player) {
+      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
     }
+    player.armies_available = armies;
   }
 
   private static applyArmyPlaced(state: GameState, event: StoredEvent): void {
@@ -198,15 +202,17 @@ export class EventProjector {
 
     // Add armies to territory
     const territory = state.territories.find((t) => t.id === territory_id);
-    if (territory) {
-      territory.army_count += count;
+    if (!territory) {
+      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    territory.army_count += count;
 
     // Deduct from player's available armies
     const player = state.players.find((p) => p.id === player_id);
-    if (player) {
-      player.armies_available -= count;
+    if (!player) {
+      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
     }
+    player.armies_available -= count;
   }
 
   private static applyPhaseChanged(state: GameState, event: StoredEvent): void {
@@ -229,15 +235,17 @@ export class EventProjector {
     const fromTerritory = state.territories.find(
       (t) => t.id === from_territory_id
     );
-    if (fromTerritory) {
-      fromTerritory.army_count -= attacker_losses;
+    if (!fromTerritory) {
+      throw new Error(`Territory ${from_territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    fromTerritory.army_count -= attacker_losses;
 
     // Reduce defender's armies
     const toTerritory = state.territories.find((t) => t.id === to_territory_id);
-    if (toTerritory) {
-      toTerritory.army_count -= defender_losses;
+    if (!toTerritory) {
+      throw new Error(`Territory ${to_territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    toTerritory.army_count -= defender_losses;
   }
 
   private static applyTerritoryConquered(
@@ -247,10 +255,11 @@ export class EventProjector {
     const { territory_id, new_owner_id, armies_moved } = event.payload;
 
     const territory = state.territories.find((t) => t.id === territory_id);
-    if (territory) {
-      territory.owner_id = new_owner_id;
-      territory.army_count = armies_moved;
+    if (!territory) {
+      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    territory.owner_id = new_owner_id;
+    territory.army_count = armies_moved;
   }
 
   private static applyPlayerEliminated(
@@ -260,9 +269,10 @@ export class EventProjector {
     const { player_id } = event.payload;
 
     const player = state.players.find((p) => p.id === player_id);
-    if (player) {
-      player.is_eliminated = true;
+    if (!player) {
+      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
     }
+    player.is_eliminated = true;
   }
 
   private static applyArmyFortified(
@@ -275,15 +285,17 @@ export class EventProjector {
     const fromTerritory = state.territories.find(
       (t) => t.id === from_territory_id
     );
-    if (fromTerritory) {
-      fromTerritory.army_count -= count;
+    if (!fromTerritory) {
+      throw new Error(`Territory ${from_territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    fromTerritory.army_count -= count;
 
     // Add armies to destination territory
     const toTerritory = state.territories.find((t) => t.id === to_territory_id);
-    if (toTerritory) {
-      toTerritory.army_count += count;
+    if (!toTerritory) {
+      throw new Error(`Territory ${to_territory_id} not found during event replay (event: ${event.event_type})`);
     }
+    toTerritory.army_count += count;
   }
 
   private static applyTurnEnded(state: GameState, event: StoredEvent): void {
