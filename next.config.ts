@@ -14,6 +14,12 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  // Allow build to complete even with ESLint warnings/errors
+  // Linting is still enforced via pre-commit hooks and CI lint job
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",
