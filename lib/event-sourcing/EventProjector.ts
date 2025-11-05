@@ -157,25 +157,38 @@ export class EventProjector {
     territory.army_count = 1; // Initial claim = 1 army
   }
 
-  private static applySetupArmyPlaced(
+  /**
+   * Helper method to apply army placement to state
+   * Used by both setup and reinforcement phases
+   */
+  private static applyArmyPlacementToState(
     state: GameState,
-    event: StoredEvent
+    territory_id: string,
+    count: number,
+    player_id: string,
+    event_type: string
   ): void {
-    const { territory_id, count, player_id } = event.payload;
-
     // Add armies to territory
     const territory = state.territories.find((t) => t.id === territory_id);
     if (!territory) {
-      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event_type})`);
     }
     territory.army_count += count;
 
     // Deduct from player's available armies
     const player = state.players.find((p) => p.id === player_id);
     if (!player) {
-      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(`Player ${player_id} not found during event replay (event: ${event_type})`);
     }
     player.armies_available -= count;
+  }
+
+  private static applySetupArmyPlaced(
+    state: GameState,
+    event: StoredEvent
+  ): void {
+    const { territory_id, count, player_id } = event.payload;
+    this.applyArmyPlacementToState(state, territory_id, count, player_id, event.event_type);
   }
 
   private static applyTurnStarted(state: GameState, event: StoredEvent): void {
@@ -199,20 +212,7 @@ export class EventProjector {
 
   private static applyArmyPlaced(state: GameState, event: StoredEvent): void {
     const { territory_id, count, player_id } = event.payload;
-
-    // Add armies to territory
-    const territory = state.territories.find((t) => t.id === territory_id);
-    if (!territory) {
-      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
-    }
-    territory.army_count += count;
-
-    // Deduct from player's available armies
-    const player = state.players.find((p) => p.id === player_id);
-    if (!player) {
-      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
-    }
-    player.armies_available -= count;
+    this.applyArmyPlacementToState(state, territory_id, count, player_id, event.event_type);
   }
 
   private static applyPhaseChanged(state: GameState, event: StoredEvent): void {
