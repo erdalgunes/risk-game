@@ -110,9 +110,14 @@ describe('Phase Delegates', () => {
         const territoryId = 'territory-1';
         const count = 3;
 
-        // Mock RPC call for atomic placement
+        // Mock RPC call for atomic placement with proper return structure
         mockSupabase.rpc.mockResolvedValueOnce({
-          data: { success: true },
+          data: {
+            success: true,
+            territory_armies: 6, // 3 + 3
+            player_armies_remaining: 2, // 5 - 3
+            game_status: 'playing',
+          },
           error: null,
         });
 
@@ -158,9 +163,14 @@ describe('Phase Delegates', () => {
       it('should auto-transition to attack phase when armies depleted', async () => {
         context.currentPlayer.armies_available = 3;
 
-        // Mock RPC call for atomic placement
+        // Mock RPC call for atomic placement with proper return structure
         mockSupabase.rpc.mockResolvedValueOnce({
-          data: { success: true },
+          data: {
+            success: true,
+            territory_armies: 6, // 3 + 3
+            player_armies_remaining: 0, // All armies placed
+            game_status: 'playing',
+          },
           error: null,
         });
 
@@ -256,13 +266,20 @@ describe('Phase Delegates', () => {
 
     describe('fortifyTerritory', () => {
       it('should successfully fortify territory', async () => {
-        const fromTerritory = context.territories[0];
+        // Use adjacent territories that are connected
+        const fromTerritory = createTestTerritory({
+          id: 'territory-1',
+          territory_name: 'alaska',
+          owner_id: 'player-1',
+          army_count: 3,
+        });
         const toTerritory = createTestTerritory({
           id: 'territory-2',
+          territory_name: 'northwest-territory', // Adjacent to alaska
           owner_id: 'player-1',
           army_count: 2,
         });
-        context.territories.push(toTerritory);
+        context.territories = [fromTerritory, toTerritory];
 
         // Mock both territory updates
         mockSupabase.from.mockReturnValueOnce({
