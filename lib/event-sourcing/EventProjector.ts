@@ -138,6 +138,7 @@ export class EventProjector {
         turn_order,
         armies_available: 0,
         is_eliminated: false,
+        is_ai: false,
         created_at: event.created_at,
       });
     }
