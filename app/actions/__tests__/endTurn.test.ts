@@ -14,6 +14,12 @@ vi.mock('@/lib/supabase/server', () => ({
   createServerClient: mockCreateServerClient,
 }));
 
+// Mock player session verification
+vi.mock('@/lib/session/player-session', () => ({
+  verifyPlayerSession: vi.fn().mockResolvedValue({ valid: true }),
+  getPlayerSession: vi.fn().mockResolvedValue({ playerId: '22222222-2222-4222-8222-222222222222' }),
+}));
+
 // Import after mocks are setup
 const { endTurn } = await import('../game');
 
@@ -23,8 +29,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should end turn successfully', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
 
     const game = createTestGame({
       id: gameId,
@@ -34,12 +40,12 @@ describe('endTurn Server Action', () => {
 
     const players = [
       createTestPlayer({ id: playerId, turn_order: 0 }),
-      createTestPlayer({ id: '33333333-3333-3333-3333-333333333333', turn_order: 1 }),
+      createTestPlayer({ id: '33333333-3333-4333-8333-333333333333', turn_order: 1 }),
     ];
 
     const territories = [
       createTestTerritory({ owner_id: playerId }),
-      createTestTerritory({ owner_id: '33333333-3333-3333-3333-333333333333' }),
+      createTestTerritory({ owner_id: '33333333-3333-4333-8333-333333333333' }),
     ];
 
     // Mock game query
@@ -89,8 +95,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should fail if game not found', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
 
     mockSupabase.from.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
@@ -108,8 +114,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should fail if not current player turn', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '33333333-3333-3333-3333-333333333333';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '33333333-3333-4333-8333-333333333333';
 
     const game = createTestGame({
       id: gameId,
@@ -117,7 +123,7 @@ describe('endTurn Server Action', () => {
     });
 
     const players = [
-      createTestPlayer({ id: '22222222-2222-2222-2222-222222222222', turn_order: 0 }),
+      createTestPlayer({ id: '22222222-2222-4222-8222-222222222222', turn_order: 0 }),
       createTestPlayer({ id: playerId, turn_order: 1 }),
     ];
 
@@ -146,8 +152,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should advance to next player', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
 
     const game = createTestGame({
       id: gameId,
@@ -157,11 +163,11 @@ describe('endTurn Server Action', () => {
 
     const players = [
       createTestPlayer({ id: playerId, turn_order: 0 }),
-      createTestPlayer({ id: '33333333-3333-3333-3333-333333333333', turn_order: 1 }),
-      createTestPlayer({ id: '44444444-4444-4444-4444-444444444444', turn_order: 2 }),
+      createTestPlayer({ id: '33333333-3333-4333-8333-333333333333', turn_order: 1 }),
+      createTestPlayer({ id: '44444444-4444-4444-8444-444444444444', turn_order: 2 }),
     ];
 
-    const territories = [createTestTerritory({ owner_id: '33333333-3333-3333-3333-333333333333' })];
+    const territories = [createTestTerritory({ owner_id: '33333333-3333-4333-8333-333333333333' })];
 
     let gameUpdate: any = null;
 
@@ -212,8 +218,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should wrap around to first player after last player', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '44444444-4444-4444-8444-444444444444';
 
     const game = createTestGame({
       id: gameId,
@@ -222,12 +228,12 @@ describe('endTurn Server Action', () => {
     });
 
     const players = [
-      createTestPlayer({ id: '22222222-2222-2222-2222-222222222222', turn_order: 0 }),
-      createTestPlayer({ id: '33333333-3333-3333-3333-333333333333', turn_order: 1 }),
+      createTestPlayer({ id: '22222222-2222-4222-8222-222222222222', turn_order: 0 }),
+      createTestPlayer({ id: '33333333-3333-4333-8333-333333333333', turn_order: 1 }),
       createTestPlayer({ id: playerId, turn_order: 2 }),
     ];
 
-    const territories = [createTestTerritory({ owner_id: '22222222-2222-2222-2222-222222222222' })];
+    const territories = [createTestTerritory({ owner_id: '22222222-2222-4222-8222-222222222222' })];
 
     let gameUpdate: any = null;
 
@@ -277,8 +283,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should calculate reinforcements for next player', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
 
     const game = createTestGame({
       id: gameId,
@@ -287,12 +293,12 @@ describe('endTurn Server Action', () => {
 
     const players = [
       createTestPlayer({ id: playerId, turn_order: 0 }),
-      createTestPlayer({ id: '33333333-3333-3333-3333-333333333333', turn_order: 1 }),
+      createTestPlayer({ id: '33333333-3333-4333-8333-333333333333', turn_order: 1 }),
     ];
 
     // Player 2 owns 12 territories -> should get 4 armies (12/3)
     const territories = Array.from({ length: 12 }, () =>
-      createTestTerritory({ owner_id: '33333333-3333-3333-3333-333333333333' })
+      createTestTerritory({ owner_id: '33333333-3333-4333-8333-333333333333' })
     );
 
     let playerUpdate: any = null;
@@ -343,8 +349,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should set phase to reinforcement', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
 
     const game = createTestGame({
       id: gameId,
@@ -354,10 +360,10 @@ describe('endTurn Server Action', () => {
 
     const players = [
       createTestPlayer({ id: playerId, turn_order: 0 }),
-      createTestPlayer({ id: '33333333-3333-3333-3333-333333333333', turn_order: 1 }),
+      createTestPlayer({ id: '33333333-3333-4333-8333-333333333333', turn_order: 1 }),
     ];
 
-    const territories = [createTestTerritory({ owner_id: '33333333-3333-3333-3333-333333333333' })];
+    const territories = [createTestTerritory({ owner_id: '33333333-3333-4333-8333-333333333333' })];
 
     let gameUpdate: any = null;
 
@@ -407,8 +413,8 @@ describe('endTurn Server Action', () => {
   });
 
   it('should handle only non-eliminated players in rotation', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
 
     const game = createTestGame({
       id: gameId,
@@ -418,10 +424,10 @@ describe('endTurn Server Action', () => {
     // Only non-eliminated players (sequential turn_order for this test)
     const players = [
       createTestPlayer({ id: playerId, turn_order: 0 }),
-      createTestPlayer({ id: '33333333-3333-3333-3333-333333333333', turn_order: 1 }),
+      createTestPlayer({ id: '33333333-3333-4333-8333-333333333333', turn_order: 1 }),
     ];
 
-    const territories = [createTestTerritory({ owner_id: '33333333-3333-3333-3333-333333333333' })];
+    const territories = [createTestTerritory({ owner_id: '33333333-3333-4333-8333-333333333333' })];
 
     let gameUpdate: any = null;
 

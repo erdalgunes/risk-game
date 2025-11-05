@@ -13,6 +13,12 @@ vi.mock('@/lib/supabase/server', () => ({
   createServerClient: mockCreateServerClient,
 }));
 
+// Mock player session verification
+vi.mock('@/lib/session/player-session', () => ({
+  verifyPlayerSession: vi.fn().mockResolvedValue({ valid: true }),
+  getPlayerSession: vi.fn().mockResolvedValue({ playerId: '22222222-2222-4222-8222-222222222222' }),
+}));
+
 // Import after mocks are setup
 const { placeArmies } = await import('../game');
 
@@ -22,9 +28,9 @@ describe('placeArmies Server Action', () => {
   });
 
   it('should place armies successfully', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
-    const territoryId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
+    const territoryId = '55555555-5555-4555-8555-555555555555';
     const count = 3;
 
     const player = createTestPlayer({ id: playerId, armies_available: 5 });
@@ -82,9 +88,9 @@ describe('placeArmies Server Action', () => {
   });
 
   it('should fail if player not found', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
-    const territoryId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
+    const territoryId = '55555555-5555-4555-8555-555555555555';
     const count = 3;
 
     mockSupabase.from.mockReturnValueOnce({
@@ -103,9 +109,9 @@ describe('placeArmies Server Action', () => {
   });
 
   it('should fail if not enough armies available', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
-    const territoryId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
+    const territoryId = '55555555-5555-4555-8555-555555555555';
     const count = 10;
 
     const player = createTestPlayer({ id: playerId, armies_available: 5 });
@@ -126,9 +132,9 @@ describe('placeArmies Server Action', () => {
   });
 
   it('should fail if player does not own territory', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
-    const territoryId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
+    const territoryId = '55555555-5555-4555-8555-555555555555';
     const count = 3;
 
     const player = createTestPlayer({ id: playerId, armies_available: 5 });
@@ -163,9 +169,9 @@ describe('placeArmies Server Action', () => {
   });
 
   it('should update territory army count correctly', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
-    const territoryId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
+    const territoryId = '55555555-5555-4555-8555-555555555555';
     const count = 3;
 
     const player = createTestPlayer({ id: playerId, armies_available: 5 });
@@ -224,9 +230,9 @@ describe('placeArmies Server Action', () => {
   });
 
   it('should update player available armies correctly', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
-    const territoryId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
+    const territoryId = '55555555-5555-4555-8555-555555555555';
     const count = 3;
 
     const player = createTestPlayer({ id: playerId, armies_available: 5 });
@@ -285,9 +291,9 @@ describe('placeArmies Server Action', () => {
   });
 
   it('should transition from setup to playing when all armies placed', async () => {
-    const gameId = '11111111-1111-1111-1111-111111111111';
-    const playerId = '22222222-2222-2222-2222-222222222222';
-    const territoryId = '44444444-4444-4444-4444-444444444444';
+    const gameId = '11111111-1111-4111-8111-111111111111';
+    const playerId = '22222222-2222-4222-8222-222222222222';
+    const territoryId = '55555555-5555-4555-8555-555555555555';
     const count = 5; // Last armies
 
     const player = createTestPlayer({ id: playerId, armies_available: 5 });
