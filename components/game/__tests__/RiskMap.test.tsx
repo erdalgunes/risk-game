@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { RiskMap } from '../RiskMap';
 import { createTestGame, createTestPlayer, createTestTerritory } from '@/tests/factories';
 
@@ -132,7 +132,10 @@ describe('RiskMap', () => {
       });
 
       const pathElement = document.querySelector('#alaska') as SVGPathElement;
-      pathElement.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+
+      act(() => {
+        fireEvent.mouseEnter(pathElement);
+      });
 
       await waitFor(() => {
         expect(screen.getByText('Alaska')).toBeInTheDocument();
