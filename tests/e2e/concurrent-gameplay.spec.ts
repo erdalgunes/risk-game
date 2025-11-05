@@ -101,8 +101,8 @@ test.describe('Concurrent Gameplay - Race Conditions', () => {
       const startButton2 = player2.getPage().getByRole('button', { name: /start game/i });
 
       await Promise.all([
-        startButton1.isVisible().then(visible => visible && startButton1.click()),
-        startButton2.isVisible().then(visible => visible && startButton2.click()),
+        startButton1.isVisible().then(async visible => { if (visible) await startButton1.click(); }),
+        startButton2.isVisible().then(async visible => { if (visible) await startButton2.click(); }),
       ]);
 
       // Game should transition to setup phase without errors
