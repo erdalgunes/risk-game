@@ -27,7 +27,7 @@ skipIfNoSupabase('Replay Integration', () => {
   beforeEach(async () => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     eventStore = createEventStore(supabase);
-    testGameId = `replay-test-${Date.now()}-${Math.random()}`;
+    testGameId = `replay-test-${Date.now()}-${crypto.randomUUID()}`;
 
     // Create initial state
     initialState = {
