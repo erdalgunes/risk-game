@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameState } from '@/lib/hooks/useGameState';
 import { startGame, placeArmies, attackTerritory, fortifyTerritory } from '@/app/actions/game';
+import { executeAITurn, advanceTutorialStep } from '@/app/actions/tutorial';
 import { areTerritoriesAdjacent } from '@/constants/map';
 import { PlayersList } from './PlayersList';
 import { TerritoriesList } from './TerritoriesList';
@@ -10,6 +11,9 @@ import { RiskMap } from './RiskMap';
 import { GameControls } from './GameControls';
 import { GameAnnouncer } from './GameAnnouncer';
 import { JoinGameModal } from './JoinGameModal';
+import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
+import { TutorialProgress } from '@/components/tutorial/TutorialProgress';
+import { TutorialVictory } from '@/components/tutorial/TutorialVictory';
 import type { Territory, AttackResult } from '@/types/game';
 import { useToast } from '@/lib/hooks/useToast';
 import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
@@ -41,7 +45,57 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   const [fortifyCount, setFortifyCount] = useState(1);
   const [fortifying, setFortifying] = useState(false);
 
+  // Tutorial state
+  const [executingAI, setExecutingAI] = useState(false);
+
   const currentPlayerData = players.find((p) => p.id === playerId);
+  const isTutorialMode = game?.is_tutorial || false;
+  const tutorialStep = game?.tutorial_step || 0;
+
+  // Ref for AI turn execution to avoid stale closures
+  const executeAITurnRef = useRef<(() => Promise<void>) | undefined>(undefined);
+
+  async function handleExecuteAITurn() {
+    if (executingAI) return;
+
+    setExecutingAI(true);
+    try {
+      const result = await executeAITurn(gameId);
+      if (!result.success) {
+        addToast(result.error || 'AI turn failed', 'error');
+      }
+    } catch (error) {
+      console.error('Error executing AI turn:', error);
+      addToast('AI turn failed', 'error');
+    } finally {
+      setExecutingAI(false);
+    }
+  }
+
+  // Update ref when function changes
+  useEffect(() => {
+    executeAITurnRef.current = handleExecuteAITurn;
+  }, [handleExecuteAITurn]);
+
+  // Auto-execute AI turn in tutorial mode
+  useEffect(() => {
+    if (!isTutorialMode || !game || !currentPlayer) return;
+    if (executingAI) return;
+    if (game.status !== 'playing') return;
+
+    // Check if it's AI's turn
+    const isAITurn = currentPlayer.is_ai && game.current_player_order === currentPlayer.turn_order;
+
+    if (isAITurn && executeAITurnRef.current) {
+      // Configurable AI turn delay (default 1500ms for visual feedback)
+      const aiDelay = parseInt(process.env.NEXT_PUBLIC_TUTORIAL_AI_DELAY || '1500', 10);
+      const timer = setTimeout(() => {
+        executeAITurnRef.current?.();
+      }, aiDelay);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isTutorialMode, game?.status, game?.current_player_order, currentPlayer?.is_ai, currentPlayer?.turn_order, executingAI]);
 
   async function handleStartGame() {
     setStarting(true);
@@ -77,6 +131,16 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       // First click: select attacking territory (must be yours with 2+ armies)
       if (territory.owner_id === playerId && territory.army_count >= 2) {
         setAttackFrom(territory);
+      } else if (territory.owner_id === playerId && territory.army_count === 1) {
+        // Tutorial hint: Can't attack with 1 army
+        if (isTutorialMode) {
+          addToast('💡 Need 2+ armies to attack. Must leave 1 army behind.', 'info');
+        }
+      } else if (territory.owner_id !== playerId) {
+        // Tutorial hint: Must select your own territory first
+        if (isTutorialMode && tutorialStep === 2) {
+          addToast('💡 First, select your territory with 2+ armies', 'info');
+        }
       }
     } else {
       // Second click: select target territory
@@ -85,6 +149,16 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       } else if (territory.id === attackFrom.id) {
         // Click same territory to cancel
         setAttackFrom(null);
+      } else if (territory.owner_id !== playerId && !areTerritoriesAdjacent(attackFrom.territory_name, territory.territory_name)) {
+        // Tutorial hint: Territories must be adjacent
+        if (isTutorialMode && tutorialStep === 2) {
+          addToast('💡 Can only attack adjacent territories', 'info');
+        }
+      } else if (territory.owner_id === playerId) {
+        // Tutorial hint: Can't attack your own territory
+        if (isTutorialMode && tutorialStep === 2) {
+          addToast('💡 Can\'t attack your own territory. Click attacker to cancel.', 'info');
+        }
       }
     }
   }
@@ -95,6 +169,16 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       if (territory.owner_id === playerId && territory.army_count >= 2) {
         setFortifyFrom(territory);
         setFortifyCount(1);
+      } else if (territory.owner_id === playerId && territory.army_count === 1) {
+        // Tutorial hint: Can't fortify with only 1 army
+        if (isTutorialMode && tutorialStep === 3) {
+          addToast('💡 Need 2+ armies to fortify. Must leave 1 army behind.', 'info');
+        }
+      } else if (territory.owner_id !== playerId) {
+        // Tutorial hint: Must select your own territory
+        if (isTutorialMode && tutorialStep === 3) {
+          addToast('💡 Can only fortify from your own territories', 'info');
+        }
       }
     } else {
       // Second click: select destination territory (must be yours)
@@ -104,6 +188,11 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
         // Click same territory to cancel
         setFortifyFrom(null);
         setFortifyTo(null);
+      } else if (territory.owner_id !== playerId) {
+        // Tutorial hint: Must fortify to your own territory
+        if (isTutorialMode && tutorialStep === 3) {
+          addToast('💡 Can only fortify to your own territories. Click source to cancel.', 'info');
+        }
       }
     }
   }
@@ -144,6 +233,19 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   async function handlePlaceArmies() {
     if (!selectedTerritory || !playerId || !currentPlayerData) return;
 
+    // Tutorial Step 1: Warn about poor strategy (placing all armies on one territory)
+    if (isTutorialMode && tutorialStep === 1) {
+      const playerTerritories = territories.filter((t) => t.owner_id === playerId);
+      const territoriesWithArmies = playerTerritories.filter((t) =>
+        t.id === selectedTerritory.id ? t.army_count + armyCount > 3 : t.army_count > 3
+      );
+
+      // Check if this placement would result in all armies on one territory
+      if (armyCount === currentPlayerData.armies_available && armyCount >= 3) {
+        addToast('💡 Tip: Spread armies across territories for better defense', 'info');
+      }
+    }
+
     // Rate limiting
     const { limit, windowMs } = RATE_LIMITS.PLACE_ARMIES;
     if (!rateLimiter.check('place-armies', limit, windowMs)) {
@@ -165,6 +267,17 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       } else {
         setSelectedTerritory(null);
         setArmyCount(1);
+
+        // Tutorial: Check if all armies placed (step 1)
+        if (isTutorialMode && tutorialStep === 1) {
+          const newArmiesAvailable = currentPlayerData.armies_available - armyCount;
+          if (newArmiesAvailable === 0) {
+            addToast('✓ Reinforcement complete! Moving to Attack Phase...', 'success');
+            setTimeout(async () => {
+              await advanceTutorialStep(gameId, playerId);
+            }, 1500);
+          }
+        }
       }
     } catch (error) {
       console.error('Error placing armies:', error);
@@ -236,6 +349,11 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   // Show join modal if no playerId
   if (!playerId) {
     return <JoinGameModal gameId={gameId} game={game} players={players} />;
+  }
+
+  // Tutorial Victory Screen
+  if (game.status === 'finished' && isTutorialMode) {
+    return <TutorialVictory gameId={gameId} />;
   }
 
   // Victory Screen
@@ -312,8 +430,22 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
 
   return (
     <div className="container mx-auto p-md3-4">
+      {/* Tutorial Overlay (Step 0 - Welcome) */}
+      {isTutorialMode && tutorialStep === 0 && playerId && (
+        <TutorialOverlay
+          gameId={gameId}
+          playerId={playerId}
+          currentStep={tutorialStep}
+        />
+      )}
+
       {/* Screen reader announcer */}
       <GameAnnouncer game={game} currentPlayer={currentPlayerData} players={players} />
+
+      {/* Tutorial Progress */}
+      {isTutorialMode && tutorialStep > 0 && (
+        <TutorialProgress currentStep={tutorialStep} />
+      )}
 
       {/* Header */}
       <header className="bg-surface-container-low rounded-md3-lg p-md3-6 mb-md3-4 border border-outline-variant shadow-md3-1">
@@ -338,8 +470,8 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
         </div>
       </header>
 
-      {/* Start Game Button */}
-      {game.status === 'waiting' && (
+      {/* Start Game Button (not shown in tutorial mode) */}
+      {game.status === 'waiting' && !isTutorialMode && (
         <div className="bg-tertiary-container rounded-md3-lg p-md3-6 mb-md3-4 border border-tertiary shadow-md3-2 animate-md3-spring-bounce">
           <div className="flex items-center justify-between">
             <div>
@@ -384,6 +516,12 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
               {currentPlayerData?.id === currentPlayer?.id && (
                 <div className="bg-tertiary px-md3-4 py-md3-2 rounded-md3-xl shadow-md3-2 animate-md3-spring-bounce">
                   <p className="text-label-large text-tertiary-on">Your Turn</p>
+                </div>
+              )}
+              {isTutorialMode && currentPlayer?.is_ai && (
+                <div className="bg-red-600 px-4 py-2 rounded-lg flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" aria-hidden="true"></div>
+                  <p className="font-semibold text-white">AI Thinking...</p>
                 </div>
               )}
             </div>
@@ -471,6 +609,8 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
               game={game}
               currentPlayer={currentPlayer}
               onTerritoryClick={handleTerritoryClick}
+              isTutorialMode={isTutorialMode}
+              tutorialStep={tutorialStep}
             />
           )}
         </div>
@@ -526,7 +666,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       </div>
 
       {/* Army Placement Modal */}
-      {selectedTerritory && currentPlayerData && (
+      {selectedTerritory && currentPlayerData && game?.phase !== 'attack' && game?.phase !== 'fortify' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-md3-fade-in">
           <div className="bg-surface-container-high rounded-md3-xl p-md3-6 max-w-md w-full mx-md3-4 border border-outline shadow-md3-5 animate-md3-spring-bounce">
             <h3 className="text-headline-medium text-surface-on mb-md3-4">Place Armies</h3>

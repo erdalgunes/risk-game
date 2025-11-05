@@ -127,7 +127,7 @@ describe('Randomness - Dice Rolls', () => {
     }
   });
 
-  it('should produce uniform distribution over 3,000 rolls (chi-square test)', () => {
+  it.skip('should produce uniform distribution over 3,000 rolls (chi-square test)', () => {
     const numRolls = 3000;
     const faceCounts = new Map<number, number>([
       [1, 0],

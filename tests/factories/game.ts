@@ -17,6 +17,8 @@ export const createTestGame = (overrides: Partial<Game> = {}): Game => {
     current_player_order: 0,
     winner_id: null,
     max_players: 4,
+    is_tutorial: false,
+    tutorial_step: 0,
     created_at: now,
     updated_at: now,
     ...overrides,
