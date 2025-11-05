@@ -272,3 +272,14 @@ export async function setupTwoPlayerGame(
 
   return { player1, player2, gameUrl };
 }
+
+/**
+ * Start game and wait for setup phase to begin
+ *
+ * @param page Page object (usually player1.getPage())
+ */
+export async function startGameAndWaitForSetup(page: Page): Promise<void> {
+  const startButton = page.getByRole('button', { name: /start game/i });
+  await startButton.click();
+  await expect(page.getByText(/setup/i)).toBeVisible({ timeout: 10000 });
+}

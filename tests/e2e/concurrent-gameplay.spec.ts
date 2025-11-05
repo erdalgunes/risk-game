@@ -9,7 +9,7 @@
 
 import { test, expect, Browser } from '@playwright/test';
 import { PersonaSimulator, createMultiplePersonas } from './helpers/user-personas';
-import { createGameViaUI, setupTwoPlayerGame } from './helpers';
+import { createGameViaUI, setupTwoPlayerGame, startGameAndWaitForSetup } from './helpers';
 
 test.describe('Concurrent Gameplay - Race Conditions', () => {
   test('Simultaneous game creation by 2 players', async ({ browser }) => {
@@ -123,11 +123,7 @@ test.describe('Concurrent Gameplay - Setup Phase', () => {
     );
 
     try {
-
-      const startButton = player1.getPage().getByRole('button', { name: /start game/i });
-      await startButton.click();
-
-      await expect(player1.getPage().getByText(/setup/i)).toBeVisible({ timeout: 10000 });
+      await startGameAndWaitForSetup(player1.getPage());
 
       // Both players place armies simultaneously (5 iterations)
       for (let i = 0; i < 5; i++) {
@@ -159,11 +155,7 @@ test.describe('Concurrent Gameplay - Setup Phase', () => {
     );
 
     try {
-
-      const startButton = player1.getPage().getByRole('button', { name: /start game/i });
-      await startButton.click();
-
-      await expect(player1.getPage().getByText(/setup/i)).toBeVisible({ timeout: 10000 });
+      await startGameAndWaitForSetup(player1.getPage());
 
       // Place armies until setup is complete (max 30 placements)
       for (let i = 0; i < 30; i++) {
@@ -206,11 +198,10 @@ test.describe('Concurrent Gameplay - Real-Time Sync', () => {
       await expect(player2.getPage().getByTestId('player-name').filter({ hasText: 'SyncTest1' }))
         .toBeVisible({ timeout: 10000 });
 
-      // Start game
-      const startButton = player1.getPage().getByRole('button', { name: /start game/i });
-      await startButton.click();
+      // Start game and verify both see setup phase
+      await startGameAndWaitForSetup(player1.getPage());
 
-      // Both should see setup phase simultaneously
+      // Player 2 should also see setup phase
       await Promise.all([
         expect(player1.getPage().getByText(/setup/i)).toBeVisible({ timeout: 10000 }),
         expect(player2.getPage().getByText(/setup/i)).toBeVisible({ timeout: 10000 }),
@@ -235,11 +226,7 @@ test.describe('Concurrent Gameplay - Real-Time Sync', () => {
     );
 
     try {
-
-      const startButton = player1.getPage().getByRole('button', { name: /start game/i });
-      await startButton.click();
-
-      await expect(player1.getPage().getByText(/setup/i)).toBeVisible({ timeout: 10000 });
+      await startGameAndWaitForSetup(player1.getPage());
 
       // Player 1 places army
       await player1.placeSetupArmies();
@@ -311,11 +298,7 @@ test.describe('Concurrent Gameplay - Turn-Based Actions', () => {
     );
 
     try {
-
-      const startButton = player1.getPage().getByRole('button', { name: /start game/i });
-      await startButton.click();
-
-      await expect(player1.getPage().getByText(/setup/i)).toBeVisible({ timeout: 10000 });
+      await startGameAndWaitForSetup(player1.getPage());
 
       // Complete setup phase
       for (let i = 0; i < 20; i++) {
