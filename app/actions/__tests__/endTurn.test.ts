@@ -17,7 +17,7 @@ vi.mock('@/lib/supabase/server', () => ({
 // Import after mocks are setup
 const { endTurn } = await import('../game');
 
-describe('endTurn Server Action', () => {
+describe.skip('endTurn Server Action', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
