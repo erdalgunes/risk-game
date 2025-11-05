@@ -24,6 +24,29 @@ export function Lobby() {
 
   useEffect(() => {
     loadAvailableGames();
+
+    // Detect replay_tutorial URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('replay_tutorial') === 'true') {
+      addToast('Enter your username to start a new tutorial', 'info');
+
+      // Scroll to tutorial section after a short delay
+      setTimeout(() => {
+        const tutorialSection = document.getElementById('tutorial-section');
+        if (tutorialSection) {
+          tutorialSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          // Focus username input
+          const usernameInput = tutorialSection.querySelector('input[type="text"]') as HTMLInputElement;
+          if (usernameInput) {
+            usernameInput.focus();
+          }
+        }
+      }, 500);
+
+      // Clean up URL parameter
+      router.replace('/', { scroll: false });
+    }
   }, []);
 
   function handleUsernameChange(value: string) {
@@ -151,7 +174,7 @@ export function Lobby() {
       </div>
 
       {/* Tutorial Section */}
-      <section className="mb-8 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg p-6 border-2 border-purple-500" aria-labelledby="tutorial-heading">
+      <section id="tutorial-section" className="mb-8 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg p-6 border-2 border-purple-500" aria-labelledby="tutorial-heading">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h2 id="tutorial-heading" className="text-3xl font-bold mb-2 text-white flex items-center gap-3">

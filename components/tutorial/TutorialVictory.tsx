@@ -85,7 +85,7 @@ export function TutorialVictory({ gameId }: TutorialVictoryProps) {
                 Play Multiplayer
               </a>
               <a
-                href={`/game/${gameId}`}
+                href="/?replay_tutorial=true"
                 className="block w-full px-8 py-4 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition text-white"
                 aria-label="Replay tutorial"
               >

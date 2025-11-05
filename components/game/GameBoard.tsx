@@ -131,6 +131,16 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       // First click: select attacking territory (must be yours with 2+ armies)
       if (territory.owner_id === playerId && territory.army_count >= 2) {
         setAttackFrom(territory);
+      } else if (territory.owner_id === playerId && territory.army_count === 1) {
+        // Tutorial hint: Can't attack with 1 army
+        if (isTutorialMode) {
+          addToast('💡 Need 2+ armies to attack. Must leave 1 army behind.', 'info');
+        }
+      } else if (territory.owner_id !== playerId) {
+        // Tutorial hint: Must select your own territory first
+        if (isTutorialMode && tutorialStep === 2) {
+          addToast('💡 First, select your territory with 2+ armies', 'info');
+        }
       }
     } else {
       // Second click: select target territory
@@ -139,6 +149,16 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       } else if (territory.id === attackFrom.id) {
         // Click same territory to cancel
         setAttackFrom(null);
+      } else if (territory.owner_id !== playerId && !areTerritoriesAdjacent(attackFrom.territory_name, territory.territory_name)) {
+        // Tutorial hint: Territories must be adjacent
+        if (isTutorialMode && tutorialStep === 2) {
+          addToast('💡 Can only attack adjacent territories', 'info');
+        }
+      } else if (territory.owner_id === playerId) {
+        // Tutorial hint: Can't attack your own territory
+        if (isTutorialMode && tutorialStep === 2) {
+          addToast('💡 Can\'t attack your own territory. Click attacker to cancel.', 'info');
+        }
       }
     }
   }
@@ -149,6 +169,16 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       if (territory.owner_id === playerId && territory.army_count >= 2) {
         setFortifyFrom(territory);
         setFortifyCount(1);
+      } else if (territory.owner_id === playerId && territory.army_count === 1) {
+        // Tutorial hint: Can't fortify with only 1 army
+        if (isTutorialMode && tutorialStep === 3) {
+          addToast('💡 Need 2+ armies to fortify. Must leave 1 army behind.', 'info');
+        }
+      } else if (territory.owner_id !== playerId) {
+        // Tutorial hint: Must select your own territory
+        if (isTutorialMode && tutorialStep === 3) {
+          addToast('💡 Can only fortify from your own territories', 'info');
+        }
       }
     } else {
       // Second click: select destination territory (must be yours)
@@ -158,6 +188,11 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
         // Click same territory to cancel
         setFortifyFrom(null);
         setFortifyTo(null);
+      } else if (territory.owner_id !== playerId) {
+        // Tutorial hint: Must fortify to your own territory
+        if (isTutorialMode && tutorialStep === 3) {
+          addToast('💡 Can only fortify to your own territories. Click source to cancel.', 'info');
+        }
       }
     }
   }
@@ -198,6 +233,19 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   async function handlePlaceArmies() {
     if (!selectedTerritory || !playerId || !currentPlayerData) return;
 
+    // Tutorial Step 1: Warn about poor strategy (placing all armies on one territory)
+    if (isTutorialMode && tutorialStep === 1) {
+      const playerTerritories = territories.filter((t) => t.owner_id === playerId);
+      const territoriesWithArmies = playerTerritories.filter((t) =>
+        t.id === selectedTerritory.id ? t.army_count + armyCount > 3 : t.army_count > 3
+      );
+
+      // Check if this placement would result in all armies on one territory
+      if (armyCount === currentPlayerData.armies_available && armyCount >= 3) {
+        addToast('💡 Tip: Spread armies across territories for better defense', 'info');
+      }
+    }
+
     // Rate limiting
     const { limit, windowMs } = RATE_LIMITS.PLACE_ARMIES;
     if (!rateLimiter.check('place-armies', limit, windowMs)) {
@@ -224,9 +272,10 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
         if (isTutorialMode && tutorialStep === 1) {
           const newArmiesAvailable = currentPlayerData.armies_available - armyCount;
           if (newArmiesAvailable === 0) {
+            addToast('✓ Reinforcement complete! Moving to Attack Phase...', 'success');
             setTimeout(async () => {
               await advanceTutorialStep(gameId, playerId);
-            }, 1000);
+            }, 1500);
           }
         }
       }
@@ -560,6 +609,8 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
               game={game}
               currentPlayer={currentPlayer}
               onTerritoryClick={handleTerritoryClick}
+              isTutorialMode={isTutorialMode}
+              tutorialStep={tutorialStep}
             />
           )}
         </div>
