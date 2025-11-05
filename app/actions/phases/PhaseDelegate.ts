@@ -146,6 +146,22 @@ export abstract class PhaseDelegate {
   }
 
   /**
+   * Handle transaction result from Supabase RPC
+   * Reduces duplication in error handling across phase delegates
+   */
+  protected handleTransactionResult<T = any>(
+    result: T | null,
+    error: any,
+    defaultMessage = 'Transaction failed'
+  ): ActionResult | null {
+    if (error || !result || (typeof result === 'object' && 'success' in result && !result.success)) {
+      const errorMsg = (result as any)?.error || error?.message || defaultMessage;
+      return this.errorResult(errorMsg);
+    }
+    return null; // No error
+  }
+
+  /**
    * Validate that player owns a territory
    */
   protected validateOwnership(

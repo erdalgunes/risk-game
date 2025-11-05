@@ -88,11 +88,8 @@ export class ReinforcementPhaseDelegate extends PhaseDelegate {
       }
     );
 
-    if (txError || !result || !result.success) {
-      return this.errorResult(
-        result?.error || txError?.message || 'Transaction failed'
-      );
-    }
+    const txResult = this.handleTransactionResult(result, txError);
+    if (txResult) return txResult;
 
     // Update local context
     territory.army_count = result.territory_armies;

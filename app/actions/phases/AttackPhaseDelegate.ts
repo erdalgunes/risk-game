@@ -115,9 +115,8 @@ export class AttackPhaseDelegate extends PhaseDelegate {
       }
     );
 
-    if (txError) {
-      return this.errorResult(`Transaction failed: ${txError.message}`);
-    }
+    const txResult = this.handleTransactionResult(null, txError, 'Attack transaction failed');
+    if (txResult) return txResult;
 
     // Check if game is finished (winner detected by stored procedure)
     const { data: updatedGame } = await context.supabase
