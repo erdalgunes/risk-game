@@ -13,7 +13,7 @@ import {
 } from './PhaseDelegate';
 import { canAttack } from '@/lib/game-engine/validation';
 import { BattleManager } from '@/lib/battle-system/BattleManager';
-import type { GameAction, AttackResult } from '@/types/game';
+import type { GameAction, AttackResult, Player } from '@/types/game';
 
 export class AttackPhaseDelegate extends PhaseDelegate {
   readonly name = 'attack' as const;
@@ -22,11 +22,11 @@ export class AttackPhaseDelegate extends PhaseDelegate {
    * Validate if action is allowed in attack phase
    */
   canExecuteAction(action: GameAction, context: PhaseContext): ValidationResult {
-    // Only attacks and phase changes allowed
-    if (action.action_type !== 'attack' && action.action_type !== 'change_phase') {
+    // Only attacks allowed in attack phase
+    if (action.action_type !== 'attack') {
       return {
         valid: false,
-        reason: 'Only attacks and phase changes are allowed during attack phase'
+        reason: 'Only attacks are allowed during attack phase'
       };
     }
 
@@ -81,7 +81,7 @@ export class AttackPhaseDelegate extends PhaseDelegate {
     }
 
     // Find defender player
-    const defender = context.players.find(p => p.id === toTerritory.owner_id);
+    const defender = context.players.find((p: Player) => p.id === toTerritory.owner_id);
     if (!defender) {
       return this.errorResult('Defender not found');
     }
