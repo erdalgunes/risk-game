@@ -29,6 +29,10 @@ const phaseDelegates = {
  * @param phase The game phase
  * @returns The phase delegate instance
  */
+export function getPhaseDelegate(phase: 'reinforcement'): ReinforcementPhaseDelegate;
+export function getPhaseDelegate(phase: 'attack'): AttackPhaseDelegate;
+export function getPhaseDelegate(phase: 'fortify'): FortifyPhaseDelegate;
+export function getPhaseDelegate(phase: GamePhase): PhaseDelegate;
 export function getPhaseDelegate(phase: GamePhase): PhaseDelegate {
   const delegate = phaseDelegates[phase];
 
