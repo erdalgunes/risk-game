@@ -43,6 +43,127 @@ import { FortifyPhaseDelegate } from './phases/FortifyPhaseDelegate';
 import { createEventStore, type GameEventType } from '@/lib/event-sourcing/EventStore';
 import { autoCreateSnapshot } from '@/lib/event-sourcing/snapshot-helpers';
 
+// ============================================
+// Helper Functions (DRY principle)
+// ============================================
+
+/**
+ * Standard error handler for all server actions
+ * Returns consistent error response format
+ */
+function handleActionError(error: unknown): { success: false; error: string } {
+  console.error('Server action error:', error);
+
+  if (error instanceof z.ZodError) {
+    return {
+      success: false,
+      error: error.issues[0].message,
+    };
+  }
+
+  return {
+    success: false,
+    error: error instanceof Error ? error.message : 'Unknown error',
+  };
+}
+
+/**
+ * Check rate limit for an action
+ * Returns error response if rate limit exceeded
+ */
+async function checkActionRateLimit(
+  identifier: string,
+  limits: { limit: number; windowMs: number }
+): Promise<{ success: true } | { success: false; error: string }> {
+  const rateLimitResult = await checkRateLimit({
+    identifier,
+    ...limits,
+  });
+
+  if (!rateLimitResult.success) {
+    return {
+      success: false,
+      error: getRateLimitError(rateLimitResult.resetTime),
+    };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Verify player session
+ * Returns error response if session invalid
+ */
+async function verifyActionPlayerSession(
+  gameId: string,
+  playerId: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  const isValidSession = await verifyPlayerSession(gameId, playerId);
+
+  if (!isValidSession) {
+    return {
+      success: false,
+      error: 'Invalid session. Please rejoin the game.',
+    };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Fetch game state with optimized field selection
+ * Used by phase-based actions
+ */
+async function fetchGameStateForPhase(supabase: any, gameId: string) {
+  const [gameResult, playersResult, territoriesResult] = await Promise.all([
+    supabase.from('games').select('id, status, phase, current_player_order, winner_id, created_at').eq('id', gameId).single(),
+    supabase.from('players').select('id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at').eq('game_id', gameId).order('turn_order'),
+    supabase.from('territories').select('id, game_id, territory_name, owner_id, army_count, updated_at').eq('game_id', gameId),
+  ]);
+
+  if (gameResult.error) throw gameResult.error;
+  if (playersResult.error) throw playersResult.error;
+  if (territoriesResult.error) throw territoriesResult.error;
+
+  return {
+    game: gameResult.data as Game,
+    players: playersResult.data as Player[],
+    territories: territoriesResult.data as Territory[],
+  };
+}
+
+/**
+ * Build phase context from game state
+ * Used by all phase delegates
+ */
+function buildPhaseContext(
+  gameId: string,
+  supabase: any,
+  game: Game,
+  players: Player[],
+  territories: Territory[],
+  playerId: string
+): PhaseContext {
+  const currentPlayer = players.find((p) => p.id === playerId);
+
+  if (!currentPlayer) {
+    throw new Error('Player not found');
+  }
+
+  return {
+    gameId,
+    supabase,
+    game,
+    currentPlayer,
+    players,
+    territories,
+  };
+}
+
+// ============================================
+// Server Actions
+// ============================================
+
 /**
  * Create game and join as first player
  */
@@ -123,17 +244,7 @@ export async function createGameAction(username: string, color: string, maxPlaye
       }
     };
   } catch (error) {
-    console.error('Error creating game:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
 
@@ -210,17 +321,7 @@ export async function joinGameAction(gameId: string, username: string, color: st
       }
     };
   } catch (error) {
-    console.error('Error joining game:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
 
@@ -337,17 +438,7 @@ export async function startGame(gameId: string) {
 
     return { success: true };
   } catch (error) {
-    console.error('Error starting game:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
 
@@ -383,43 +474,16 @@ export async function placeArmies(
     }
 
     // Verify player session
-    const isValidSession = await verifyPlayerSession(gameId, playerId);
-    if (!isValidSession) {
-      return {
-        success: false,
-        error: 'Invalid session. Please rejoin the game.',
-      };
-    }
+    const sessionCheck = await verifyActionPlayerSession(gameId, playerId);
+    if (!sessionCheck.success) return sessionCheck;
 
     const supabase = createServerClient();
 
-    // Get game state for phase context (with field selection for bandwidth optimization)
-    const [gameResult, playersResult, territoriesResult] = await Promise.all([
-      supabase.from('games').select('id, status, phase, current_player_order, winner_id, created_at').eq('id', gameId).single(),
-      supabase.from('players').select('id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at').eq('game_id', gameId).order('turn_order'),
-      supabase.from('territories').select('id, game_id, territory_name, owner_id, army_count, updated_at').eq('game_id', gameId),
-    ]);
-
-    if (gameResult.error) throw gameResult.error;
-    if (playersResult.error) throw playersResult.error;
-    if (territoriesResult.error) throw territoriesResult.error;
-
-    const game = gameResult.data as Game;
-    const players = playersResult.data as Player[];
-    const territories = territoriesResult.data as Territory[];
-    const currentPlayer = players.find((p) => p.id === playerId);
-
-    if (!currentPlayer) throw new Error('Player not found');
+    // Get game state for phase context
+    const { game, players, territories } = await fetchGameStateForPhase(supabase, gameId);
 
     // Build phase context
-    const context: PhaseContext = {
-      gameId,
-      supabase,
-      game,
-      currentPlayer,
-      players,
-      territories,
-    };
+    const context = buildPhaseContext(gameId, supabase, game, players, territories, playerId);
 
     // Use ReinforcementPhaseDelegate
     const delegate = getPhaseDelegate('reinforcement') as ReinforcementPhaseDelegate;
@@ -459,17 +523,7 @@ export async function placeArmies(
 
     return { success: true };
   } catch (error) {
-    console.error('Error placing armies:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
 
@@ -495,13 +549,8 @@ export async function endTurn(gameId: string, playerId: string) {
     }
 
     // Verify player session
-    const isValidSession = await verifyPlayerSession(gameId, playerId);
-    if (!isValidSession) {
-      return {
-        success: false,
-        error: 'Invalid session. Please rejoin the game.',
-      };
-    }
+    const sessionCheck = await verifyActionPlayerSession(gameId, playerId);
+    if (!sessionCheck.success) return sessionCheck;
 
     const supabase = createServerClient();
 
@@ -587,17 +636,7 @@ export async function endTurn(gameId: string, playerId: string) {
 
     return { success: true };
   } catch (error) {
-    console.error('Error ending turn:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
 
@@ -627,30 +666,13 @@ export async function changePhase(
     }
 
     // Verify player session
-    const isValidSession = await verifyPlayerSession(gameId, playerId);
-    if (!isValidSession) {
-      return {
-        success: false,
-        error: 'Invalid session. Please rejoin the game.',
-      };
-    }
+    const sessionCheck = await verifyActionPlayerSession(gameId, playerId);
+    if (!sessionCheck.success) return sessionCheck;
 
     const supabase = createServerClient();
 
-    // Get game state for phase context (with field selection for bandwidth optimization)
-    const [gameResult, playersResult, territoriesResult] = await Promise.all([
-      supabase.from('games').select('id, status, phase, current_player_order, winner_id, created_at').eq('id', gameId).single(),
-      supabase.from('players').select('id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at').eq('game_id', gameId).order('turn_order'),
-      supabase.from('territories').select('id, game_id, territory_name, owner_id, army_count, updated_at').eq('game_id', gameId),
-    ]);
-
-    if (gameResult.error) throw gameResult.error;
-    if (playersResult.error) throw playersResult.error;
-    if (territoriesResult.error) throw territoriesResult.error;
-
-    const game = gameResult.data as Game;
-    const players = playersResult.data as Player[];
-    const territories = territoriesResult.data as Territory[];
+    // Get game state for phase context
+    const { game, players, territories } = await fetchGameStateForPhase(supabase, gameId);
 
     const currentPlayer = players.find(
       (p) => p.turn_order === game.current_player_order
@@ -661,14 +683,7 @@ export async function changePhase(
     }
 
     // Build phase context
-    const context: PhaseContext = {
-      gameId,
-      supabase,
-      game,
-      currentPlayer,
-      players,
-      territories,
-    };
+    const context = buildPhaseContext(gameId, supabase, game, players, territories, playerId);
 
     // Log event
     const eventStore = createEventStore(supabase);
@@ -691,17 +706,7 @@ export async function changePhase(
 
     return { success: true };
   } catch (error) {
-    console.error('Error changing phase:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
 
@@ -737,43 +742,16 @@ export async function attackTerritory(
     }
 
     // Verify player session
-    const isValidSession = await verifyPlayerSession(gameId, playerId);
-    if (!isValidSession) {
-      return {
-        success: false,
-        error: 'Invalid session. Please rejoin the game.',
-      };
-    }
+    const sessionCheck = await verifyActionPlayerSession(gameId, playerId);
+    if (!sessionCheck.success) return sessionCheck;
 
     const supabase = createServerClient();
 
-    // Get game state for phase context (with field selection for bandwidth optimization)
-    const [gameResult, playersResult, territoriesResult] = await Promise.all([
-      supabase.from('games').select('id, status, phase, current_player_order, winner_id, created_at').eq('id', gameId).single(),
-      supabase.from('players').select('id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at').eq('game_id', gameId).order('turn_order'),
-      supabase.from('territories').select('id, game_id, territory_name, owner_id, army_count, updated_at').eq('game_id', gameId),
-    ]);
-
-    if (gameResult.error) throw gameResult.error;
-    if (playersResult.error) throw playersResult.error;
-    if (territoriesResult.error) throw territoriesResult.error;
-
-    const game = gameResult.data as Game;
-    const players = playersResult.data as Player[];
-    const territories = territoriesResult.data as Territory[];
-    const currentPlayer = players.find((p) => p.id === playerId);
-
-    if (!currentPlayer) throw new Error('Player not found');
+    // Get game state for phase context
+    const { game, players, territories } = await fetchGameStateForPhase(supabase, gameId);
 
     // Build phase context
-    const context: PhaseContext = {
-      gameId,
-      supabase,
-      game,
-      currentPlayer,
-      players,
-      territories,
-    };
+    const context = buildPhaseContext(gameId, supabase, game, players, territories, playerId);
 
     // Use AttackPhaseDelegate
     const delegate = getPhaseDelegate('attack') as AttackPhaseDelegate;
@@ -844,17 +822,7 @@ export async function attackTerritory(
 
     return { success: true, result: result.result };
   } catch (error) {
-    console.error('Error attacking territory:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
 
@@ -892,43 +860,16 @@ export async function fortifyTerritory(
     }
 
     // Verify player session
-    const isValidSession = await verifyPlayerSession(gameId, playerId);
-    if (!isValidSession) {
-      return {
-        success: false,
-        error: 'Invalid session. Please rejoin the game.',
-      };
-    }
+    const sessionCheck = await verifyActionPlayerSession(gameId, playerId);
+    if (!sessionCheck.success) return sessionCheck;
 
     const supabase = createServerClient();
 
-    // Get game state for phase context (with field selection for bandwidth optimization)
-    const [gameResult, playersResult, territoriesResult] = await Promise.all([
-      supabase.from('games').select('id, status, phase, current_player_order, winner_id, created_at').eq('id', gameId).single(),
-      supabase.from('players').select('id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at').eq('game_id', gameId).order('turn_order'),
-      supabase.from('territories').select('id, game_id, territory_name, owner_id, army_count, updated_at').eq('game_id', gameId),
-    ]);
-
-    if (gameResult.error) throw gameResult.error;
-    if (playersResult.error) throw playersResult.error;
-    if (territoriesResult.error) throw territoriesResult.error;
-
-    const game = gameResult.data as Game;
-    const players = playersResult.data as Player[];
-    const territories = territoriesResult.data as Territory[];
-    const currentPlayer = players.find((p) => p.id === playerId);
-
-    if (!currentPlayer) throw new Error('Player not found');
+    // Get game state for phase context
+    const { game, players, territories } = await fetchGameStateForPhase(supabase, gameId);
 
     // Build phase context
-    const context: PhaseContext = {
-      gameId,
-      supabase,
-      game,
-      currentPlayer,
-      players,
-      territories,
-    };
+    const context = buildPhaseContext(gameId, supabase, game, players, territories, playerId);
 
     // Use FortifyPhaseDelegate
     const delegate = getPhaseDelegate('fortify') as FortifyPhaseDelegate;
@@ -963,16 +904,6 @@ export async function fortifyTerritory(
 
     return { success: true };
   } catch (error) {
-    console.error('Error fortifying territory:', error);
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: error.issues[0].message,
-      };
-    }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    return handleActionError(error);
   }
 }
