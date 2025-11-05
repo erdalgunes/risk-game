@@ -24,8 +24,50 @@ export const createMockSupabaseClient = () => {
     maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
   }));
 
+  const mockRpc = vi.fn((functionName: string, params?: any) => {
+    // Default RPC responses based on function name
+    switch (functionName) {
+      case 'place_armies_transaction':
+        return Promise.resolve({
+          data: {
+            success: true,
+            territory_armies: (params?.p_count || 1) + 1, // Simulate adding armies
+            player_armies_remaining: Math.max(0, 10 - (params?.p_count || 1)),
+            game_status: 'setup',
+          },
+          error: null,
+        });
+
+      case 'check_and_transition_from_setup':
+        return Promise.resolve({
+          data: {
+            success: true,
+            transitioned: false,
+            new_status: 'setup',
+            reason: 'Players still have armies to place',
+          },
+          error: null,
+        });
+
+      case 'attack_territory_transaction':
+        return Promise.resolve({
+          data: {
+            success: true,
+            conquered: false,
+            defender_eliminated: false,
+            game_finished: false,
+          },
+          error: null,
+        });
+
+      default:
+        return Promise.resolve({ data: { success: true }, error: null });
+    }
+  });
+
   return {
     from: mockFrom,
+    rpc: mockRpc,
     channel: vi.fn(() => mockChannel),
     removeChannel: vi.fn(),
     auth: {

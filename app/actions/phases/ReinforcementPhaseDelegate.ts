@@ -77,66 +77,50 @@ export class ReinforcementPhaseDelegate extends PhaseDelegate {
       return this.errorResult(validation.reason || 'Invalid army placement');
     }
 
-    // Execute placement atomically
-    try {
-      // Update territory armies
-      const { error: territoryError } = await context.supabase
-        .from('territories')
-        .update({ army_count: territory.army_count + count })
-        .eq('id', territoryId);
-
-      if (territoryError) {
-        return this.errorResult(`Failed to update territory: ${territoryError.message}`);
+    // Execute placement atomically using RPC transaction
+    const { data: result, error: txError } = await context.supabase.rpc(
+      'place_armies_transaction',
+      {
+        p_game_id: context.gameId,
+        p_player_id: playerId,
+        p_territory_id: territoryId,
+        p_count: count,
       }
+    );
 
-      // Update player available armies
-      const { error: playerError } = await context.supabase
-        .from('players')
-        .update({ armies_available: context.currentPlayer.armies_available - count })
-        .eq('id', playerId);
-
-      if (playerError) {
-        return this.errorResult(`Failed to update player: ${playerError.message}`);
-      }
-
-      // Update local context
-      territory.army_count += count;
-      context.currentPlayer.armies_available -= count;
-
-      // Check if we should auto-transition to attack phase
-      if (context.currentPlayer.armies_available === 0 && context.game.status === 'playing') {
-        return this.successResult({ placed: count }, 'attack');
-      }
-
-      // Check if we should transition from setup to playing
-      if (context.game.status === 'setup') {
-        // Check if all players have placed all their armies
-        const { data: allPlayers } = await context.supabase
-          .from('players')
-          .select('armies_available')
-          .eq('game_id', context.gameId);
-
-        const allArmiesPlaced = allPlayers?.every((p) => p.armies_available === 0);
-
-        if (allArmiesPlaced) {
-          // Transition to playing phase
-          await context.supabase
-            .from('games')
-            .update({
-              status: 'playing',
-              phase: 'reinforcement'
-            })
-            .eq('id', context.gameId);
-
-          context.game.status = 'playing';
-        }
-      }
-
-      return this.successResult({ placed: count });
-
-    } catch (error: any) {
-      return this.errorResult(`Placement failed: ${error.message}`);
+    if (txError || !result || !result.success) {
+      return this.errorResult(
+        result?.error || txError?.message || 'Transaction failed'
+      );
     }
+
+    // Update local context
+    territory.army_count = result.territory_armies;
+    context.currentPlayer.armies_available = result.player_armies_remaining;
+
+    // Check if we should auto-transition to attack phase
+    if (result.player_armies_remaining === 0 && result.game_status === 'playing') {
+      return this.successResult({ placed: count }, 'attack');
+    }
+
+    // Check if we should transition from setup to playing
+    if (result.game_status === 'setup') {
+      // Use atomic RPC to check and transition
+      const { data: transitionResult, error: transitionError } = await context.supabase.rpc(
+        'check_and_transition_from_setup',
+        { p_game_id: context.gameId }
+      );
+
+      if (transitionError || !transitionResult || !transitionResult.success) {
+        // Log error but don't fail the placement
+        console.error('Setup transition check failed:', transitionError || transitionResult?.error);
+      } else if (transitionResult.transitioned) {
+        // Update local context
+        context.game.status = 'playing';
+      }
+    }
+
+    return this.successResult({ placed: count });
   }
 
   /**
