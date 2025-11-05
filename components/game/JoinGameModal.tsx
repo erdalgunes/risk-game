@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { joinGameAction } from '@/app/actions/game';
 import { validateUsername } from '@/lib/validation/username';
@@ -31,10 +31,12 @@ export function JoinGameModal({ gameId, game, players }: JoinGameModalProps) {
   const takenColors = players.map((p) => p.color);
   const availableColors = PLAYER_COLORS.filter((c) => !takenColors.includes(c));
 
-  // Auto-select first available color
-  if (availableColors.length > 0 && !availableColors.includes(selectedColor)) {
-    setSelectedColor(availableColors[0]);
-  }
+  // Auto-select first available color (using useEffect to avoid setState during render)
+  useEffect(() => {
+    if (availableColors.length > 0 && !availableColors.includes(selectedColor)) {
+      setSelectedColor(availableColors[0]);
+    }
+  }, [availableColors, selectedColor]);
 
   function handleUsernameChange(value: string) {
     setUsername(value);
