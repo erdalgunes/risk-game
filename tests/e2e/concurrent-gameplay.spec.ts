@@ -9,7 +9,7 @@
 
 import { test, expect, Browser } from '@playwright/test';
 import { PersonaSimulator, createMultiplePersonas } from './helpers/user-personas';
-import { createGameViaUI } from './helpers';
+import { createGameViaUI, setupTwoPlayerGame } from './helpers';
 
 test.describe('Concurrent Gameplay - Race Conditions', () => {
   test('Simultaneous game creation by 2 players', async ({ browser }) => {
@@ -81,20 +81,12 @@ test.describe('Concurrent Gameplay - Race Conditions', () => {
   });
 
   test('Simultaneous "Start Game" button clicks', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'aggressive', username: 'StartRace1', color: 'red' },
-      { type: 'strategic', username: 'StartRace2', color: 'blue' },
-    ]);
+      { type: 'strategic', username: 'StartRace2', color: 'blue' }
+    );
 
     try {
-      // Player 1 creates, Player 2 joins
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      // Wait for both players to be visible
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'StartRace2' }))
-        .toBeVisible({ timeout: 10000 });
 
       // Both click start button simultaneously
       const startButton1 = player1.getPage().getByRole('button', { name: /start game/i });
@@ -125,19 +117,12 @@ test.describe('Concurrent Gameplay - Race Conditions', () => {
 
 test.describe('Concurrent Gameplay - Setup Phase', () => {
   test('Concurrent territory selections during setup', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'aggressive', username: 'SetupPlayer1', color: 'red' },
-      { type: 'defensive', username: 'SetupPlayer2', color: 'blue' },
-    ]);
+      { type: 'defensive', username: 'SetupPlayer2', color: 'blue' }
+    );
 
     try {
-      // Setup game with 2 players
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'SetupPlayer2' }))
-        .toBeVisible({ timeout: 10000 });
 
       const startButton = player1.getPage().getByRole('button', { name: /start game/i });
       await startButton.click();
@@ -168,18 +153,12 @@ test.describe('Concurrent Gameplay - Setup Phase', () => {
   });
 
   test('Setup completion with concurrent army placements', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'strategic', username: 'ConcurrentSetup1', color: 'red' },
-      { type: 'chaotic', username: 'ConcurrentSetup2', color: 'blue' },
-    ]);
+      { type: 'chaotic', username: 'ConcurrentSetup2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'ConcurrentSetup2' }))
-        .toBeVisible({ timeout: 10000 });
 
       const startButton = player1.getPage().getByRole('button', { name: /start game/i });
       await startButton.click();
@@ -217,22 +196,14 @@ test.describe('Concurrent Gameplay - Setup Phase', () => {
 
 test.describe('Concurrent Gameplay - Real-Time Sync', () => {
   test('Real-time state synchronization between 2 players', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'aggressive', username: 'SyncTest1', color: 'red' },
-      { type: 'defensive', username: 'SyncTest2', color: 'blue' },
-    ]);
+      { type: 'defensive', username: 'SyncTest2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
       // Player 2 should see Player 1 immediately
       await expect(player2.getPage().getByTestId('player-name').filter({ hasText: 'SyncTest1' }))
-        .toBeVisible({ timeout: 10000 });
-
-      // Player 1 should see Player 2 immediately
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'SyncTest2' }))
         .toBeVisible({ timeout: 10000 });
 
       // Start game
@@ -258,18 +229,12 @@ test.describe('Concurrent Gameplay - Real-Time Sync', () => {
   });
 
   test('Action visibility: Player 1 action seen by Player 2', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'strategic', username: 'ActionPlayer1', color: 'red' },
-      { type: 'chaotic', username: 'ActionPlayer2', color: 'blue' },
-    ]);
+      { type: 'chaotic', username: 'ActionPlayer2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'ActionPlayer2' }))
-        .toBeVisible({ timeout: 10000 });
 
       const startButton = player1.getPage().getByRole('button', { name: /start game/i });
       await startButton.click();
@@ -297,16 +262,12 @@ test.describe('Concurrent Gameplay - Real-Time Sync', () => {
   });
 
   test('WebSocket connection active for both players', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'aggressive', username: 'WSPlayer1', color: 'red' },
-      { type: 'defensive', username: 'WSPlayer2', color: 'blue' },
-    ]);
+      { type: 'defensive', username: 'WSPlayer2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
       await player1.getPage().waitForTimeout(3000);
       await player2.getPage().waitForTimeout(3000);
 
@@ -344,19 +305,12 @@ test.describe('Concurrent Gameplay - Real-Time Sync', () => {
 
 test.describe('Concurrent Gameplay - Turn-Based Actions', () => {
   test('Turn order enforcement with concurrent actions', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'aggressive', username: 'TurnPlayer1', color: 'red' },
-      { type: 'strategic', username: 'TurnPlayer2', color: 'blue' },
-    ]);
+      { type: 'strategic', username: 'TurnPlayer2', color: 'blue' }
+    );
 
     try {
-      // Setup complete game
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'TurnPlayer2' }))
-        .toBeVisible({ timeout: 10000 });
 
       const startButton = player1.getPage().getByRole('button', { name: /start game/i });
       await startButton.click();
@@ -448,18 +402,12 @@ test.describe('Concurrent Gameplay - Turn-Based Actions', () => {
 
 test.describe('Concurrent Gameplay - Browser Refresh', () => {
   test('Player refreshes browser mid-game, rejoins successfully', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2, gameUrl } = await setupTwoPlayerGame(browser,
       { type: 'strategic', username: 'RefreshPlayer1', color: 'red' },
-      { type: 'aggressive', username: 'RefreshPlayer2', color: 'blue' },
-    ]);
+      { type: 'aggressive', username: 'RefreshPlayer2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'RefreshPlayer2' }))
-        .toBeVisible({ timeout: 10000 });
 
       // Player 1 refreshes
       await player1.getPage().reload();

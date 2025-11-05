@@ -4,7 +4,8 @@
  * Reusable functions for Playwright E2E tests
  */
 
-import { Page, expect } from '@playwright/test';
+import { Page, expect, Browser } from '@playwright/test';
+import { PersonaSimulator, PersonaType, createMultiplePersonas } from './helpers/user-personas';
 
 /**
  * Check if local Supabase is running
@@ -244,4 +245,30 @@ export async function getAvailableGameIds(page: Page): Promise<string[]> {
   }
 
   return gameIds;
+}
+
+/**
+ * Setup a two-player game with personas and wait for both players to be visible
+ *
+ * @returns Object with player1, player2 and gameUrl
+ */
+export async function setupTwoPlayerGame(
+  browser: Browser,
+  player1Config: { type: PersonaType; username: string; color: string },
+  player2Config: { type: PersonaType; username: string; color: string }
+): Promise<{ player1: PersonaSimulator; player2: PersonaSimulator; gameUrl: string }> {
+  const [player1, player2] = await createMultiplePersonas(browser, [
+    player1Config,
+    player2Config,
+  ]);
+
+  await player1.createGame();
+  const gameUrl = player1.getPage().url();
+  await player2.joinGame(gameUrl);
+
+  // Wait for both players to see each other
+  await expect(player1.getPage().getByTestId('player-name').filter({ hasText: player2Config.username }))
+    .toBeVisible({ timeout: 10000 });
+
+  return { player1, player2, gameUrl };
 }

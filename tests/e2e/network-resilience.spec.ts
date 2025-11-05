@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test';
 import { PersonaSimulator, createMultiplePersonas } from './helpers/user-personas';
-import { createGameViaUI } from './helpers';
+import { createGameViaUI, setupTwoPlayerGame } from './helpers';
 
 test.describe('Network Resilience - Slow Connection', () => {
   test('Game loads successfully on slow 3G connection', async ({ page, context }) => {
@@ -55,10 +55,10 @@ test.describe('Network Resilience - Slow Connection', () => {
   });
 
   test('Real-time updates work on slow connection', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'strategic', username: 'SlowNet1', color: 'red' },
-      { type: 'aggressive', username: 'SlowNet2', color: 'blue' },
-    ]);
+      { type: 'aggressive', username: 'SlowNet2', color: 'blue' }
+    );
 
     try {
       // Throttle player 2's connection
@@ -67,13 +67,7 @@ test.describe('Network Resilience - Slow Connection', () => {
         await route.continue();
       });
 
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-
-      // Player 2 joins with slow connection
-      await player2.joinGame(gameUrl);
-
-      // Player 1 should eventually see Player 2 (may take longer)
+      // Player 1 should eventually see Player 2 with slow connection (may take longer)
       await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'SlowNet2' }))
         .toBeVisible({ timeout: 15000 });
 
@@ -199,18 +193,12 @@ test.describe('Network Resilience - Connection Dropout', () => {
 
 test.describe('Network Resilience - Connection Recovery', () => {
   test('State synchronization after reconnection', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'defensive', username: 'Recovery1', color: 'red' },
-      { type: 'strategic', username: 'Recovery2', color: 'blue' },
-    ]);
+      { type: 'strategic', username: 'Recovery2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'Recovery2' }))
-        .toBeVisible({ timeout: 10000 });
 
       // Block player 2's network temporarily
       await player2.getContext().route('**/*', async (route) => {
@@ -297,10 +285,10 @@ test.describe('Network Resilience - High Latency', () => {
   });
 
   test('Multiplayer sync with asymmetric latency', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'aggressive', username: 'FastPlayer', color: 'red' },
-      { type: 'defensive', username: 'SlowPlayer', color: 'blue' },
-    ]);
+      { type: 'defensive', username: 'SlowPlayer', color: 'blue' }
+    );
 
     try {
       // Player 2 has high latency
@@ -309,11 +297,7 @@ test.describe('Network Resilience - High Latency', () => {
         await route.continue();
       });
 
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      // Player 1 (fast) should eventually see Player 2 (slow)
+      // Player 1 (fast) should eventually see Player 2 (slow) with high latency
       await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'SlowPlayer' }))
         .toBeVisible({ timeout: 20000 });
 

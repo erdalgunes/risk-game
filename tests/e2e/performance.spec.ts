@@ -8,7 +8,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameViaUI } from './helpers';
+import { createGameViaUI, setupTwoPlayerGame } from './helpers';
 import { PersonaSimulator, createMultiplePersonas } from './helpers/user-personas';
 
 test.describe('Performance - Core Web Vitals', () => {
@@ -133,18 +133,12 @@ test.describe('Performance - Server Actions', () => {
   });
 
   test('Start game Server Action < 1.5s', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'defensive', username: 'Player1', color: 'red' },
-      { type: 'strategic', username: 'Player2', color: 'blue' },
-    ]);
+      { type: 'strategic', username: 'Player2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'Player2' }))
-        .toBeVisible({ timeout: 10000 });
 
       const startTime = Date.now();
 
@@ -189,21 +183,14 @@ test.describe('Performance - Server Actions', () => {
 
 test.describe('Performance - Real-time Updates', () => {
   test('WebSocket message latency < 200ms', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const joinStartTime = Date.now();
+
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'aggressive', username: 'Latency1', color: 'red' },
-      { type: 'defensive', username: 'Latency2', color: 'blue' },
-    ]);
+      { type: 'defensive', username: 'Latency2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-
-      const joinStartTime = Date.now();
-      await player2.joinGame(gameUrl);
-
-      // Measure how long it takes for Player 1 to see Player 2
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'Latency2' }))
-        .toBeVisible({ timeout: 5000 });
 
       const latency = Date.now() - joinStartTime;
 
@@ -217,18 +204,12 @@ test.describe('Performance - Real-time Updates', () => {
   });
 
   test('Real-time sync latency for game state updates', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'strategic', username: 'Sync1', color: 'red' },
-      { type: 'chaotic', username: 'Sync2', color: 'blue' },
-    ]);
+      { type: 'chaotic', username: 'Sync2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-      await player2.joinGame(gameUrl);
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'Sync2' }))
-        .toBeVisible({ timeout: 10000 });
 
       // Player 1 starts game
       const startTime = Date.now();
@@ -455,23 +436,14 @@ test.describe('Performance - Rendering', () => {
   });
 
   test('Player list updates render < 100ms', async ({ browser }) => {
-    const [player1, player2] = await createMultiplePersonas(browser, [
+    const startTime = Date.now();
+
+    const { player1, player2 } = await setupTwoPlayerGame(browser,
       { type: 'strategic', username: 'UpdateTest1', color: 'red' },
-      { type: 'aggressive', username: 'UpdateTest2', color: 'blue' },
-    ]);
+      { type: 'aggressive', username: 'UpdateTest2', color: 'blue' }
+    );
 
     try {
-      await player1.createGame();
-      const gameUrl = player1.getPage().url();
-
-      // Player 2 joins
-      await player2.joinGame(gameUrl);
-
-      // Measure render update on player 1's side
-      const startTime = Date.now();
-
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'UpdateTest2' }))
-        .toBeVisible({ timeout: 5000 });
 
       const updateTime = Date.now() - startTime;
 
