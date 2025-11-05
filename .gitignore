@@ -7,6 +7,7 @@
 /coverage
 /test-results/
 /playwright-report/
+/playwright-report-production/
 /playwright/.cache/
 /.vitest/
 /html-report/
