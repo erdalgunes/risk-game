@@ -28,8 +28,15 @@ describe('Game Rules', () => {
 
     it('should calculate armies based on territories / 3', () => {
       const player = createTestPlayer();
-      const territories = Array.from({ length: 12 }, () =>
-        createTestTerritory({ owner_id: player.id })
+      // Use specific territories from different continents to avoid accidental continent bonuses
+      const territoryNames: TerritoryName[] = [
+        'alaska', 'alberta', 'central-america', // North America (3/9)
+        'brazil', 'argentina', 'peru', // South America (3/4)
+        'western-europe', 'northern-europe', 'southern-europe', // Europe (3/7)
+        'egypt', 'east-africa', 'congo', // Africa (3/6)
+      ];
+      const territories = territoryNames.map((name) =>
+        createTestTerritory({ owner_id: player.id, territory_name: name })
       );
 
       const reinforcements = calculateReinforcements(player, territories);
@@ -39,8 +46,15 @@ describe('Game Rules', () => {
 
     it('should round down fractional reinforcements', () => {
       const player = createTestPlayer();
-      const territories = Array.from({ length: 11 }, () =>
-        createTestTerritory({ owner_id: player.id })
+      // Use specific territories from different continents to avoid accidental continent bonuses
+      const territoryNames: TerritoryName[] = [
+        'alaska', 'alberta', 'central-america', // North America (3/9)
+        'brazil', 'argentina', 'peru', // South America (3/4)
+        'western-europe', 'northern-europe', 'southern-europe', // Europe (3/7)
+        'egypt', 'east-africa', // Africa (2/6)
+      ];
+      const territories = territoryNames.map((name) =>
+        createTestTerritory({ owner_id: player.id, territory_name: name })
       );
 
       const reinforcements = calculateReinforcements(player, territories);
