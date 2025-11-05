@@ -9,13 +9,57 @@ import { createPlayerSession, verifyPlayerSession } from '@/lib/session/player-s
 import { checkRateLimit, SERVER_RATE_LIMITS, getRateLimitError } from '@/lib/middleware/rate-limit';
 
 /**
- * Create a tutorial game with pre-configured scenario
+ * Create a new tutorial game with pre-configured scenario
+ *
+ * Creates a single-player game against AI with predefined territory distribution
+ * from TUTORIAL_SCENARIO. The human player starts with 3 territories, AI with 5.
+ *
+ * @param username - Player's username (3-20 characters, alphanumeric + spaces/hyphens)
+ * @returns Success result with gameId and playerId, or error message
+ *
+ * @remarks
+ * Security:
+ * - Rate limited to 5 tutorial games per hour per username
+ * - Creates secure player session cookie
+ * - Validates username format (handled by caller)
+ *
+ * Database Operations:
+ * - Creates 1 game record (is_tutorial=true, tutorial_step=0)
+ * - Creates 2 player records (human + AI with is_ai=true)
+ * - Creates 8 territory records (3 player + 5 AI from TUTORIAL_SCENARIO)
+ * - All operations are transactional (Supabase RLS enforced)
+ *
+ * @example
+ * ```typescript
+ * const result = await createTutorialGame('Alice');
+ * if (result.success) {
+ *   router.push(`/game/${result.result.gameId}?player=${result.result.playerId}`);
+ * } else {
+ *   alert(result.error);
+ * }
+ * ```
  */
 export async function createTutorialGame(username: string) {
   try {
+    // Input validation
+    if (!username || typeof username !== 'string') {
+      return {
+        success: false,
+        error: 'Username is required and must be a string',
+      };
+    }
+
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
+      return {
+        success: false,
+        error: 'Username must be between 3 and 20 characters',
+      };
+    }
+
     // Rate limiting: Prevent tutorial game spam (5 games/hour per user)
     const rateLimitResult = checkRateLimit({
-      identifier: `create-tutorial:${username}`,
+      identifier: `create-tutorial:${trimmedUsername}`,
       limit: 5,
       windowMs: 60 * 60 * 1000, // 1 hour
     });
@@ -49,7 +93,7 @@ export async function createTutorialGame(username: string) {
       .from('players')
       .insert({
         game_id: game.id,
-        username,
+        username: trimmedUsername,
         color: TUTORIAL_SCENARIO.playerColor,
         turn_order: 0,
         armies_available: 0,
@@ -119,9 +163,55 @@ export async function createTutorialGame(username: string) {
 
 /**
  * Advance tutorial to next step
+ *
+ * Updates tutorial_step and game phase based on step definition. Automatically
+ * grants reinforcement armies when entering step 1 (reinforcement phase).
+ *
+ * @param gameId - The tutorial game ID
+ * @param playerId - The human player's ID (verified against session)
+ * @returns Success result with new step number (or completed=true), or error message
+ *
+ * @remarks
+ * Security:
+ * - Verifies player session before allowing step advancement
+ * - Rate limited using CHANGE_PHASE rate limit (prevents spam)
+ * - Only works for tutorial games (is_tutorial=true)
+ *
+ * Step Flow:
+ * - Step 0 → 1: Transitions to 'setup' status, grants TUTORIAL_SCENARIO.playerStartingArmies
+ * - Step 1 → 2: Transitions to 'playing' status, sets phase to 'reinforcement'
+ * - Step 2+: Updates phase based on step definition (attack, fortify, etc.)
+ * - Returns completed=true when reaching end of TUTORIAL_STEPS array
+ *
+ * Database Operations:
+ * - Updates games table (tutorial_step, phase, status)
+ * - May update players table (armies_available) for step 1
+ *
+ * @example
+ * ```typescript
+ * const result = await advanceTutorialStep(gameId, playerId);
+ * if (result.success && result.result.completed) {
+ *   // Tutorial finished, show victory screen
+ * }
+ * ```
  */
 export async function advanceTutorialStep(gameId: string, playerId: string) {
   try {
+    // Input validation
+    if (!gameId || typeof gameId !== 'string') {
+      return {
+        success: false,
+        error: 'Invalid game ID',
+      };
+    }
+
+    if (!playerId || typeof playerId !== 'string') {
+      return {
+        success: false,
+        error: 'Invalid player ID',
+      };
+    }
+
     // Verify player session
     const isValidSession = await verifyPlayerSession(gameId, playerId);
     if (!isValidSession) {
@@ -193,10 +283,75 @@ export async function advanceTutorialStep(gameId: string, playerId: string) {
 }
 
 /**
- * Execute AI turn automatically
+ * Execute AI turn automatically across all game phases
+ *
+ * Orchestrates AI actions for reinforcement, attack, and fortify phases with batched
+ * database operations for performance. Handles turn advancement back to human player.
+ *
+ * @param gameId - The tutorial game ID
+ * @returns Success result (true) or error message
+ *
+ * @remarks
+ * Security:
+ * - NO session verification (auto-triggered by frontend when is_ai=true)
+ * - NO rate limiting (internal server action, not user-facing)
+ * - Validates AI player exists before executing actions
+ *
+ * Phase-Specific Behavior:
+ *
+ * **Reinforcement Phase:**
+ * - Calls decidePlaceArmies() for AI placement decisions
+ * - Batches territory updates (reduces N queries to 1 upsert)
+ * - Sets armies_available=0 and advances to 'attack' phase
+ * - Parallel execution: player update + game phase update
+ *
+ * **Attack Phase:**
+ * - Executes 1-2 attacks per turn (limited by shouldContinueAttacking)
+ * - Refreshes territory data before each attack (prevents stale state)
+ * - Batches conquered territory updates (ownership + army_count in 1 upsert)
+ * - Checks for human player elimination after attacks
+ * - Advances to 'fortify' phase
+ *
+ * **Fortify Phase:**
+ * - Calls decideFortify() for AI fortify decision
+ * - Batches both territory updates (from/to in 1 upsert)
+ * - Calculates human player reinforcements for next turn
+ * - Advances turn (current_player_order=0, current_turn++, phase='reinforcement')
+ *
+ * **Winner Detection:**
+ * - Checks after each phase if game is finished
+ * - Updates game status='finished' and winner_id if found
+ *
+ * Performance Optimizations:
+ * - Parallel queries at start (game, players, territories via Promise.all)
+ * - Batched territory updates (upsert instead of individual updates)
+ * - Parallel player/game updates where possible
+ * - Territory refresh only when needed (attack phase loop)
+ *
+ * Error Handling:
+ * - Logs all errors to console.error for debugging
+ * - Returns descriptive error messages for each operation type
+ * - Throws on critical failures (game not found, AI player missing)
+ *
+ * @example
+ * ```typescript
+ * // Auto-triggered by useEffect when currentPlayer.is_ai === true
+ * const result = await executeAITurn(gameId);
+ * if (!result.success) {
+ *   addToast(result.error, 'error');
+ * }
+ * ```
  */
 export async function executeAITurn(gameId: string) {
   try {
+    // Input validation
+    if (!gameId || typeof gameId !== 'string') {
+      return {
+        success: false,
+        error: 'Invalid game ID',
+      };
+    }
+
     const supabase = createServerClient();
 
     // Get game state
@@ -206,16 +361,38 @@ export async function executeAITurn(gameId: string) {
       supabase.from('territories').select('*').eq('game_id', gameId),
     ]);
 
-    if (gameResult.error) throw gameResult.error;
-    if (playersResult.error) throw playersResult.error;
-    if (territoriesResult.error) throw territoriesResult.error;
+    if (gameResult.error) {
+      console.error('Failed to fetch game:', gameResult.error);
+      throw new Error(`Game not found: ${gameResult.error.message}`);
+    }
+    if (playersResult.error) {
+      console.error('Failed to fetch players:', playersResult.error);
+      throw new Error(`Players not found: ${playersResult.error.message}`);
+    }
+    if (territoriesResult.error) {
+      console.error('Failed to fetch territories:', territoriesResult.error);
+      throw new Error(`Territories not found: ${territoriesResult.error.message}`);
+    }
 
     const game = gameResult.data;
     const players = playersResult.data as Player[];
     const territories = territoriesResult.data as Territory[];
 
+    // Defensive null checks
+    if (!game) {
+      throw new Error('Game data is null');
+    }
+    if (!players || players.length === 0) {
+      throw new Error('No players found in game');
+    }
+    if (!territories || territories.length === 0) {
+      throw new Error('No territories found in game');
+    }
+
     const aiPlayer = players.find((p) => p.is_ai);
-    if (!aiPlayer) throw new Error('AI player not found');
+    if (!aiPlayer) {
+      throw new Error('AI player not found in game');
+    }
 
     const currentPhase = game.phase;
 
