@@ -587,10 +587,18 @@ export async function executeAITurn(gameId: string) {
           if (humanPlayer) {
             const eliminated = isPlayerEliminated(humanPlayer.id, postAttackTerritories as Territory[]);
             if (eliminated) {
-              await supabase
+              const { error: eliminationError } = await supabase
                 .from('players')
                 .update({ is_eliminated: true })
                 .eq('id', humanPlayer.id);
+
+              if (eliminationError) {
+                console.error('Failed to mark player as eliminated:', eliminationError);
+                return {
+                  success: false,
+                  error: 'Failed to update player elimination status. Please try again.',
+                };
+              }
             }
           }
         }
