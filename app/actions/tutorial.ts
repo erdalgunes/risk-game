@@ -245,6 +245,29 @@ export async function advanceTutorialStep(gameId: string, playerId: string) {
 
     if (gameError || !game) throw new Error('Game not found');
 
+    // Security: Only allow tutorial step advancement in tutorial games
+    if (!game.is_tutorial) {
+      return {
+        success: false,
+        error: 'This action is only available for tutorial games.',
+      };
+    }
+
+    // Verify player belongs to this game
+    const { data: player, error: playerCheckError } = await supabase
+      .from('players')
+      .select('id')
+      .eq('id', playerId)
+      .eq('game_id', gameId)
+      .single();
+
+    if (playerCheckError || !player) {
+      return {
+        success: false,
+        error: 'Player not found in this game.',
+      };
+    }
+
     const nextStep = game.tutorial_step + 1;
     const tutorialStep = getTutorialStep(nextStep);
 
@@ -254,7 +277,7 @@ export async function advanceTutorialStep(gameId: string, playerId: string) {
     }
 
     // Update game with next step and phase
-    await supabase
+    const { error: updateStepError } = await supabase
       .from('games')
       .update({
         tutorial_step: nextStep,
@@ -263,13 +286,29 @@ export async function advanceTutorialStep(gameId: string, playerId: string) {
       })
       .eq('id', gameId);
 
+    if (updateStepError) {
+      console.error('Failed to advance tutorial step:', updateStepError);
+      return {
+        success: false,
+        error: 'Could not advance the tutorial. Please try again.',
+      };
+    }
+
     // If step 1 (reinforcement), give player armies
     if (nextStep === 1) {
-      await supabase
+      const { error: playerArmiesError } = await supabase
         .from('players')
         .update({ armies_available: TUTORIAL_SCENARIO.playerStartingArmies })
         .eq('game_id', gameId)
         .eq('is_ai', false);
+
+      if (playerArmiesError) {
+        console.error('Failed to allocate tutorial reinforcements:', playerArmiesError);
+        return {
+          success: false,
+          error: 'Could not allocate tutorial reinforcements. Please try again.',
+        };
+      }
     }
 
     return { success: true, result: { step: nextStep } };
@@ -394,6 +433,21 @@ export async function executeAITurn(gameId: string) {
       throw new Error('AI player not found in game');
     }
 
+    // Security: Only allow AI execution in tutorial games during AI's turn
+    if (!game.is_tutorial) {
+      return {
+        success: false,
+        error: 'AI automation is only available in tutorial mode.',
+      };
+    }
+
+    if (game.current_player_order !== aiPlayer.turn_order) {
+      return {
+        success: false,
+        error: 'AI can only act during its own turn.',
+      };
+    }
+
     const currentPhase = game.phase;
 
     // Execute AI actions based on phase
@@ -409,6 +463,14 @@ export async function executeAITurn(gameId: string) {
           army_count: (territory?.army_count || 0) + decision.count,
         };
       }).filter(update => update.id); // Remove invalid entries
+
+      // Log if any invalid territory IDs were filtered out (helps catch bugs in AI logic)
+      if (territoryUpdates.length !== decisions.length) {
+        console.warn(
+          `AI placement: ${decisions.length - territoryUpdates.length} invalid territory IDs filtered`,
+          { decisions, territoryUpdates }
+        );
+      }
 
       if (territoryUpdates.length > 0) {
         const { error: updateError } = await supabase
@@ -513,20 +575,23 @@ export async function executeAITurn(gameId: string) {
       }
 
       // Check if human player was eliminated during AI attacks
-      const { data: postAttackTerritories } = await supabase
-        .from('territories')
-        .select('*')
-        .eq('game_id', gameId);
+      // Only fetch if attacks occurred (optimization: skip unnecessary DB call)
+      if (attackCount > 0) {
+        const { data: postAttackTerritories } = await supabase
+          .from('territories')
+          .select('*')
+          .eq('game_id', gameId);
 
-      if (postAttackTerritories) {
-        const humanPlayer = players.find((p) => !p.is_ai);
-        if (humanPlayer) {
-          const eliminated = isPlayerEliminated(humanPlayer.id, postAttackTerritories as Territory[]);
-          if (eliminated) {
-            await supabase
-              .from('players')
-              .update({ is_eliminated: true })
-              .eq('id', humanPlayer.id);
+        if (postAttackTerritories) {
+          const humanPlayer = players.find((p) => !p.is_ai);
+          if (humanPlayer) {
+            const eliminated = isPlayerEliminated(humanPlayer.id, postAttackTerritories as Territory[]);
+            if (eliminated) {
+              await supabase
+                .from('players')
+                .update({ is_eliminated: true })
+                .eq('id', humanPlayer.id);
+            }
           }
         }
       }
