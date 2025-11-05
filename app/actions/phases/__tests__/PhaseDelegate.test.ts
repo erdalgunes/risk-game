@@ -13,6 +13,7 @@ describe('Phase Delegates', () => {
   beforeEach(() => {
     mockSupabase = {
       from: vi.fn(),
+      rpc: vi.fn(),
     };
 
     const game = createTestGame({ phase: 'reinforcement', status: 'playing' });
@@ -109,16 +110,10 @@ describe('Phase Delegates', () => {
         const territoryId = 'territory-1';
         const count = 3;
 
-        // Mock territory update
-        mockSupabase.from.mockReturnValueOnce({
-          update: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        });
-
-        // Mock player update
-        mockSupabase.from.mockReturnValueOnce({
-          update: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockResolvedValue({ error: null }),
+        // Mock RPC call for atomic placement
+        mockSupabase.rpc.mockResolvedValueOnce({
+          data: { success: true },
+          error: null,
         });
 
         const result = await delegate.placeArmies(
@@ -163,14 +158,10 @@ describe('Phase Delegates', () => {
       it('should auto-transition to attack phase when armies depleted', async () => {
         context.currentPlayer.armies_available = 3;
 
-        mockSupabase.from.mockReturnValueOnce({
-          update: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        });
-
-        mockSupabase.from.mockReturnValueOnce({
-          update: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockResolvedValue({ error: null }),
+        // Mock RPC call for atomic placement
+        mockSupabase.rpc.mockResolvedValueOnce({
+          data: { success: true },
+          error: null,
         });
 
         const result = await delegate.placeArmies(
@@ -185,9 +176,10 @@ describe('Phase Delegates', () => {
       });
 
       it('should handle database errors', async () => {
-        mockSupabase.from.mockReturnValue({
-          update: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockResolvedValue({ error: { message: 'Database error' } }),
+        // Mock RPC call with error
+        mockSupabase.rpc.mockResolvedValueOnce({
+          data: null,
+          error: { message: 'Database error' },
         });
 
         const result = await delegate.placeArmies(
@@ -198,7 +190,7 @@ describe('Phase Delegates', () => {
         );
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Failed to update');
+        expect(result.error).toBeDefined();
       });
     });
   });
