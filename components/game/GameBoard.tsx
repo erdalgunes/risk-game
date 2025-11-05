@@ -666,7 +666,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
       </div>
 
       {/* Army Placement Modal */}
-      {selectedTerritory && currentPlayerData && (
+      {selectedTerritory && currentPlayerData && game?.phase !== 'attack' && game?.phase !== 'fortify' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-md3-fade-in">
           <div className="bg-surface-container-high rounded-md3-xl p-md3-6 max-w-md w-full mx-md3-4 border border-outline shadow-md3-5 animate-md3-spring-bounce">
             <h3 className="text-headline-medium text-surface-on mb-md3-4">Place Armies</h3>
