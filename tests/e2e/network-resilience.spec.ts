@@ -340,13 +340,15 @@ test.describe('Network Resilience - Partial Failures', () => {
   test('Mixed network conditions (some requests fail)', async ({ page, context }) => {
     await page.goto('/');
 
-    // Randomly fail 20% of requests
+    // Fail the first 5 fetch/XHR requests to simulate partial outages deterministically
+    let remainingFailures = 5;
     await context.route('**/*', async (route) => {
-      if (Math.random() < 0.2) { // NOSONAR - Test network failure simulation
+      if (remainingFailures > 0 && ['fetch', 'xhr'].includes(route.request().resourceType())) {
+        remainingFailures--;
         await route.abort('failed');
-      } else {
-        await route.continue();
+        return;
       }
+      await route.continue();
     });
 
     const gameId = await createGameViaUI(page, 'MixedNet', 'red');

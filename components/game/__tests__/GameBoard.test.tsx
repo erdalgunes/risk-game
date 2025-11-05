@@ -456,6 +456,7 @@ describe('GameBoard', () => {
       expect(screen.queryByRole('heading', { name: /place armies/i })).not.toBeInTheDocument();
     });
 
+    // TODO: Fix modal test - modal implementation may have changed, needs update to match current behavior
     it.skip('should close modal when cancel is clicked', async () => {
       const user = userEvent.setup();
       const game = createTestGame({ status: 'setup', current_player_order: 0 });
@@ -576,6 +577,7 @@ describe('GameBoard', () => {
   });
 
   describe('Attack Modal', () => {
+    // TODO: Fix modal test - attack modal may not render as expected, needs investigation
     it.skip('should show attack modal during attack phase when territories selected', async () => {
       const user = userEvent.setup();
       const game = createTestGame({ status: 'playing', phase: 'attack', current_player_order: 0 });
@@ -617,6 +619,7 @@ describe('GameBoard', () => {
   });
 
   describe('Fortify Modal', () => {
+    // TODO: Fix modal test - fortify modal may not render as expected, needs investigation
     it.skip('should show fortify modal during fortify phase when territories selected', async () => {
       const user = userEvent.setup();
       const game = createTestGame({ status: 'playing', phase: 'fortify', current_player_order: 0 });

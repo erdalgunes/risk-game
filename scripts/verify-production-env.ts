@@ -7,6 +7,7 @@
  * Or: PLAYWRIGHT_BASE_URL=https://your-app.vercel.app npx tsx scripts/verify-production-env.ts
  */
 
+import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
 interface CheckResult {
@@ -55,7 +56,7 @@ async function checkSupabaseConfig() {
     addResult('Supabase Connection', 'pass', 'Successfully connected to Supabase database');
 
     // Check if we can insert (tests RLS policies)
-    const testGameId = `test-${Date.now()}`;
+    const testGameId = randomUUID();
     const { error: insertError } = await supabase
       .from('games')
       .insert({

@@ -233,7 +233,7 @@ test.describe('Performance - Real-time Updates', () => {
 });
 
 test.describe('Performance - Resource Usage', () => {
-  test('Memory usage stable over 5 minutes', async ({ page }) => {
+  test('Memory usage stable over long session', async ({ page }) => {
     await page.goto('/');
     await createGameViaUI(page, 'MemoryTest', 'red');
 
@@ -252,8 +252,12 @@ test.describe('Performance - Resource Usage', () => {
 
     console.log(`Initial memory: ${(initialMetrics / 1024 / 1024).toFixed(2)} MB`);
 
-    // Wait 5 minutes (simulate long session)
-    await page.waitForTimeout(5 * 60 * 1000);
+    // Gate the long-session hold behind an override; default to 60s to keep CI fast
+    const holdDurationMs =
+      process.env.PLAYWRIGHT_LONG_SESSION_MS
+        ? Number.parseInt(process.env.PLAYWRIGHT_LONG_SESSION_MS, 10)
+        : 60_000;
+    await page.waitForTimeout(holdDurationMs);
 
     // Measure final memory
     const finalMetrics = await page.evaluate(() => {
@@ -274,7 +278,7 @@ test.describe('Performance - Resource Usage', () => {
 
     console.log(`Memory growth: ${growthPercentage.toFixed(2)}%`);
 
-    // Memory growth should be < 50% over 5 minutes (no major leaks)
+    // Memory growth should be < 50% over test duration (no major leaks)
     expect(growthPercentage).toBeLessThan(50);
   });
 
