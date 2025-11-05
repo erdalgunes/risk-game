@@ -358,7 +358,7 @@ test.describe('Network Resilience - Partial Failures', () => {
 
     // Randomly fail 20% of requests
     await context.route('**/*', async (route) => {
-      if (Math.random() < 0.2) {
+      if (Math.random() < 0.2) { // NOSONAR - Test network failure simulation
         await route.abort('failed');
       } else {
         await route.continue();

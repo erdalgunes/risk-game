@@ -68,7 +68,7 @@ export const PERSONAS: Record<PersonaType, Omit<PersonaConfig, 'username' | 'col
       attackProbability: 0.7,
       fortifyProbability: 0.5,
       preferContinentControl: false,
-      targetWeakest: Math.random() > 0.5, // Random targeting
+      targetWeakest: Math.random() > 0.5, // NOSONAR - Test randomization, not cryptographic
     },
   },
 };
@@ -115,7 +115,7 @@ export class PersonaSimulator {
    */
   private async think(): Promise<void> {
     const { min, max } = this.config.thinkTime;
-    const delay = Math.random() * (max - min) + min;
+    const delay = Math.random() * (max - min) + min; // NOSONAR - Test randomization for human-like delays
     await this.page.waitForTimeout(delay);
   }
 
@@ -198,10 +198,10 @@ export class PersonaSimulator {
 
     if (this.config.decisionBias.preferContinentControl) {
       // Defensive/Strategic: Reinforce border territories
-      targetIndex = Math.floor(Math.random() * Math.min(3, count)); // Focus on first few territories
+      targetIndex = Math.floor(Math.random() * Math.min(3, count)); // NOSONAR - Test AI decision-making
     } else {
       // Aggressive/Chaotic: Random placement
-      targetIndex = Math.floor(Math.random() * count);
+      targetIndex = Math.floor(Math.random() * count); // NOSONAR - Test AI decision-making
     }
 
     const territory = myTerritories.nth(targetIndex);
@@ -229,7 +229,7 @@ export class PersonaSimulator {
     }
 
     // Decide whether to attack based on persona
-    const shouldAttack = Math.random() < this.config.decisionBias.attackProbability;
+    const shouldAttack = Math.random() < this.config.decisionBias.attackProbability; // NOSONAR - Test AI behavior
 
     if (!shouldAttack) {
       // Skip to fortify
@@ -250,7 +250,7 @@ export class PersonaSimulator {
 
     if (count > 0) {
       // Select a random territory to attack from
-      const fromIndex = Math.floor(Math.random() * count);
+      const fromIndex = Math.floor(Math.random() * count); // NOSONAR - Test AI territory selection
       await myTerritories.nth(fromIndex).click();
       await this.think();
 
@@ -283,7 +283,7 @@ export class PersonaSimulator {
     }
 
     // Decide whether to fortify based on persona
-    const shouldFortify = Math.random() < this.config.decisionBias.fortifyProbability;
+    const shouldFortify = Math.random() < this.config.decisionBias.fortifyProbability; // NOSONAR - Test AI behavior
 
     if (!shouldFortify) {
       // End turn without fortifying
@@ -304,7 +304,7 @@ export class PersonaSimulator {
 
     if (count >= 2) {
       // Select source territory
-      const fromIndex = Math.floor(Math.random() * count);
+      const fromIndex = Math.floor(Math.random() * count); // NOSONAR - Test AI territory selection
       await myTerritories.nth(fromIndex).click();
       await this.think();
 
