@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { joinGameAction } from '@/app/actions/game';
 import { validateUsername } from '@/lib/validation/username';
@@ -23,14 +23,20 @@ export function JoinGameModal({ gameId, game, players }: JoinGameModalProps) {
   const [selectedColor, setSelectedColor] = useState<PlayerColor>('red');
   const [loading, setLoading] = useState(false);
 
+  // Check if game is full
+  const isGameFull = game ? players.length >= game.max_players : false;
+  const isGameStarted = game ? game.status !== 'waiting' : false;
+
   // Get colors already taken by other players
   const takenColors = players.map((p) => p.color);
   const availableColors = PLAYER_COLORS.filter((c) => !takenColors.includes(c));
 
-  // Auto-select first available color
-  if (availableColors.length > 0 && !availableColors.includes(selectedColor)) {
-    setSelectedColor(availableColors[0]);
-  }
+  // Auto-select first available color (using useEffect to avoid setState during render)
+  useEffect(() => {
+    if (availableColors.length > 0 && !availableColors.includes(selectedColor)) {
+      setSelectedColor(availableColors[0]);
+    }
+  }, [availableColors, selectedColor]);
 
   function handleUsernameChange(value: string) {
     setUsername(value);
@@ -109,6 +115,25 @@ export function JoinGameModal({ gameId, game, players }: JoinGameModalProps) {
           </div>
         )}
 
+        {/* Warning Messages - Game Full has higher priority */}
+        {isGameFull && (
+          <div role="alert" className="mb-md3-4 p-md3-4 bg-error-container rounded-md3-md border border-error">
+            <p className="text-error text-body-medium font-medium">
+              This game is full. No more players can join.
+            </p>
+          </div>
+        )}
+        {isGameStarted && !isGameFull && (
+          <div role="alert" className="mb-md3-4 p-md3-4 bg-tertiary-container rounded-md3-md border border-tertiary">
+            <p className="text-tertiary text-body-medium font-medium mb-md3-2">
+              This game has already started.
+            </p>
+            <p className="text-tertiary text-body-small">
+              You can still join as an observer to watch the game.
+            </p>
+          </div>
+        )}
+
         {/* Player List */}
         {players.length > 0 && (
           <div className="mb-md3-6">
@@ -176,7 +201,10 @@ export function JoinGameModal({ gameId, game, players }: JoinGameModalProps) {
               Your Color
             </label>
             {availableColors.length === 0 ? (
-              <p className="text-error text-body-medium p-md3-3 bg-error-container rounded-md3-sm">
+              <p
+                role="alert"
+                className="text-error text-body-medium p-md3-3 bg-error-container rounded-md3-sm"
+              >
                 No colors available. Game may be full.
               </p>
             ) : (
@@ -207,12 +235,12 @@ export function JoinGameModal({ gameId, game, players }: JoinGameModalProps) {
             </button>
             <button
               type="submit"
-              disabled={loading || !username.trim() || !!usernameError || availableColors.length === 0}
+              disabled={loading || !username.trim() || !!usernameError || isGameFull || isGameStarted}
               className="flex-1 px-md3-6 py-md3-3 bg-primary text-primary-on hover:shadow-md3-2 disabled:bg-surface-variant disabled:text-surface-on-variant disabled:cursor-not-allowed rounded-md3-xl text-label-large font-medium transition-all duration-md3-medium2 active:scale-98"
-              aria-label={loading ? 'Joining game...' : 'Join game'}
+              aria-label={loading ? 'Joining game...' : isGameFull ? 'Game is full' : isGameStarted ? 'Game has started' : 'Join game'}
               aria-busy={loading}
             >
-              {loading ? 'Joining...' : 'Join Game'}
+              {loading ? 'Joining...' : isGameFull ? 'Game Full' : isGameStarted ? 'Game Started' : 'Join Game'}
             </button>
           </div>
         </form>

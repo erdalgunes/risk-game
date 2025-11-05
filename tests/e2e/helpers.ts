@@ -8,9 +8,15 @@ import { Page, expect, Browser } from '@playwright/test';
 import { PersonaSimulator, PersonaType, createMultiplePersonas } from './helpers/user-personas';
 
 /**
- * Check if local Supabase is running
+ * Check if local Supabase is running OR if running in CI
+ * In CI, we allow tests to run with placeholder credentials to verify UI flows
  */
 export async function hasLocalDatabase(): Promise<boolean> {
+  // Allow tests to run in CI environment
+  if (process.env.CI === 'true') {
+    return true;
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   return url?.includes('localhost') || url?.includes('127.0.0.1') || false;
 }

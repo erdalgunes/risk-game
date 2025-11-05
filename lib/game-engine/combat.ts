@@ -1,4 +1,46 @@
+/**
+ * @deprecated This file is deprecated. Use BattleManager from lib/battle-system instead.
+ *
+ * This module is kept for backward compatibility with existing tests only.
+ * New code should use: import { BattleManager } from '@/lib/battle-system/BattleManager'
+ *
+ * The new BattleManager provides:
+ * - Object-oriented battle system
+ * - Modifier chain support
+ * - Better testability
+ * - Support for future battle types (sea, air)
+ */
+
 import type { AttackResult } from '@/types/game';
+
+/**
+ * Generate cryptographically secure random number between 1 and 6
+ * Uses crypto.getRandomValues() for true randomness
+ */
+function rollOneDie(): number {
+  // Use crypto for cryptographically secure randomness
+  const array = new Uint32Array(1);
+
+  // Works in both Node.js and browser
+  if (typeof globalThis.crypto !== 'undefined') {
+    globalThis.crypto.getRandomValues(array);
+  } else {
+    // Fallback for environments without crypto (should not happen in production)
+    throw new Error('Crypto API not available');
+  }
+
+  // Convert to 1-6 range with uniform distribution
+  // Avoid modulo bias by rejecting values >= 4294967280 (largest multiple of 6 below 2^32)
+  const max = Math.floor(0xFFFFFFFF / 6) * 6;
+  let value = array[0];
+
+  while (value >= max) {
+    globalThis.crypto.getRandomValues(array);
+    value = array[0];
+  }
+
+  return (value % 6) + 1;
+}
 
 /**
  * Roll dice and return sorted results (highest to lowest)
@@ -6,7 +48,7 @@ import type { AttackResult } from '@/types/game';
 export function rollDice(count: number): number[] {
   const dice: number[] = [];
   for (let i = 0; i < count; i++) {
-    dice.push(Math.floor(Math.random() * 6) + 1);
+    dice.push(rollOneDie());
   }
   return dice.sort((a, b) => b - a); // Sort descending
 }

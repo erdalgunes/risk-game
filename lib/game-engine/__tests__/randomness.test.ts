@@ -155,13 +155,12 @@ describe('Randomness - Dice Rolls', () => {
     }
 
     // Critical value for chi-square with 5 degrees of freedom at 99% confidence: 15.09
-    // Reduced from 95% (11.07) to prevent flaky test failures in CI
-    // Still validates fair dice distribution with strong statistical significance
+    // If our chi-square is less than this, the distribution is fair
+    // Using 99% to reduce false positives in CI (1% vs 5%)
     expect(chiSquare).toBeLessThan(15.09);
 
-    // Also verify each face appears roughly 500 times (±12% tolerance)
-    // Increased from 10% to align with 99% confidence level
-    const tolerance = expected * 0.12; // ±60
+    // Also verify each face appears roughly 500 times (±10% tolerance)
+    const tolerance = expected * 0.1; // ±50
     for (const [face, count] of faceCounts) {
       expect(count).toBeGreaterThanOrEqual(expected - tolerance);
       expect(count).toBeLessThanOrEqual(expected + tolerance);

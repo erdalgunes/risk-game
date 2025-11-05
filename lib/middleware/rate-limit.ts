@@ -108,6 +108,7 @@ export const SERVER_RATE_LIMITS = {
   FORTIFY: { limit: 20, windowMs: 60000 },         // 20 fortifications per minute per player
   END_TURN: { limit: 15, windowMs: 60000 },        // 15 turn ends per minute per player
   CHANGE_PHASE: { limit: 15, windowMs: 60000 },    // 15 phase changes per minute per player
+  UNDO_ACTION: { limit: 5, windowMs: 60000 },      // 5 undos per minute per player (prevent undo abuse)
 } as const;
 
 /**
