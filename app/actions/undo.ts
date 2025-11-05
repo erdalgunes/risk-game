@@ -53,12 +53,12 @@ export async function undoLastAction(
   player_id: string
 ): Promise<UndoResult> {
   try {
-    // Rate limiting
+    // Rate limiting - dedicated undo rate limit to prevent abuse
     const headersList = await headers();
     const clientIP = getClientIP(headersList);
     const rateLimitResult = await checkRateLimit({
       identifier: `undo:${clientIP}:${player_id}`,
-      ...SERVER_RATE_LIMITS.END_TURN,
+      ...SERVER_RATE_LIMITS.UNDO_ACTION,
     });
 
     if (!rateLimitResult.success) {

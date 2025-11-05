@@ -50,7 +50,8 @@ export type ActionType =
   | 'attack'
   | 'fortify'
   | 'end_turn'
-  | 'claim_territory';
+  | 'claim_territory'
+  | 'change_phase';
 
 // Player colors
 export type PlayerColor =

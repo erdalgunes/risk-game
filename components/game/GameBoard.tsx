@@ -438,7 +438,7 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
               players={players}
               currentPlayerId={playerId}
               game={game}
-              currentPlayer={currentPlayer}
+              currentPlayer={currentPlayer ?? undefined}
               onTerritoryClick={handleTerritoryClick}
               selectedTerritoryId={selectedTerritory?.id}
               highlightAdjacent={

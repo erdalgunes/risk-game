@@ -16,6 +16,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Game, Player, Territory } from '@/types/game';
 import { EventProjector } from './EventProjector';
+import { validateEventPayload } from './event-schemas';
 
 /**
  * Base interface for all events
@@ -103,13 +104,19 @@ export class EventStore {
     event: BaseEvent,
     options: AppendEventOptions
   ): Promise<StoredEvent> {
+    // Validate event payload
+    const validation = validateEventPayload(event.event_type, event.payload);
+    if (!validation.success) {
+      throw new Error(`Event validation failed: ${validation.error}`);
+    }
+
     const { data, error } = await this.supabase
       .from('game_events')
       .insert({
         game_id: options.game_id,
         player_id: options.player_id || null,
         event_type: event.event_type,
-        payload: event.payload,
+        payload: validation.data, // Use validated data
         metadata: event.metadata || {},
         correlation_id: options.correlation_id,
         causation_id: options.causation_id,
@@ -138,7 +145,16 @@ export class EventStore {
   ): Promise<StoredEvent[]> {
     if (events.length === 0) return [];
 
-    const inserts = events.map((event) => ({
+    // Validate all events first
+    const validatedEvents = events.map((event) => {
+      const validation = validateEventPayload(event.event_type, event.payload);
+      if (!validation.success) {
+        throw new Error(`Event validation failed for ${event.event_type}: ${validation.error}`);
+      }
+      return { ...event, payload: validation.data };
+    });
+
+    const inserts = validatedEvents.map((event) => ({
       game_id: options.game_id,
       player_id: options.player_id || null,
       event_type: event.event_type,
@@ -320,6 +336,8 @@ export class EventStore {
     players: Player[];
     territories: Territory[];
   }> {
+    const startTime = performance.now();
+
     // Get latest snapshot (if any)
     const snapshot = await this.getLatestSnapshot(game_id);
     let state = snapshot?.game_state || null;
@@ -332,6 +350,13 @@ export class EventStore {
     const eventsToReplay = toSequence
       ? events.filter((e) => e.sequence_number <= toSequence)
       : events;
+
+    // Monitoring: Calculate snapshot effectiveness
+    const snapshotSavedEvents = snapshot ? fromSequence : 0;
+    const eventsToReplayCount = eventsToReplay.length;
+    const snapshotEffectiveness = snapshot
+      ? `${((snapshotSavedEvents / (snapshotSavedEvents + eventsToReplayCount)) * 100).toFixed(1)}%`
+      : 'N/A (no snapshot)';
 
     // If no snapshot, we need to build initial state from current DB
     if (!state) {
@@ -357,8 +382,32 @@ export class EventStore {
     }
 
     // Replay events to reconstruct state using EventProjector
+    const projectionStartTime = performance.now();
     if (eventsToReplay.length > 0) {
       state = EventProjector.applyEvents(state, eventsToReplay);
+    }
+    const projectionDuration = performance.now() - projectionStartTime;
+
+    const totalDuration = performance.now() - startTime;
+
+    // Monitoring: Log performance metrics
+    console.log(`[EventStore] Replay completed for game ${game_id}:`, {
+      totalDuration: `${totalDuration.toFixed(2)}ms`,
+      projectionDuration: `${projectionDuration.toFixed(2)}ms`,
+      eventsReplayed: eventsToReplayCount,
+      snapshotUsed: !!snapshot,
+      snapshotEffectiveness,
+      eventsPerMs: eventsToReplayCount > 0
+        ? (eventsToReplayCount / projectionDuration).toFixed(2)
+        : 'N/A',
+    });
+
+    // Monitoring: Warn about slow replays
+    if (totalDuration > 1000) {
+      console.warn(
+        `[EventStore] Slow replay detected (${totalDuration.toFixed(2)}ms) for game ${game_id}. ` +
+        `Consider creating a snapshot (${eventsToReplayCount} events replayed).`
+      );
     }
 
     return state;
