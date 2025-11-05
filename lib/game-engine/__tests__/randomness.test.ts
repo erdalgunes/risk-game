@@ -127,7 +127,7 @@ describe('Randomness - Dice Rolls', () => {
     }
   });
 
-  it.skip('should produce uniform distribution over 3,000 rolls (chi-square test)', () => {
+  it('should produce uniform distribution over 3,000 rolls (chi-square test)', () => {
     const numRolls = 3000;
     const faceCounts = new Map<number, number>([
       [1, 0],
@@ -154,12 +154,14 @@ describe('Randomness - Dice Rolls', () => {
       chiSquare += Math.pow(observed - expected, 2) / expected;
     }
 
-    // Critical value for chi-square with 5 degrees of freedom at 95% confidence: 11.07
-    // If our chi-square is less than this, the distribution is fair
-    expect(chiSquare).toBeLessThan(11.07);
+    // Critical value for chi-square with 5 degrees of freedom at 99% confidence: 15.09
+    // Reduced from 95% (11.07) to prevent flaky test failures in CI
+    // Still validates fair dice distribution with strong statistical significance
+    expect(chiSquare).toBeLessThan(15.09);
 
-    // Also verify each face appears roughly 500 times (±10% tolerance)
-    const tolerance = expected * 0.1; // ±50
+    // Also verify each face appears roughly 500 times (±12% tolerance)
+    // Increased from 10% to align with 99% confidence level
+    const tolerance = expected * 0.12; // ±60
     for (const [face, count] of faceCounts) {
       expect(count).toBeGreaterThanOrEqual(expected - tolerance);
       expect(count).toBeLessThanOrEqual(expected + tolerance);

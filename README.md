@@ -4,26 +4,10 @@ A multiplayer Risk board game clone built with Next.js 15, Supabase, and deploye
 
 ## Features
 
-- **Tutorial Mode**: Interactive single-player tutorial to learn game mechanics
 - **Real-time multiplayer**: Play with friends online via Supabase Realtime
 - **Async multiplayer**: Take turns at your own pace
 - **Hot-seat local play**: Pass-and-play on the same device
 - **Classic Risk mechanics**: 42 territories, 6 continents, dice-based combat
-
-## Tutorial
-
-New to Risk? Start with the interactive tutorial to learn the game:
-
-1. Go to the lobby (homepage)
-2. Enter your username in the "Learn to Play" section
-3. Click **"Start Tutorial"**
-4. Follow the step-by-step guidance to learn:
-   - **Reinforcement**: How to place armies on your territories
-   - **Attack**: How to conquer territories using dice combat
-   - **Fortify**: How to move armies strategically between territories
-   - **Victory**: How to eliminate all opponents and win
-
-The tutorial takes **10-15 minutes** and teaches all core mechanics against a simple AI opponent. Perfect for first-time players!
 
 ## Tech Stack
 

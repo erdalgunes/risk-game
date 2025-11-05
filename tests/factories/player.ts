@@ -20,7 +20,6 @@ export const createTestPlayer = (overrides: Partial<Player> = {}): Player => {
     turn_order: turnOrder,
     armies_available: 0,
     is_eliminated: false,
-    is_ai: false,
     created_at: now,
     ...overrides,
   };

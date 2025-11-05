@@ -10,8 +10,6 @@ interface TerritoriesListProps {
   game?: Game;
   currentPlayer?: Player | null;
   onTerritoryClick?: (territory: Territory) => void;
-  isTutorialMode?: boolean;
-  tutorialStep?: number;
 }
 
 export function TerritoriesList({
@@ -21,8 +19,6 @@ export function TerritoriesList({
   game,
   currentPlayer,
   onTerritoryClick,
-  isTutorialMode = false,
-  tutorialStep = 0,
 }: TerritoriesListProps) {
   // Group territories by continent
   const territoryMap = new Map<string, Territory[]>();
@@ -44,45 +40,6 @@ export function TerritoriesList({
     if (!ownerId) return 'Unclaimed';
     const player = players.find((p) => p.id === ownerId);
     return player?.username || 'Unknown';
-  }
-
-  /**
-   * Determine if territory should be highlighted in tutorial
-   */
-  function getTutorialHighlight(territory: Territory): 'highlight' | 'dim' | 'none' {
-    if (!isTutorialMode) return 'none';
-
-    const territoryName = territory.territory_name;
-    const isPlayerOwned = territory.owner_id === currentPlayerId;
-
-    // Step 1: Reinforcement - Highlight player's starting territories
-    if (tutorialStep === 1) {
-      if (['alaska', 'alberta', 'ontario'].includes(territoryName) && isPlayerOwned) {
-        return 'highlight';
-      }
-      return 'dim';
-    }
-
-    // Step 2: Attack - Highlight Alaska (source) and Northwest Territory (target)
-    if (tutorialStep === 2) {
-      if (territoryName === 'alaska' && isPlayerOwned) {
-        return 'highlight';
-      }
-      if (territoryName === 'northwest-territory' && !isPlayerOwned) {
-        return 'highlight';
-      }
-      return 'dim';
-    }
-
-    // Step 3: Fortify - Highlight Alberta (source) and Alaska (destination)
-    if (tutorialStep === 3) {
-      if (['alberta', 'alaska'].includes(territoryName) && isPlayerOwned) {
-        return 'highlight';
-      }
-      return 'dim';
-    }
-
-    return 'none';
   }
 
   function isClickable(territory: Territory): boolean {
@@ -131,37 +88,17 @@ export function TerritoriesList({
                 {continentTerritories.map((territory) => {
                   const isYours = territory.owner_id === currentPlayerId;
                   const clickable = isClickable(territory);
-                  const tutorialHighlight = getTutorialHighlight(territory);
-
-                  // Determine classes based on tutorial state
-                  let classes = 'text-xs p-2 rounded transition ';
-
-                  if (tutorialHighlight === 'highlight') {
-                    classes += 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-gray-800 animate-pulse bg-yellow-900 border border-yellow-500 cursor-pointer';
-                  } else if (tutorialHighlight === 'dim') {
-                    classes += 'opacity-30 ';
-                    if (clickable) {
-                      classes += 'bg-green-900 border border-green-500 cursor-pointer hover:bg-green-800';
-                    } else if (isYours) {
-                      classes += 'bg-blue-900 border border-blue-600';
-                    } else {
-                      classes += 'bg-gray-700';
-                    }
-                  } else {
-                    if (clickable) {
-                      classes += 'bg-green-900 border border-green-500 cursor-pointer hover:bg-green-800';
-                    } else if (isYours) {
-                      classes += 'bg-blue-900 border border-blue-600';
-                    } else {
-                      classes += 'bg-gray-700';
-                    }
-                  }
-
                   return (
                     <div
                       key={territory.id}
                       onClick={() => handleTerritoryClick(territory)}
-                      className={classes}
+                      className={`text-xs p-2 rounded transition ${
+                        clickable
+                          ? 'bg-green-900 border border-green-500 cursor-pointer hover:bg-green-800'
+                          : isYours
+                          ? 'bg-blue-900 border border-blue-600'
+                          : 'bg-gray-700'
+                      }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-white font-medium capitalize">

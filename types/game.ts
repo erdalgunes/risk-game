@@ -11,8 +11,6 @@ export interface Game {
   current_player_order: number;
   winner_id: string | null;
   max_players: number;
-  is_tutorial: boolean;
-  tutorial_step: number;
   created_at: string;
   updated_at: string;
 }
@@ -25,7 +23,6 @@ export interface Player {
   turn_order: number;
   armies_available: number;
   is_eliminated: boolean;
-  is_ai: boolean;
   created_at: string;
 }
 
@@ -154,22 +151,4 @@ export interface TerritoryDefinition {
   name: TerritoryName;
   continent: ContinentName;
   adjacentTerritories: TerritoryName[];
-}
-
-// Tutorial types
-export interface TutorialStep {
-  step: number;
-  title: string;
-  description: string;
-  objective: string;
-  phase: GamePhase | 'setup';
-  allowedActions: ('place' | 'attack' | 'fortify' | 'end_turn')[];
-}
-
-export interface TutorialScenario {
-  playerTerritories: { territory: TerritoryName; armies: number }[];
-  aiTerritories: { territory: TerritoryName; armies: number }[];
-  playerColor: PlayerColor;
-  aiColor: PlayerColor;
-  playerStartingArmies: number;
 }

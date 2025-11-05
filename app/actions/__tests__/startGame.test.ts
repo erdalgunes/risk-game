@@ -15,13 +15,13 @@ vi.mock('@/lib/supabase/server', () => ({
 // Import after mocks are setup
 const { startGame } = await import('../game');
 
-describe.skip('startGame Server Action', () => {
+describe('startGame Server Action', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should start game with 2 players successfully', async () => {
-    const gameId = 'game-123';
+    const gameId = '11111111-1111-4111-8111-111111111111';
     const players = [
       createTestPlayer({ id: 'p1', turn_order: 0 }),
       createTestPlayer({ id: 'p2', turn_order: 1 }),
@@ -63,7 +63,7 @@ describe.skip('startGame Server Action', () => {
   });
 
   it('should fail with less than 2 players', async () => {
-    const gameId = 'game-123';
+    const gameId = '11111111-1111-4111-8111-111111111111';
 
     mockSupabase.from.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
@@ -81,7 +81,7 @@ describe.skip('startGame Server Action', () => {
   });
 
   it('should fail if players query returns error', async () => {
-    const gameId = 'game-123';
+    const gameId = '11111111-1111-4111-8111-111111111111';
 
     mockSupabase.from.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
@@ -99,7 +99,7 @@ describe.skip('startGame Server Action', () => {
   });
 
   it('should distribute all 42 territories among players', async () => {
-    const gameId = 'game-123';
+    const gameId = '11111111-1111-4111-8111-111111111111';
     const players = [
       createTestPlayer({ id: 'p1', turn_order: 0 }),
       createTestPlayer({ id: 'p2', turn_order: 1 }),
@@ -149,7 +149,7 @@ describe.skip('startGame Server Action', () => {
     for (const { playerCount, expectedArmies } of testCases) {
       vi.clearAllMocks();
 
-      const gameId = 'game-123';
+      const gameId = '11111111-1111-4111-8111-111111111111';
       const players = Array.from({ length: playerCount }, (_, i) =>
         createTestPlayer({ id: `p${i}`, turn_order: i })
       );
@@ -199,7 +199,7 @@ describe.skip('startGame Server Action', () => {
   });
 
   it('should set game status to setup', async () => {
-    const gameId = 'game-123';
+    const gameId = '11111111-1111-4111-8111-111111111111';
     const players = [
       createTestPlayer({ id: 'p1', turn_order: 0 }),
       createTestPlayer({ id: 'p2', turn_order: 1 }),
