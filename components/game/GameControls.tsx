@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { endTurn, changePhase } from '@/app/actions/game';
+import { undoLastAction, checkUndoAvailability } from '@/app/actions/undo';
 import type { Game, Territory, Player } from '@/types/game';
 import { useToast } from '@/lib/hooks/useToast';
 import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
@@ -22,7 +23,48 @@ export function GameControls({
   playerId,
 }: GameControlsProps) {
   const [transitioning, setTransitioning] = useState(false);
+  const [undoAvailable, setUndoAvailable] = useState(false);
+  const [undoing, setUndoing] = useState(false);
   const { addToast } = useToast();
+
+  // Check undo availability when game state changes
+  useEffect(() => {
+    async function checkUndo() {
+      if (!playerId || !gameId) {
+        setUndoAvailable(false);
+        return;
+      }
+
+      try {
+        const result = await checkUndoAvailability(gameId, playerId);
+        setUndoAvailable(result.available);
+      } catch (error) {
+        setUndoAvailable(false);
+      }
+    }
+
+    checkUndo();
+  }, [game, playerId, gameId]);
+
+  async function handleUndo() {
+    if (!playerId) return;
+
+    setUndoing(true);
+    try {
+      const result = await undoLastAction(gameId, playerId);
+      if (result.success) {
+        addToast('Action undone successfully', 'success');
+        setUndoAvailable(false);
+      } else {
+        addToast(result.error || 'Failed to undo action', 'error');
+      }
+    } catch (error) {
+      console.error('Error undoing action:', error);
+      addToast('Failed to undo action', 'error');
+    } finally {
+      setUndoing(false);
+    }
+  }
 
   async function handleEndTurn() {
     if (!playerId) return;
@@ -158,16 +200,28 @@ export function GameControls({
               Armies to place: {currentPlayerData.armies_available}
             </p>
           </div>
-          {currentPlayerData.armies_available === 0 && (
-            <button
-              onClick={handleMoveToAttack}
-              disabled={transitioning}
-              className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
-              aria-busy={transitioning}
-            >
-              {transitioning ? 'Changing Phase...' : 'Continue to Attack Phase'}
-            </button>
-          )}
+          <div className="space-y-2">
+            {undoAvailable && (
+              <button
+                onClick={handleUndo}
+                disabled={undoing || transitioning}
+                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                aria-busy={undoing}
+              >
+                {undoing ? 'Undoing...' : 'Undo Last Action'}
+              </button>
+            )}
+            {currentPlayerData.armies_available === 0 && (
+              <button
+                onClick={handleMoveToAttack}
+                disabled={transitioning}
+                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                aria-busy={transitioning}
+              >
+                {transitioning ? 'Changing Phase...' : 'Continue to Attack Phase'}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -178,6 +232,16 @@ export function GameControls({
             Click attacking territory, then target territory
           </p>
           <div className="space-y-2">
+            {undoAvailable && (
+              <button
+                onClick={handleUndo}
+                disabled={undoing || transitioning}
+                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                aria-busy={undoing}
+              >
+                {undoing ? 'Undoing...' : 'Undo Last Attack'}
+              </button>
+            )}
             <button
               onClick={handleSkipToFortify}
               disabled={transitioning}
@@ -197,6 +261,16 @@ export function GameControls({
             Move armies between connected territories (optional)
           </p>
           <div className="space-y-2">
+            {undoAvailable && (
+              <button
+                onClick={handleUndo}
+                disabled={undoing || transitioning}
+                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                aria-busy={undoing}
+              >
+                {undoing ? 'Undoing...' : 'Undo Last Fortify'}
+              </button>
+            )}
             <button
               onClick={handleEndTurn}
               disabled={transitioning}
