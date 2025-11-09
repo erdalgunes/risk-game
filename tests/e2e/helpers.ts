@@ -352,3 +352,26 @@ export async function assertSecurityHeaders(page: Page): Promise<void> {
   expect(headers['x-content-type-options']).toBe('nosniff');
   expect(headers['strict-transport-security']).toContain('max-age=31536000');
 }
+
+/**
+ * Verify no JavaScript errors occur on page load
+ * Used in smoke tests to ensure clean page load
+ */
+export async function assertNoJavaScriptErrors(page: Page): Promise<void> {
+  const errors: string[] = [];
+
+  page.on('pageerror', error => {
+    errors.push(error.message);
+  });
+
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      errors.push(msg.text());
+    }
+  });
+
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  expect(errors).toHaveLength(0);
+}

@@ -10,7 +10,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders } from './helpers';
+import { createGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders, assertNoJavaScriptErrors } from './helpers';
 
 test.describe('Smoke Tests @smoke', () => {
   test.describe.configure({ mode: 'serial' }); // Serial for faster execution
@@ -93,22 +93,7 @@ test.describe('Smoke Tests @smoke', () => {
   });
 
   test('6. No JavaScript errors on load @smoke', async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on('pageerror', error => {
-      errors.push(error.message);
-    });
-
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text());
-      }
-    });
-
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    expect(errors).toHaveLength(0);
+    await assertNoJavaScriptErrors(page);
   });
 
   test('7. Security headers present @smoke', async ({ page }) => {

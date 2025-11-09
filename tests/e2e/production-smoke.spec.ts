@@ -10,7 +10,7 @@
  */
 
 import { test, expect, Page, Browser, BrowserContext } from '@playwright/test';
-import { createGameViaUI, joinGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders } from './helpers';
+import { createGameViaUI, joinGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders, assertNoJavaScriptErrors } from './helpers';
 
 test.describe('Production Smoke Tests - Critical Path', () => {
   test.describe.configure({ mode: 'serial' }); // Run in order for faster execution
@@ -285,22 +285,7 @@ test.describe('Production Smoke Tests - Performance', () => {
 
 test.describe('Production Smoke Tests - Error Handling', () => {
   test('No JavaScript errors on page load', async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on('pageerror', error => {
-      errors.push(error.message);
-    });
-
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text());
-      }
-    });
-
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    expect(errors).toHaveLength(0);
+    await assertNoJavaScriptErrors(page);
   });
 
   test('Handles invalid game ID gracefully', async ({ page }) => {
