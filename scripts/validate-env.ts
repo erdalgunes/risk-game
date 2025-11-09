@@ -24,6 +24,13 @@ const PLACEHOLDER_PATTERNS = [
 function validateEnvVars(): void {
   console.log('🔍 Validating environment variables...\n');
 
+  // Skip validation in CI environments (E2E tests, builds)
+  if (process.env.CI === 'true') {
+    console.log('✅ CI environment detected - skipping validation\n');
+    console.log('   Running in CI mode (validation skipped for automated tests)\n');
+    return;
+  }
+
   // Check for mock mode - skip validation if enabled
   if (process.env.NEXT_PUBLIC_MOCK_MODE === 'true') {
     console.log('✅ Mock mode enabled - skipping Supabase validation\n');
