@@ -10,6 +10,8 @@ import { defineConfig, devices } from '@playwright/test';
  * - npm run test:e2e          -> Uses .env.local (default Supabase)
  * - npm run test:e2e:prod     -> Tests production URL
  * - npm run test:e2e:local    -> Uses .env.test (local Supabase)
+ * - npm run test:e2e:smoke    -> Run only @smoke tests (fast, 3-5min)
+ * - npm run test:e2e:regression -> Run all tests except @smoke (comprehensive)
  */
 export default defineConfig({
   testDir: './tests/e2e',
@@ -23,8 +25,11 @@ export default defineConfig({
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Opt out of parallel tests on CI
-  workers: process.env.CI ? 1 : undefined,
+  // Use 2 workers in CI for better performance (was 1)
+  workers: process.env.CI ? 2 : undefined,
+
+  // Filter tests by grep pattern (supports @smoke, @regression, etc.)
+  grep: process.env.TEST_GREP ? new RegExp(process.env.TEST_GREP) : undefined,
 
   // Reporter to use
   reporter: [
