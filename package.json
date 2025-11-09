@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "npx tsx scripts/validate-env.ts",
     "dev": "next dev",
+    "dev:mock": "NEXT_PUBLIC_MOCK_MODE=true npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
