@@ -40,6 +40,11 @@ import { checkRateLimit, SERVER_RATE_LIMITS, getRateLimitError } from '@/lib/mid
  * ```
  */
 export async function createTutorialGame(username: string) {
+  // Track created IDs for rollback on failure
+  let supabaseRef: ReturnType<typeof createServerClient> | null = null;
+  let createdGameId: string | null = null;
+  const createdPlayerIds: string[] = [];
+
   try {
     // Input validation
     if (!username || typeof username !== 'string') {
@@ -72,6 +77,7 @@ export async function createTutorialGame(username: string) {
     }
 
     const supabase = createServerClient();
+    supabaseRef = supabase;
 
     // Create tutorial game
     const { data: game, error: gameError } = await supabase
@@ -87,6 +93,7 @@ export async function createTutorialGame(username: string) {
       .single();
 
     if (gameError) throw gameError;
+    createdGameId = game.id;
 
     // Create human player
     const { data: player, error: playerError } = await supabase
@@ -103,6 +110,7 @@ export async function createTutorialGame(username: string) {
       .single();
 
     if (playerError) throw playerError;
+    createdPlayerIds.push(player.id);
 
     // Create AI opponent
     const { data: aiPlayer, error: aiError } = await supabase
@@ -119,6 +127,7 @@ export async function createTutorialGame(username: string) {
       .single();
 
     if (aiError) throw aiError;
+    createdPlayerIds.push(aiPlayer.id);
 
     // Create territories with pre-defined distribution
     const territoryInserts = [
@@ -154,6 +163,28 @@ export async function createTutorialGame(username: string) {
     };
   } catch (error) {
     console.error('Error creating tutorial game:', error);
+
+    // Rollback: Clean up any partially created resources
+    if (supabaseRef && createdGameId) {
+      try {
+        // Delete territories first (foreign key dependency)
+        await supabaseRef.from('territories').delete().eq('game_id', createdGameId);
+
+        // Delete players
+        if (createdPlayerIds.length > 0) {
+          await supabaseRef.from('players').delete().in('id', createdPlayerIds);
+        }
+
+        // Delete game last
+        await supabaseRef.from('games').delete().eq('id', createdGameId);
+
+        console.log('Successfully rolled back tutorial game creation');
+      } catch (rollbackError) {
+        // Log rollback failure but don't override the original error
+        console.error('Failed to rollback tutorial game creation:', rollbackError);
+      }
+    }
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

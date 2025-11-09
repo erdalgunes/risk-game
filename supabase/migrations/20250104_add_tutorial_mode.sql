@@ -16,5 +16,5 @@ CREATE INDEX IF NOT EXISTS idx_players_is_ai ON players(is_ai);
 
 -- Comment for documentation
 COMMENT ON COLUMN games.is_tutorial IS 'Indicates if this is a tutorial game (single-player vs AI)';
-COMMENT ON COLUMN games.tutorial_step IS 'Current tutorial step (0-6), only used for tutorial games';
+COMMENT ON COLUMN games.tutorial_step IS 'Current tutorial step (0-4), only used for tutorial games';
 COMMENT ON COLUMN players.is_ai IS 'Indicates if this player is controlled by AI (tutorial opponent)';

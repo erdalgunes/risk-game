@@ -8,8 +8,10 @@ interface TutorialProgressProps {
 
 export function TutorialProgress({ currentStep }: TutorialProgressProps) {
   const tutorialStep = getTutorialStep(currentStep);
-  const totalSteps = TUTORIAL_STEPS.length - 1; // Exclude step 0 (welcome)
-  const progressStep = Math.max(0, currentStep - 1); // Adjust for welcome step
+  const totalSteps = Math.max(1, TUTORIAL_STEPS.length - 1); // Exclude step 0 (welcome)
+  const progressStep = Math.max(0, Math.min(totalSteps, currentStep - 1)); // Adjust for welcome step
+  const displayStep = progressStep + 1;
+  const progressPercent = (displayStep / totalSteps) * 100;
 
   if (!tutorialStep || currentStep === 0) return null;
 
@@ -19,7 +21,7 @@ export function TutorialProgress({ currentStep }: TutorialProgressProps) {
         <div>
           <p className="text-sm text-blue-300">Tutorial Progress</p>
           <p className="text-lg font-bold text-white">
-            Step {progressStep} of {totalSteps}
+            Step {displayStep} of {totalSteps}
           </p>
         </div>
         <div className="text-3xl" aria-hidden="true">
@@ -30,9 +32,9 @@ export function TutorialProgress({ currentStep }: TutorialProgressProps) {
       <div className="w-full bg-blue-950 rounded-full h-3 overflow-hidden">
         <div
           className="bg-gradient-to-r from-blue-500 to-green-500 h-full transition-all duration-500"
-          style={{ width: `${(progressStep / totalSteps) * 100}%` }}
+          style={{ width: `${progressPercent}%` }}
           role="progressbar"
-          aria-valuenow={progressStep}
+          aria-valuenow={displayStep}
           aria-valuemin={0}
           aria-valuemax={totalSteps}
         />

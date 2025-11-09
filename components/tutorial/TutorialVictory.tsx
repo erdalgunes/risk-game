@@ -1,10 +1,8 @@
 'use client';
 
-interface TutorialVictoryProps {
-  gameId: string;
-}
+import Link from 'next/link';
 
-export function TutorialVictory({ gameId }: TutorialVictoryProps) {
+export function TutorialVictory() {
   return (
     <div className="container mx-auto p-4" role="main">
       <div className="flex items-center justify-center min-h-screen">
@@ -77,20 +75,20 @@ export function TutorialVictory({ gameId }: TutorialVictoryProps) {
             </div>
 
             <div className="space-y-3">
-              <a
+              <Link
                 href="/"
                 className="block w-full px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-xl transition text-white"
                 aria-label="Play multiplayer game"
               >
                 Play Multiplayer
-              </a>
-              <a
-                href="/?replay_tutorial=true"
+              </Link>
+              <Link
+                href="/"
                 className="block w-full px-8 py-4 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition text-white"
                 aria-label="Replay tutorial"
               >
                 Replay Tutorial
-              </a>
+              </Link>
             </div>
           </div>
         </section>
