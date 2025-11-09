@@ -10,7 +10,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameViaUI } from './helpers';
+import { createGameViaUI, setupTwoPlayerGameSimple } from './helpers';
 
 test.describe('Smoke Tests @smoke', () => {
   test.describe.configure({ mode: 'serial' }); // Serial for faster execution
@@ -43,53 +43,12 @@ test.describe('Smoke Tests @smoke', () => {
   });
 
   test('3. Second player can join @smoke', async ({ page, browser }) => {
-    // Player 1 creates
-    await page.goto('/');
-    const gameId = await createGameViaUI(page, 'Player1', 'red');
-    const gameUrl = page.url();
-
-    // Player 2 joins in new context
-    const player2Context = await browser.newContext();
-    const player2Page = await player2Context.newPage();
-    await player2Page.goto(gameUrl);
-
-    const usernameInput = player2Page.locator('input[placeholder*="username" i]').first();
-    await usernameInput.waitFor({ state: 'visible', timeout: 10000 });
-    await usernameInput.fill('Player2');
-
-    const colorSelect = player2Page.locator('select').first();
-    if (await colorSelect.isVisible({ timeout: 2000 })) {
-      await colorSelect.selectOption('blue');
-    }
-
-    const joinButton = player2Page.getByRole('button', { name: /join/i }).first();
-    await joinButton.click();
-
-    // Both players see each other
-    await expect(player2Page.getByTestId('player-name').filter({ hasText: 'Player2' }))
-      .toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('player-name').filter({ hasText: 'Player2' }))
-      .toBeVisible({ timeout: 10000 });
-
+    const { player2Context } = await setupTwoPlayerGameSimple(page, browser);
     await player2Context.close();
   });
 
   test('4. Can start game with 2 players @smoke', async ({ page, browser }) => {
-    // Setup 2 players
-    await page.goto('/');
-    await createGameViaUI(page, 'Player1', 'red');
-    const gameUrl = page.url();
-
-    const player2Context = await browser.newContext();
-    const player2Page = await player2Context.newPage();
-    await player2Page.goto(gameUrl);
-
-    const usernameInput = player2Page.locator('input[placeholder*="username" i]').first();
-    await usernameInput.fill('Player2');
-    await player2Page.getByRole('button', { name: /join/i }).first().click();
-
-    await expect(page.getByTestId('player-name').filter({ hasText: 'Player2' }))
-      .toBeVisible({ timeout: 10000 });
+    const { player2Page, player2Context } = await setupTwoPlayerGameSimple(page, browser);
 
     // Start game
     const startButton = page.getByRole('button', { name: /start game/i });
@@ -105,21 +64,7 @@ test.describe('Smoke Tests @smoke', () => {
   });
 
   test('5. Can place armies during setup @smoke', async ({ page, browser }) => {
-    // Setup game in setup phase
-    await page.goto('/');
-    await createGameViaUI(page, 'Player1', 'red');
-    const gameUrl = page.url();
-
-    const player2Context = await browser.newContext();
-    const player2Page = await player2Context.newPage();
-    await player2Page.goto(gameUrl);
-
-    const usernameInput = player2Page.locator('input[placeholder*="username" i]').first();
-    await usernameInput.fill('Player2');
-    await player2Page.getByRole('button', { name: /join/i }).first().click();
-
-    await expect(page.getByTestId('player-name').filter({ hasText: 'Player2' }))
-      .toBeVisible({ timeout: 10000 });
+    const { player2Context } = await setupTwoPlayerGameSimple(page, browser);
 
     await page.getByRole('button', { name: /start game/i }).click();
     await expect(page.getByText(/setup/i)).toBeVisible({ timeout: 10000 });

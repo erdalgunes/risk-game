@@ -107,5 +107,11 @@ export default defineConfig({
         url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000, // 2 minutes
+        // Pass environment variables to dev server (needed in CI for Supabase)
+        env: {
+          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+          SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+        },
       },
 });
