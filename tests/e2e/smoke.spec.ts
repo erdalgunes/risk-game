@@ -10,7 +10,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameViaUI, setupTwoPlayerGameSimple } from './helpers';
+import { createGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders } from './helpers';
 
 test.describe('Smoke Tests @smoke', () => {
   test.describe.configure({ mode: 'serial' }); // Serial for faster execution
@@ -112,16 +112,6 @@ test.describe('Smoke Tests @smoke', () => {
   });
 
   test('7. Security headers present @smoke', async ({ page }) => {
-    const response = await page.goto('/');
-    const headers = response?.headers();
-
-    expect(headers).toBeDefined();
-    if (!headers) return;
-
-    // Critical security headers
-    expect(headers['content-security-policy']).toBeDefined();
-    expect(headers['x-frame-options']).toBe('DENY');
-    expect(headers['x-content-type-options']).toBe('nosniff');
-    expect(headers['strict-transport-security']).toContain('max-age=31536000');
+    await assertSecurityHeaders(page);
   });
 });

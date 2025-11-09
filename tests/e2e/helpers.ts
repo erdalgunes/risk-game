@@ -334,3 +334,21 @@ export async function setupTwoPlayerGameSimple(
 
   return { player1Page: page, player2Page, player2Context, gameUrl };
 }
+
+/**
+ * Verify critical security headers are present
+ * Used in smoke tests to ensure security configuration is correct
+ */
+export async function assertSecurityHeaders(page: Page): Promise<void> {
+  const response = await page.goto('/');
+  const headers = response?.headers();
+
+  expect(headers).toBeDefined();
+  if (!headers) return;
+
+  // Critical security headers
+  expect(headers['content-security-policy']).toBeDefined();
+  expect(headers['x-frame-options']).toBe('DENY');
+  expect(headers['x-content-type-options']).toBe('nosniff');
+  expect(headers['strict-transport-security']).toContain('max-age=31536000');
+}

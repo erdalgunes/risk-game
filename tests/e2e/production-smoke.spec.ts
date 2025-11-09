@@ -10,7 +10,7 @@
  */
 
 import { test, expect, Page, Browser, BrowserContext } from '@playwright/test';
-import { createGameViaUI, joinGameViaUI, setupTwoPlayerGameSimple } from './helpers';
+import { createGameViaUI, joinGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders } from './helpers';
 
 test.describe('Production Smoke Tests - Critical Path', () => {
   test.describe.configure({ mode: 'serial' }); // Run in order for faster execution
@@ -170,17 +170,7 @@ test.describe('Production Smoke Tests - Critical Path', () => {
   });
 
   test('8. Security headers are present', async ({ page }) => {
-    const response = await page.goto('/');
-    const headers = response?.headers();
-
-    expect(headers).toBeDefined();
-    if (!headers) return;
-
-    // Check critical security headers
-    expect(headers['content-security-policy']).toBeDefined();
-    expect(headers['x-frame-options']).toBe('DENY');
-    expect(headers['x-content-type-options']).toBe('nosniff');
-    expect(headers['strict-transport-security']).toContain('max-age=31536000');
+    await assertSecurityHeaders(page);
   });
 
   test('9. Rate limiting is active', async ({ page }) => {
