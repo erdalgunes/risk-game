@@ -11,15 +11,6 @@ import {
 } from '@/lib/game-engine';
 import { canAttack, canFortify } from '@/lib/game-engine/validation';
 import type { Player, Territory, AttackResult, Game } from '@/types/game';
-
-/**
- * Extended attack result with optional metadata fields
- */
-interface AttackResultWithMetadata extends AttackResult {
-  armiesToMove?: number;
-  gameFinished?: boolean;
-  winner?: string;
-}
 import { z } from 'zod';
 import {
   startGameSchema,
@@ -46,6 +37,15 @@ import { AttackPhaseDelegate } from './phases/AttackPhaseDelegate';
 import { FortifyPhaseDelegate } from './phases/FortifyPhaseDelegate';
 import { createEventStore, type GameEventType } from '@/lib/event-sourcing/EventStore';
 import { autoCreateSnapshot } from '@/lib/event-sourcing/snapshot-helpers';
+
+/**
+ * Extended attack result with optional metadata fields
+ */
+interface AttackResultWithMetadata extends AttackResult {
+  armiesToMove?: number;
+  gameFinished?: boolean;
+  winner?: string;
+}
 
 // ============================================
 // Helper Functions (DRY principle)
@@ -378,7 +378,7 @@ export async function startGame(gameId: string) {
 
     // Distribute territories
     const territoryNames = TERRITORIES.map((t) => t.name);
-    const distribution = distributeTerritoriesRandomly(territoryNames, players as Player[]);
+    const distribution = distributeTerritoriesRandomly(territoryNames, players);
 
     // Create territory records
     const territoryInserts = Array.from(distribution.entries()).map(([name, ownerId]) => ({

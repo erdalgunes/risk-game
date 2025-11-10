@@ -13,6 +13,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import readline from 'readline';
 
 const colors = {
   green: (text: string) => `\x1b[32m${text}\x1b[0m`,
@@ -48,15 +49,15 @@ async function resetDatabase() {
     console.log(`   URL: ${supabaseUrl}\n`);
 
     // Simple CLI confirmation
-    const readline = require('readline').createInterface({
+    const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
     });
 
     const answer = await new Promise<string>((resolve) => {
-      readline.question('Type "DELETE" to confirm: ', resolve);
+      rl.question('Type "DELETE" to confirm: ', resolve);
     });
-    readline.close();
+    rl.close();
 
     if (answer !== 'DELETE') {
       console.log(colors.yellow('\nCancelled.'));

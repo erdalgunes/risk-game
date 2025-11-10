@@ -50,7 +50,7 @@ await autoCreateSnapshot(supabase, gameId);
 ### Positive Consequences
 
 * Complete audit trail of all game actions
-* Can reconstruct game state at any point in time
+* Can reconstruct game state at any time
 * Supports debugging complex multiplayer scenarios
 * Enables future replay/undo features
 * Events are immutable (append-only)
