@@ -31,6 +31,20 @@ export class AIPlayer {
   }
 
   /**
+   * Log AI action with player name prefix
+   */
+  private log(player: Player, message: string): void {
+    console.log(`[AI ${player.username}] ${message}`);
+  }
+
+  /**
+   * Log AI error with player name prefix
+   */
+  private logError(player: Player, message: string, error?: unknown): void {
+    console.error(`[AI ${player.username}] ${message}`, error || '');
+  }
+
+  /**
    * Execute current phase based on game state
    */
   async executeTurn(
@@ -40,79 +54,34 @@ export class AIPlayer {
     territories: Territory[]
   ): Promise<void> {
     if (game.status !== 'playing' && game.status !== 'setup') {
-      console.log(`[AI ${player.username}] Game not in playable state`);
+      this.log(player, 'Game not in playable state');
       return;
     }
 
     // Verify it's this AI's turn
     if (player.turn_order !== game.current_player_order) {
-      console.log(`[AI ${player.username}] Not this player's turn`);
+      this.log(player, "Not this player's turn");
       return;
     }
 
     // Execute phase-specific logic
     try {
       if (game.status === 'setup') {
-        await this.executeSetupPhase(game, player, territories);
+        this.log(player, 'Executing setup phase');
+        await this.strategy.executeReinforcementPhase(game, player, territories);
       } else if (game.phase === 'reinforcement') {
-        await this.executeReinforcementPhase(game, player, territories);
+        this.log(player, 'Executing reinforcement phase');
+        await this.strategy.executeReinforcementPhase(game, player, territories);
       } else if (game.phase === 'attack') {
-        await this.executeAttackPhase(game, player, allPlayers, territories);
+        this.log(player, 'Executing attack phase');
+        await this.strategy.executeAttackPhase(game, player, allPlayers, territories);
       } else if (game.phase === 'fortify') {
-        await this.executeFortifyPhase(game, player, territories);
+        this.log(player, 'Executing fortify phase');
+        await this.strategy.executeFortifyPhase(game, player, territories);
       }
     } catch (error) {
-      console.error(`[AI ${player.username}] Error executing turn:`, error);
+      this.logError(player, 'Error executing turn:', error);
     }
-  }
-
-  /**
-   * Execute setup phase (initial army placement)
-   */
-  private async executeSetupPhase(
-    game: Game,
-    player: Player,
-    territories: Territory[]
-  ): Promise<void> {
-    console.log(`[AI ${player.username}] Executing setup phase`);
-    await this.strategy.executeReinforcementPhase(game, player, territories);
-  }
-
-  /**
-   * Execute reinforcement phase
-   */
-  private async executeReinforcementPhase(
-    game: Game,
-    player: Player,
-    territories: Territory[]
-  ): Promise<void> {
-    console.log(`[AI ${player.username}] Executing reinforcement phase`);
-    await this.strategy.executeReinforcementPhase(game, player, territories);
-  }
-
-  /**
-   * Execute attack phase
-   */
-  private async executeAttackPhase(
-    game: Game,
-    player: Player,
-    allPlayers: Player[],
-    territories: Territory[]
-  ): Promise<void> {
-    console.log(`[AI ${player.username}] Executing attack phase`);
-    await this.strategy.executeAttackPhase(game, player, allPlayers, territories);
-  }
-
-  /**
-   * Execute fortify phase
-   */
-  private async executeFortifyPhase(
-    game: Game,
-    player: Player,
-    territories: Territory[]
-  ): Promise<void> {
-    console.log(`[AI ${player.username}] Executing fortify phase`);
-    await this.strategy.executeFortifyPhase(game, player, territories);
   }
 
   /**
