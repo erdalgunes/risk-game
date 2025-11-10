@@ -185,25 +185,31 @@ function buildPhaseContext(
  * Create game and join as first player
  */
 export async function createGameAction(username: string, color: string, maxPlayers: number = 4) {
+  console.log('[createGameAction] START', { username, color, maxPlayers, timestamp: new Date().toISOString() });
   try {
     // Server-side rate limiting (IP-based)
     const headersList = await headers();
     const clientIP = getClientIP(headersList);
+    console.log('[createGameAction] Got client IP:', clientIP);
+
     const rateLimitResult = await checkRateLimit({
       identifier: `create-game:${clientIP}`,
       ...SERVER_RATE_LIMITS.CREATE_GAME,
     });
 
     if (!rateLimitResult.success) {
+      console.log('[createGameAction] Rate limit exceeded', rateLimitResult);
       return {
         success: false,
         error: getRateLimitError(rateLimitResult.resetTime),
       };
     }
 
+    console.log('[createGameAction] Creating Supabase client...');
     const supabase = createServerClient();
 
     // Create game
+    console.log('[createGameAction] Inserting game record...');
     const { data: game, error: gameError } = await supabase
       .from('games')
       .insert({
@@ -213,9 +219,14 @@ export async function createGameAction(username: string, color: string, maxPlaye
       .select()
       .single();
 
-    if (gameError) throw gameError;
+    if (gameError) {
+      console.error('[createGameAction] Game creation failed:', gameError);
+      throw gameError;
+    }
+    console.log('[createGameAction] Game created:', game.id);
 
     // Join as first player
+    console.log('[createGameAction] Creating player record...');
     const { data: player, error: playerError } = await supabase
       .from('players')
       .insert({
@@ -228,12 +239,19 @@ export async function createGameAction(username: string, color: string, maxPlaye
       .select()
       .single();
 
-    if (playerError) throw playerError;
+    if (playerError) {
+      console.error('[createGameAction] Player creation failed:', playerError);
+      throw playerError;
+    }
+    console.log('[createGameAction] Player created:', player.id);
 
     // Create session cookie
+    console.log('[createGameAction] Creating session cookie...');
     await createPlayerSession(game.id, player.id);
+    console.log('[createGameAction] Session created');
 
     // Log event
+    console.log('[createGameAction] Logging events...');
     const eventStore = createEventStore(supabase);
     await eventStore.appendEvents(
       [
@@ -253,6 +271,7 @@ export async function createGameAction(username: string, color: string, maxPlaye
       }
     );
 
+    console.log('[createGameAction] SUCCESS', { gameId: game.id, playerId: player.id });
     return {
       success: true,
       result: {
@@ -261,7 +280,10 @@ export async function createGameAction(username: string, color: string, maxPlaye
       },
     };
   } catch (error) {
-    return handleActionError(error);
+    console.error('[createGameAction] CAUGHT ERROR:', error);
+    const result = handleActionError(error);
+    console.error('[createGameAction] Error response:', result);
+    return result;
   }
 }
 

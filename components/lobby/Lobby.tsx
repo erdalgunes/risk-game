@@ -11,7 +11,7 @@ import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
 
 export function Lobby() {
   const router = useRouter();
-  const { addToast } = useToast();
+  const { addToast} = useToast();
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0]);
@@ -20,6 +20,8 @@ export function Lobby() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState(4);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   useEffect(() => {
     loadAvailableGames();
@@ -52,11 +54,16 @@ export function Lobby() {
   }
 
   async function handleCreateGame() {
+    // Clear previous errors
+    setCreateError(null);
+    setUsernameError(null);
+
     // Validate username
     const validation = validateUsername(username);
     if (!validation.isValid) {
-      setUsernameError(validation.error || 'Invalid username');
-      addToast(validation.error || 'Please enter a valid username', 'warning');
+      const errorMsg = validation.error || 'Invalid username';
+      setUsernameError(errorMsg);
+      addToast(errorMsg, 'warning');
       return;
     }
 
@@ -64,32 +71,58 @@ export function Lobby() {
     const { limit, windowMs } = RATE_LIMITS.CREATE_GAME;
     if (!rateLimiter.check('create-game', limit, windowMs)) {
       const resetTime = rateLimiter.getResetTime('create-game');
-      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
+      const errorMsg = `Too many requests. Please wait ${resetTime} seconds.`;
+      setCreateError(errorMsg);
+      addToast(errorMsg, 'warning');
       return;
     }
 
     setLoading(true);
+    console.log('[Lobby] Creating game...', { username: username.trim(), color: selectedColor, maxPlayers });
+
     try {
       const response = await createGameAction(username.trim(), selectedColor, maxPlayers);
-      if (response.success && response.result) {
-        router.push(`/game/${response.result.gameId}?playerId=${response.result.playerId}`);
-      } else {
-        throw new Error(response.error || 'Failed to create game');
+      console.log('[Lobby] Server response:', response);
+
+      if (!response.success) {
+        const errorMsg = response.error || 'Server returned error without message';
+        console.error('[Lobby] Server returned error:', errorMsg);
+        setCreateError(errorMsg);
+        addToast(errorMsg, 'error');
+        return;
       }
+
+      if (!response.result) {
+        const errorMsg = 'Server succeeded but returned no game data';
+        console.error('[Lobby]', errorMsg);
+        setCreateError(errorMsg);
+        addToast(errorMsg, 'error');
+        return;
+      }
+
+      console.log('[Lobby] Success! Redirecting to game:', response.result.gameId);
+      router.push(`/game/${response.result.gameId}?playerId=${response.result.playerId}`);
     } catch (error) {
-      console.error('Error creating game:', error);
-      addToast('Failed to create game. Please try again.', 'error');
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('[Lobby] Exception:', errorMsg, error);
+      setCreateError(errorMsg);
+      addToast(`Error: ${errorMsg}`, 'error');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleJoinGame(gameId: string) {
+    // Clear previous errors
+    setJoinError(null);
+    setUsernameError(null);
+
     // Validate username
     const validation = validateUsername(username);
     if (!validation.isValid) {
-      setUsernameError(validation.error || 'Invalid username');
-      addToast(validation.error || 'Please enter a valid username', 'warning');
+      const errorMsg = validation.error || 'Invalid username';
+      setUsernameError(errorMsg);
+      addToast(errorMsg, 'warning');
       return;
     }
 
@@ -97,21 +130,42 @@ export function Lobby() {
     const { limit, windowMs } = RATE_LIMITS.JOIN_GAME;
     if (!rateLimiter.check('join-game', limit, windowMs)) {
       const resetTime = rateLimiter.getResetTime('join-game');
-      addToast(`Too many requests. Please wait ${resetTime} seconds.`, 'warning');
+      const errorMsg = `Too many requests. Please wait ${resetTime} seconds.`;
+      setJoinError(errorMsg);
+      addToast(errorMsg, 'warning');
       return;
     }
 
     setLoading(true);
+    console.log('[Lobby] Joining game...', { gameId, username: username.trim(), color: selectedColor });
+
     try {
       const response = await joinGameAction(gameId, username.trim(), selectedColor);
-      if (response.success && response.result) {
-        router.push(`/game/${response.result.gameId}?playerId=${response.result.playerId}`);
-      } else {
-        throw new Error(response.error || 'Failed to join game');
+      console.log('[Lobby] Join response:', response);
+
+      if (!response.success) {
+        const errorMsg = response.error || 'Server returned error without message';
+        console.error('[Lobby] Server returned error:', errorMsg);
+        setJoinError(errorMsg);
+        addToast(errorMsg, 'error');
+        return;
       }
+
+      if (!response.result) {
+        const errorMsg = 'Server succeeded but returned no game data';
+        console.error('[Lobby]', errorMsg);
+        setJoinError(errorMsg);
+        addToast(errorMsg, 'error');
+        return;
+      }
+
+      console.log('[Lobby] Join success! Redirecting...');
+      router.push(`/game/${response.result.gameId}?playerId=${response.result.playerId}`);
     } catch (error) {
-      console.error('Error joining game:', error);
-      addToast('Failed to join game. Color may be taken or game is full.', 'error');
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('[Lobby] Exception:', errorMsg, error);
+      setJoinError(errorMsg);
+      addToast(`Error: ${errorMsg}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -214,6 +268,12 @@ export function Lobby() {
                 ))}
               </select>
             </div>
+
+            {createError && (
+              <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm" role="alert">
+                <strong>Error:</strong> {createError}
+              </div>
+            )}
 
             <button
               type="submit"
