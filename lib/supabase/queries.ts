@@ -174,3 +174,38 @@ export async function getAvailableGames() {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Check if a player is an AI player
+ */
+export function isAIPlayer(player: Player | { username: string }): boolean {
+  return player.username.startsWith('AI_');
+}
+
+/**
+ * Get all AI players in a game
+ */
+export async function getAIPlayers(gameId: string): Promise<Player[]> {
+  const { data, error } = await supabase
+    .from('players')
+    .select('*')
+    .eq('game_id', gameId)
+    .ilike('username', 'AI_%');
+
+  if (error) throw error;
+  return (data as Player[]) || [];
+}
+
+/**
+ * Get all human players in a game
+ */
+export async function getHumanPlayers(gameId: string): Promise<Player[]> {
+  const { data, error } = await supabase
+    .from('players')
+    .select('*')
+    .eq('game_id', gameId)
+    .not('username', 'ilike', 'AI_%');
+
+  if (error) throw error;
+  return (data as Player[]) || [];
+}

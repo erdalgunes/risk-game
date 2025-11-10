@@ -46,25 +46,35 @@ export async function getPlayerSession(gameId: string): Promise<string | null> {
 /**
  * Verify that the provided player ID matches the session
  * Critical for preventing player impersonation attacks
+ * Note: AI players (username starts with "AI_") skip cookie verification
  */
-export async function verifyPlayerSession(gameId: string, playerId: string): Promise<boolean> {
-  const sessionPlayerId = await getPlayerSession(gameId);
-
-  if (!sessionPlayerId || sessionPlayerId !== playerId) {
-    return false;
-  }
-
-  // Additional verification: check that player exists in database
+export async function verifyPlayerSession(
+  gameId: string,
+  playerId: string
+): Promise<boolean> {
+  // First, verify player exists in database
   try {
     const supabase = createServerClient();
     const { data: player, error } = await supabase
       .from('players')
-      .select('id, game_id, is_eliminated')
+      .select('id, game_id, username, is_eliminated')
       .eq('id', playerId)
       .eq('game_id', gameId)
       .single();
 
     if (error || !player) {
+      return false;
+    }
+
+    // Skip session verification for AI players
+    if (player.username.startsWith('AI_')) {
+      return true;
+    }
+
+    // For human players, verify session cookie
+    const sessionPlayerId = await getPlayerSession(gameId);
+
+    if (!sessionPlayerId || sessionPlayerId !== playerId) {
       return false;
     }
 

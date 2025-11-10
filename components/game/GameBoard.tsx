@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameState } from '@/lib/hooks/useGameState';
 import { startGame, placeArmies, attackTerritory, fortifyTerritory } from '@/app/actions/game';
 import { areTerritoriesAdjacent } from '@/constants/map';
@@ -13,6 +13,8 @@ import { JoinGameModal } from './JoinGameModal';
 import type { Territory, AttackResult } from '@/types/game';
 import { useToast } from '@/lib/hooks/useToast';
 import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
+import { AIPlayer } from '@/lib/ai/AIPlayer';
+import { isAIPlayer } from '@/lib/ai/utils';
 
 interface GameBoardProps {
   gameId: string;
@@ -40,7 +42,44 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
   const [fortifyCount, setFortifyCount] = useState(1);
   const [fortifying, setFortifying] = useState(false);
 
+  // AI turn state
+  const [aiThinking, setAiThinking] = useState(false);
+  const aiExecutingRef = useRef(false);
+
   const currentPlayerData = players.find((p) => p.id === playerId);
+
+  // AI Turn Execution
+  useEffect(() => {
+    const executeAITurn = async () => {
+      // Guard conditions
+      if (!game || !currentPlayer || !territories.length || !players.length) return;
+      if (game.status !== 'setup' && game.status !== 'playing') return;
+      if (aiExecutingRef.current) return;
+
+      // Check if current player is AI
+      const isAI = isAIPlayer(currentPlayer.username);
+      if (!isAI) {
+        setAiThinking(false);
+        return;
+      }
+
+      // Execute AI turn
+      try {
+        setAiThinking(true);
+        aiExecutingRef.current = true;
+
+        const aiPlayer = new AIPlayer(currentPlayer.id, game.id, 'easy');
+        await aiPlayer.executeTurn(game, currentPlayer, players, territories);
+      } catch (error) {
+        console.error('[AI] Error executing turn:', error);
+      } finally {
+        setAiThinking(false);
+        aiExecutingRef.current = false;
+      }
+    };
+
+    executeAITurn();
+  }, [game?.phase, game?.current_player_order, game?.status, currentPlayer?.id, territories.length]);
 
   async function handleStartGame() {
     setStarting(true);
@@ -401,7 +440,12 @@ export function GameBoard({ gameId, playerId }: GameBoardProps) {
                   Turn #{game.current_turn + 1}
                 </p>
               </div>
-              {currentPlayerData?.id === currentPlayer?.id && (
+              {aiThinking && currentPlayer && isAIPlayer(currentPlayer.username) && (
+                <div className="bg-secondary-container px-md3-4 py-md3-2 rounded-md3-xl shadow-md3-2 animate-pulse">
+                  <p className="text-label-large text-secondary-on-container">🤖 AI Thinking...</p>
+                </div>
+              )}
+              {!aiThinking && currentPlayerData?.id === currentPlayer?.id && (
                 <div className="bg-tertiary px-md3-4 py-md3-2 rounded-md3-xl shadow-md3-2 animate-md3-spring-bounce">
                   <p className="text-label-large text-tertiary-on">Your Turn</p>
                 </div>

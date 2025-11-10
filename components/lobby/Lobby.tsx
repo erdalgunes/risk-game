@@ -8,10 +8,14 @@ import { PLAYER_COLORS } from '@/constants/map';
 import { useToast } from '@/lib/hooks/useToast';
 import { validateUsername } from '@/lib/validation/username';
 import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
+import { SinglePlayerLobby } from './SinglePlayerLobby';
+
+type LobbyMode = 'multiplayer' | 'singleplayer';
 
 export function Lobby() {
   const router = useRouter();
   const { addToast } = useToast();
+  const [mode, setMode] = useState<LobbyMode>('multiplayer');
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0]);
@@ -117,10 +121,54 @@ export function Lobby() {
     }
   }
 
+  // Show single player lobby if mode is singleplayer
+  if (mode === 'singleplayer') {
+    return (
+      <div className="w-full max-w-4xl">
+        {/* Mode Tabs */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex bg-gray-800 rounded-lg p-1 border border-gray-700">
+            <button
+              onClick={() => setMode('multiplayer')}
+              className="px-6 py-2 rounded-md font-medium transition"
+            >
+              Multiplayer
+            </button>
+            <button
+              onClick={() => setMode('singleplayer')}
+              className="px-6 py-2 bg-blue-600 rounded-md font-medium transition"
+            >
+              Single Player
+            </button>
+          </div>
+        </div>
+        <SinglePlayerLobby />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-4xl">
-      <div className="mb-12 text-center">
-        <h1 className="mb-4 text-6xl font-bold text-white">Risk</h1>
+      {/* Mode Tabs */}
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex bg-gray-800 rounded-lg p-1 border border-gray-700">
+          <button
+            onClick={() => setMode('multiplayer')}
+            className="px-6 py-2 bg-blue-600 rounded-md font-medium transition"
+          >
+            Multiplayer
+          </button>
+          <button
+            onClick={() => setMode('singleplayer')}
+            className="px-6 py-2 rounded-md font-medium transition"
+          >
+            Single Player
+          </button>
+        </div>
+      </div>
+
+      <div className="text-center mb-12">
+        <h1 className="text-6xl font-bold mb-4 text-white">Risk</h1>
         <p className="text-xl text-gray-300">Multiplayer Strategy Game</p>
       </div>
 
