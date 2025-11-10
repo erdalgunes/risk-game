@@ -31,7 +31,7 @@ function rollOneDie(): number {
 
   // Convert to 1-6 range with uniform distribution
   // Avoid modulo bias by rejecting values >= 4294967280 (largest multiple of 6 below 2^32)
-  const max = Math.floor(0xFFFFFFFF / 6) * 6;
+  const max = Math.floor(0xffffffff / 6) * 6;
   let value = array[0];
 
   while (value >= max) {
@@ -57,10 +57,7 @@ export function rollDice(count: number): number[] {
  * Resolve combat between attacker and defender
  * Returns losses for each side based on dice rolls
  */
-export function resolveCombat(
-  attackerArmies: number,
-  defenderArmies: number
-): AttackResult {
+export function resolveCombat(attackerArmies: number, defenderArmies: number): AttackResult {
   // Determine number of dice to roll
   const attackerDiceCount = Math.min(3, attackerArmies - 1); // Must leave 1 army
   const defenderDiceCount = Math.min(2, defenderArmies);

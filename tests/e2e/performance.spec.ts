@@ -118,14 +118,14 @@ test.describe('Performance - Server Actions', () => {
       await joinButton.click();
 
       // Wait for join to complete
-      await expect(joiner.getPage().getByTestId('player-name').filter({ hasText: 'Joiner' }))
-        .toBeVisible({ timeout: 5000 });
+      await expect(
+        joiner.getPage().getByTestId('player-name').filter({ hasText: 'Joiner' })
+      ).toBeVisible({ timeout: 5000 });
 
       const responseTime = Date.now() - startTime;
 
       console.log(`Join game response time: ${responseTime}ms`);
       expect(responseTime).toBeLessThan(800); // < 800ms
-
     } finally {
       await creator.cleanup();
       await joiner.cleanup();
@@ -133,13 +133,13 @@ test.describe('Performance - Server Actions', () => {
   });
 
   test('Start game Server Action < 1.5s', async ({ browser }) => {
-    const { player1, player2 } = await setupTwoPlayerGame(browser,
+    const { player1, player2 } = await setupTwoPlayerGame(
+      browser,
       { type: 'defensive', username: 'Player1', color: 'red' },
       { type: 'strategic', username: 'Player2', color: 'blue' }
     );
 
     try {
-
       const startTime = Date.now();
 
       const startButton = player1.getPage().getByRole('button', { name: /start game/i });
@@ -151,7 +151,6 @@ test.describe('Performance - Server Actions', () => {
 
       console.log(`Start game response time: ${responseTime}ms`);
       expect(responseTime).toBeLessThan(1500); // < 1.5 seconds
-
     } finally {
       await player1.cleanup();
       await player2.cleanup();
@@ -185,18 +184,17 @@ test.describe('Performance - Real-time Updates', () => {
   test('WebSocket message latency < 200ms', async ({ browser }) => {
     const joinStartTime = Date.now();
 
-    const { player1, player2 } = await setupTwoPlayerGame(browser,
+    const { player1, player2 } = await setupTwoPlayerGame(
+      browser,
       { type: 'aggressive', username: 'Latency1', color: 'red' },
       { type: 'defensive', username: 'Latency2', color: 'blue' }
     );
 
     try {
-
       const latency = Date.now() - joinStartTime;
 
       console.log(`Real-time update latency: ${latency}ms`);
       expect(latency).toBeLessThan(2000); // < 2 seconds (includes join action + WebSocket propagation)
-
     } finally {
       await player1.cleanup();
       await player2.cleanup();
@@ -204,13 +202,13 @@ test.describe('Performance - Real-time Updates', () => {
   });
 
   test('Real-time sync latency for game state updates', async ({ browser }) => {
-    const { player1, player2 } = await setupTwoPlayerGame(browser,
+    const { player1, player2 } = await setupTwoPlayerGame(
+      browser,
       { type: 'strategic', username: 'Sync1', color: 'red' },
       { type: 'chaotic', username: 'Sync2', color: 'blue' }
     );
 
     try {
-
       // Player 1 starts game
       const startTime = Date.now();
 
@@ -224,7 +222,6 @@ test.describe('Performance - Real-time Updates', () => {
 
       console.log(`Game state sync latency: ${syncLatency}ms`);
       expect(syncLatency).toBeLessThan(3000); // < 3 seconds
-
     } finally {
       await player1.cleanup();
       await player2.cleanup();
@@ -253,10 +250,9 @@ test.describe('Performance - Resource Usage', () => {
     console.log(`Initial memory: ${(initialMetrics / 1024 / 1024).toFixed(2)} MB`);
 
     // Gate the long-session hold behind an override; default to 60s to keep CI fast
-    const holdDurationMs =
-      process.env.PLAYWRIGHT_LONG_SESSION_MS
-        ? Number.parseInt(process.env.PLAYWRIGHT_LONG_SESSION_MS, 10)
-        : 60_000;
+    const holdDurationMs = process.env.PLAYWRIGHT_LONG_SESSION_MS
+      ? Number.parseInt(process.env.PLAYWRIGHT_LONG_SESSION_MS, 10)
+      : 60_000;
     await page.waitForTimeout(holdDurationMs);
 
     // Measure final memory
@@ -360,7 +356,12 @@ test.describe('Performance - Concurrent Load', () => {
 
     // Create 10 games concurrently
     const promises = Array.from({ length: 10 }, async (_, i) => {
-      const persona = await PersonaSimulator.create(browser, 'aggressive', `ConcurrentPlayer${i}`, 'red');
+      const persona = await PersonaSimulator.create(
+        browser,
+        'aggressive',
+        `ConcurrentPlayer${i}`,
+        'red'
+      );
       await persona.createGame();
       await persona.cleanup();
     });
@@ -385,11 +386,16 @@ test.describe('Performance - Concurrent Load', () => {
       // 5 players join simultaneously
       const joiners = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          PersonaSimulator.create(browser, 'aggressive', `Joiner${i}`, ['blue', 'green', 'yellow', 'purple', 'orange'][i])
+          PersonaSimulator.create(
+            browser,
+            'aggressive',
+            `Joiner${i}`,
+            ['blue', 'green', 'yellow', 'purple', 'orange'][i]
+          )
         )
       );
 
-      await Promise.all(joiners.map(joiner => joiner.joinGame(gameUrl)));
+      await Promise.all(joiners.map((joiner) => joiner.joinGame(gameUrl)));
 
       const totalTime = Date.now() - startTime;
 
@@ -397,8 +403,7 @@ test.describe('Performance - Concurrent Load', () => {
       expect(totalTime).toBeLessThan(3000); // < 3 seconds
 
       // Cleanup
-      await Promise.all(joiners.map(j => j.cleanup()));
-
+      await Promise.all(joiners.map((j) => j.cleanup()));
     } finally {
       await creator.cleanup();
     }
@@ -442,18 +447,17 @@ test.describe('Performance - Rendering', () => {
   test('Player list updates render < 100ms', async ({ browser }) => {
     const startTime = Date.now();
 
-    const { player1, player2 } = await setupTwoPlayerGame(browser,
+    const { player1, player2 } = await setupTwoPlayerGame(
+      browser,
       { type: 'strategic', username: 'UpdateTest1', color: 'red' },
       { type: 'aggressive', username: 'UpdateTest2', color: 'blue' }
     );
 
     try {
-
       const updateTime = Date.now() - startTime;
 
       console.log(`Player list update render time: ${updateTime}ms`);
       expect(updateTime).toBeLessThan(2000); // < 2 seconds (includes network + render)
-
     } finally {
       await player1.cleanup();
       await player2.cleanup();

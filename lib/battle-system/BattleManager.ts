@@ -89,10 +89,7 @@ export class BattleManager {
    * @param context Battle context
    * @returns Battle instance
    */
-  private static createBattle(
-    type: BattleType,
-    context: BattleContext
-  ): LandBattle {
+  private static createBattle(type: BattleType, context: BattleContext): LandBattle {
     switch (type) {
       case 'land':
         return createLandBattle(context);
@@ -164,10 +161,7 @@ export class BattleManager {
    * @param defenderArmies Number of defending armies
    * @returns Estimated conquest probability
    */
-  static estimateBattleOdds(
-    attackerArmies: number,
-    defenderArmies: number
-  ): number {
+  static estimateBattleOdds(attackerArmies: number, defenderArmies: number): number {
     // Simple heuristic: attacker needs roughly 2:1 ratio
     // This is a rough estimate; actual probability requires simulation
     const ratio = attackerArmies / defenderArmies;
@@ -187,10 +181,7 @@ export class BattleManager {
    * @param aggressive If true, prefer more dice even with fewer armies
    * @returns Number of dice to roll (1-3)
    */
-  static calculateOptimalAttackerDice(
-    attackerArmies: number,
-    aggressive: boolean = false
-  ): number {
+  static calculateOptimalAttackerDice(attackerArmies: number, aggressive: boolean = false): number {
     // Must leave 1 army behind
     const availableArmies = attackerArmies - 1;
 

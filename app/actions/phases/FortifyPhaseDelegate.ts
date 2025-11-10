@@ -9,7 +9,7 @@ import {
   PhaseDelegate,
   type PhaseContext,
   type ValidationResult,
-  type ActionResult
+  type ActionResult,
 } from './PhaseDelegate';
 import { canFortify } from '@/lib/game-engine/validation';
 import type { GameAction } from '@/types/game';
@@ -25,7 +25,7 @@ export class FortifyPhaseDelegate extends PhaseDelegate {
     if (action.action_type !== 'fortify' && action.action_type !== 'end_turn') {
       return {
         valid: false,
-        reason: 'Only fortification and end turn are allowed during fortify phase'
+        reason: 'Only fortification and end turn are allowed during fortify phase',
       };
     }
 
@@ -33,7 +33,7 @@ export class FortifyPhaseDelegate extends PhaseDelegate {
     if (action.player_id !== context.currentPlayer.id) {
       return {
         valid: false,
-        reason: 'Not your turn'
+        reason: 'Not your turn',
       };
     }
 
@@ -112,9 +112,8 @@ export class FortifyPhaseDelegate extends PhaseDelegate {
       return this.successResult({
         fromTerritory: fromTerritoryId,
         toTerritory: toTerritoryId,
-        armiesMoved: count
+        armiesMoved: count,
       });
-
     } catch (error: any) {
       return this.errorResult(`Fortification failed: ${error.message}`);
     }

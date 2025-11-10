@@ -83,12 +83,63 @@ npm run test:e2e
 
 ### Playwright (E2E Tests)
 
-**Configuration**: `playwright.config.ts`
+We have **two** Playwright configurations for different testing scenarios:
 
-- **Browsers**: Chromium, Firefox, WebKit
-- **Base URL**: http://localhost:3000
+#### Configuration 1: `playwright.config.ts` (Default)
+
+**Use for**:
+- Testing against real Supabase from `.env.local`
+- Production smoke tests (`npm run test:e2e:prod`)
+- CI/CD integration tests
+
+**Commands**:
+```bash
+npm run test:e2e          # Uses .env.local Supabase
+npm run test:e2e:prod     # Tests production URL
+npm run test:e2e:smoke    # Only @smoke tagged tests
+```
+
+**Settings**:
+- **Base URL**: `http://localhost:3000` or `PLAYWRIGHT_BASE_URL`
+- **Browsers**: Chromium, Firefox, WebKit (locally); Chromium only (CI)
 - **Dev Server**: Auto-starts on `npm run dev`
+- **Environment**: Uses `.env.local` credentials
+
+#### Configuration 2: `playwright.config.test.ts` (Local Development)
+
+**Use for**:
+- Fast local testing with dedicated test database
+- Isolated test environment (no conflicts with dev database)
+- Test data cleanup between runs
+
+**Commands**:
+```bash
+npm run test:e2e:local       # Headless mode
+npm run test:e2e:local:ui    # Interactive UI (recommended during development)
+npm run test:e2e:local:debug # Step-through debugging
+```
+
+**Settings**:
+- **Base URL**: `http://localhost:3000`
+- **Browsers**: Chromium only (faster)
+- **Environment**: Uses `.env.test` credentials (separate database)
 - **Artifacts**: Screenshots/videos on failure
+
+#### When to Use Which Config
+
+```bash
+# During active development (fast feedback loop)
+npm run test:e2e:local:ui
+
+# Before committing (full local test suite)
+npm run test:e2e:local
+
+# Testing with production-like data
+npm run test:e2e
+
+# Before deploying (smoke test production)
+npm run test:e2e:prod
+```
 
 ### Test Setup
 

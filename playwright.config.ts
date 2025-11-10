@@ -32,11 +32,7 @@ export default defineConfig({
   grep: process.env.TEST_GREP ? new RegExp(process.env.TEST_GREP) : undefined,
 
   // Reporter to use
-  reporter: [
-    ['html'],
-    ['list'],
-    process.env.CI ? ['github'] : ['list']
-  ],
+  reporter: [['html'], ['list'], process.env.CI ? ['github'] : ['list']],
 
   // Shared settings for all the projects below
   use: {

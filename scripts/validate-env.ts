@@ -9,17 +9,9 @@
  * Or automatically via: npm run dev (predev hook)
  */
 
-const REQUIRED_VARS = [
-  'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-] as const;
+const REQUIRED_VARS = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'] as const;
 
-const PLACEHOLDER_PATTERNS = [
-  'placeholder',
-  'your-project',
-  'your-anon-key',
-  'example',
-];
+const PLACEHOLDER_PATTERNS = ['placeholder', 'your-project', 'your-anon-key', 'example'];
 
 function validateEnvVars(): void {
   console.log('🔍 Validating environment variables...\n');
@@ -50,7 +42,7 @@ function validateEnvVars(): void {
       missing.push(varName);
     } else {
       // Check for placeholder values
-      const isPlaceholder = PLACEHOLDER_PATTERNS.some(pattern =>
+      const isPlaceholder = PLACEHOLDER_PATTERNS.some((pattern) =>
         value.toLowerCase().includes(pattern)
       );
 
@@ -66,13 +58,13 @@ function validateEnvVars(): void {
 
     if (missing.length > 0) {
       console.error('Missing required environment variables:');
-      missing.forEach(varName => console.error(`  - ${varName}`));
+      missing.forEach((varName) => console.error(`  - ${varName}`));
       console.error('');
     }
 
     if (placeholders.length > 0) {
       console.error('Environment variables contain placeholder values:');
-      placeholders.forEach(varName => {
+      placeholders.forEach((varName) => {
         console.error(`  - ${varName}=${process.env[varName]}`);
       });
       console.error('');
@@ -93,10 +85,22 @@ function validateEnvVars(): void {
     process.exit(1);
   }
 
+  // Quick dependency check
+  const fs = require('fs');
+  const path = require('path');
+  const nodeModulesExists = fs.existsSync(path.join(process.cwd(), 'node_modules'));
+  if (!nodeModulesExists) {
+    console.error('❌ node_modules/ not found. Run: npm install\n');
+    process.exit(1);
+  }
+
   // All checks passed
   console.log('✅ Environment variables validated');
   console.log(`   NEXT_PUBLIC_SUPABASE_URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
-  console.log(`   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20)}...`);
+  console.log(
+    `   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20)}...`
+  );
+  console.log('   Dependencies: Installed');
   console.log('');
 }
 

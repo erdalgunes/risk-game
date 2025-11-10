@@ -9,7 +9,7 @@ import {
   PhaseDelegate,
   type PhaseContext,
   type ValidationResult,
-  type ActionResult
+  type ActionResult,
 } from './PhaseDelegate';
 import { canAttack } from '@/lib/game-engine/validation';
 import { BattleManager } from '@/lib/battle-system/BattleManager';
@@ -26,7 +26,7 @@ export class AttackPhaseDelegate extends PhaseDelegate {
     if (action.action_type !== 'attack' && action.action_type !== 'change_phase') {
       return {
         valid: false,
-        reason: 'Only attacks and phase changes are allowed during attack phase'
+        reason: 'Only attacks and phase changes are allowed during attack phase',
       };
     }
 
@@ -34,7 +34,7 @@ export class AttackPhaseDelegate extends PhaseDelegate {
     if (action.player_id !== context.currentPlayer.id) {
       return {
         valid: false,
-        reason: 'Not your turn'
+        reason: 'Not your turn',
       };
     }
 
@@ -69,19 +69,14 @@ export class AttackPhaseDelegate extends PhaseDelegate {
     }
 
     // Validate attack using game engine
-    const validation = canAttack(
-      context.game,
-      context.currentPlayer,
-      fromTerritory,
-      toTerritory
-    );
+    const validation = canAttack(context.game, context.currentPlayer, fromTerritory, toTerritory);
 
     if (!validation.valid) {
       return this.errorResult(validation.reason || 'Invalid attack');
     }
 
     // Find defender player
-    const defender = context.players.find(p => p.id === toTerritory.owner_id);
+    const defender = context.players.find((p) => p.id === toTerritory.owner_id);
     if (!defender) {
       return this.errorResult('Defender not found');
     }
@@ -101,19 +96,16 @@ export class AttackPhaseDelegate extends PhaseDelegate {
       : 0;
 
     // Execute attack atomically via stored procedure
-    const { error: txError } = await context.supabase.rpc(
-      'attack_territory_transaction',
-      {
-        p_game_id: context.gameId,
-        p_player_id: playerId,
-        p_from_territory_id: fromTerritoryId,
-        p_to_territory_id: toTerritoryId,
-        p_attacker_losses: result.attackerLosses,
-        p_defender_losses: result.defenderLosses,
-        p_conquered: result.conquered,
-        p_armies_to_move: armiesToMove,
-      }
-    );
+    const { error: txError } = await context.supabase.rpc('attack_territory_transaction', {
+      p_game_id: context.gameId,
+      p_player_id: playerId,
+      p_from_territory_id: fromTerritoryId,
+      p_to_territory_id: toTerritoryId,
+      p_attacker_losses: result.attackerLosses,
+      p_defender_losses: result.defenderLosses,
+      p_conquered: result.conquered,
+      p_armies_to_move: armiesToMove,
+    });
 
     const txResult = this.handleTransactionResult(null, txError, 'Attack transaction failed');
     if (txResult) return txResult;
@@ -128,12 +120,16 @@ export class AttackPhaseDelegate extends PhaseDelegate {
     if (updatedGame?.status === 'finished') {
       return this.successResult({
         ...result,
+        armiesToMove,
         gameFinished: true,
-        winner: updatedGame.winner_id
+        winner: updatedGame.winner_id,
       });
     }
 
-    return this.successResult(result);
+    return this.successResult({
+      ...result,
+      armiesToMove,
+    });
   }
 
   /**

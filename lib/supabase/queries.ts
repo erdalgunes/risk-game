@@ -22,8 +22,7 @@ export async function getGameState(gameId: string) {
     const players = playersResult.data as Player[];
     const territories = territoriesResult.data as Territory[];
 
-    const currentPlayer =
-      players.find((p) => p.turn_order === game.current_player_order) || null;
+    const currentPlayer = players.find((p) => p.turn_order === game.current_player_order) || null;
 
     return {
       game,
@@ -57,11 +56,7 @@ export async function createGame(maxPlayers: number = 4) {
 /**
  * Join a game as a player
  */
-export async function joinGame(
-  gameId: string,
-  username: string,
-  color: string
-) {
+export async function joinGame(gameId: string, username: string, color: string) {
   // Validate inputs
   const validatedGameId = gameIdSchema.parse(gameId);
   const validatedUsername = usernameSchema.parse(username);
@@ -111,10 +106,7 @@ export async function updateTerritory(
 /**
  * Update game state
  */
-export async function updateGame(
-  gameId: string,
-  updates: Partial<Game>
-) {
+export async function updateGame(gameId: string, updates: Partial<Game>) {
   const { data, error } = await supabase
     .from('games')
     .update(updates)
@@ -129,10 +121,7 @@ export async function updateGame(
 /**
  * Update player data
  */
-export async function updatePlayer(
-  playerId: string,
-  updates: Partial<Player>
-) {
+export async function updatePlayer(playerId: string, updates: Partial<Player>) {
   const { data, error } = await supabase
     .from('players')
     .update(updates)

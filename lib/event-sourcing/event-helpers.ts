@@ -111,12 +111,7 @@ export const EventTemplates = {
     payload: { player_count, current_player_order },
   }),
 
-  playerJoined: (
-    player_id: string,
-    username: string,
-    color: string,
-    turn_order: number
-  ) => ({
+  playerJoined: (player_id: string, username: string, color: string, turn_order: number) => ({
     event_type: 'player_joined' as const,
     payload: { player_id, username, color, turn_order },
   }),
@@ -126,11 +121,7 @@ export const EventTemplates = {
     payload: { territory_id, owner_id },
   }),
 
-  setupArmyPlaced: (
-    territory_id: string,
-    player_id: string,
-    count: number
-  ) => ({
+  setupArmyPlaced: (territory_id: string, player_id: string, count: number) => ({
     event_type: 'setup_army_placed' as const,
     payload: { territory_id, player_id, count },
   }),
@@ -174,11 +165,7 @@ export const EventTemplates = {
     },
   }),
 
-  territoryConquered: (
-    territory_id: string,
-    new_owner_id: string,
-    armies_moved: number
-  ) => ({
+  territoryConquered: (territory_id: string, new_owner_id: string, armies_moved: number) => ({
     event_type: 'territory_conquered' as const,
     payload: { territory_id, new_owner_id, armies_moved },
   }),
@@ -188,11 +175,7 @@ export const EventTemplates = {
     payload: { player_id, eliminated_by },
   }),
 
-  armyFortified: (
-    from_territory_id: string,
-    to_territory_id: string,
-    count: number
-  ) => ({
+  armyFortified: (from_territory_id: string, to_territory_id: string, count: number) => ({
     event_type: 'army_fortified' as const,
     payload: { from_territory_id, to_territory_id, count },
   }),

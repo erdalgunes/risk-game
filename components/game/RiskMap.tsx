@@ -161,36 +161,44 @@ export function RiskMap({
 
     // Cleanup all event listeners on unmount
     return () => {
-      cleanupFunctions.forEach(cleanup => cleanup());
+      cleanupFunctions.forEach((cleanup) => cleanup());
     };
-  }, [svgLoaded, territories, selectedTerritoryId, highlightAdjacent, onTerritoryClick, territoryMap, playerMap]);
+  }, [
+    svgLoaded,
+    territories,
+    selectedTerritoryId,
+    highlightAdjacent,
+    onTerritoryClick,
+    territoryMap,
+    playerMap,
+  ]);
 
   if (!game) {
     return (
-      <div className="flex items-center justify-center h-96 bg-surface-container rounded-lg">
+      <div className="bg-surface-container flex h-96 items-center justify-center rounded-lg">
         <p className="text-surface-on opacity-70">Loading map...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-surface-container-low rounded-lg shadow-md3-3 p-md3-4">
+    <div className="bg-surface-container-low shadow-md3-3 p-md3-4 rounded-lg">
       {/* Map Header */}
       <div className="mb-md3-4">
-        <h2 className="text-title-large font-bold text-surface-on">Game Map</h2>
+        <h2 className="text-title-large text-surface-on font-bold">Game Map</h2>
         {hoveredTerritory && (
-          <p className="text-body-medium text-surface-on opacity-70 mt-md3-1">
+          <p className="text-body-medium text-surface-on mt-md3-1 opacity-70">
             {hoveredTerritory.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
           </p>
         )}
       </div>
 
       {/* SVG Map Container */}
-      <div className="relative w-full bg-white rounded-md3-md overflow-hidden shadow-md3-1">
+      <div className="rounded-md3-md shadow-md3-1 relative w-full overflow-hidden bg-white">
         <svg
           ref={svgRef}
           viewBox={`${SVG_VIEWBOX.x} ${SVG_VIEWBOX.y} ${SVG_VIEWBOX.width} ${SVG_VIEWBOX.height}`}
-          className="w-full h-auto"
+          className="h-auto w-full"
           style={{ maxHeight: '600px' }}
         >
           {/* SVG content will be injected here */}
@@ -200,7 +208,7 @@ export function RiskMap({
         {svgLoaded && (
           <svg
             viewBox={`${SVG_VIEWBOX.x} ${SVG_VIEWBOX.y} ${SVG_VIEWBOX.width} ${SVG_VIEWBOX.height}`}
-            className="absolute top-0 left-0 w-full h-auto pointer-events-none"
+            className="pointer-events-none absolute left-0 top-0 h-auto w-full"
             style={{ maxHeight: '600px' }}
           >
             {territories.map((territory) => {
@@ -242,11 +250,9 @@ export function RiskMap({
       </div>
 
       {/* Map Legend */}
-      <div className="mt-md3-4 flex flex-wrap gap-md3-3">
+      <div className="mt-md3-4 gap-md3-3 flex flex-wrap">
         {players.map((player) => {
-          const territoryCount = territories.filter(
-            (t) => t.owner_id === player.id
-          ).length;
+          const territoryCount = territories.filter((t) => t.owner_id === player.id).length;
           const totalArmies = territories
             .filter((t) => t.owner_id === player.id)
             .reduce((sum, t) => sum + t.army_count, 0);
@@ -254,14 +260,14 @@ export function RiskMap({
           return (
             <div
               key={player.id}
-              className="flex items-center gap-md3-2 px-md3-3 py-md3-2 bg-surface-container rounded-md3-sm"
+              className="gap-md3-2 px-md3-3 py-md3-2 bg-surface-container rounded-md3-sm flex items-center"
             >
               <div
-                className="w-4 h-4 rounded-full border-2 border-outline"
+                className="border-outline h-4 w-4 rounded-full border-2"
                 style={{ backgroundColor: PLAYER_COLOR_MAP[player.color] }}
               />
               <div className="text-sm">
-                <span className="font-medium text-surface-on">
+                <span className="text-surface-on font-medium">
                   {player.username}
                   {player.id === currentPlayerId && ' (You)'}
                   {player.is_eliminated && ' (Eliminated)'}
@@ -276,12 +282,10 @@ export function RiskMap({
       </div>
 
       {/* Instructions */}
-      <div className="mt-md3-4 p-md3-3 bg-primary-container rounded-md3-sm text-sm text-primary-on">
+      <div className="mt-md3-4 p-md3-3 bg-primary-container rounded-md3-sm text-primary-on text-sm">
         <strong>Click</strong> territories to select them.{' '}
         {highlightAdjacent.length > 0 && (
-          <span className="text-blue-700">
-            Blue borders show adjacent territories.
-          </span>
+          <span className="text-blue-700">Blue borders show adjacent territories.</span>
         )}
       </div>
     </div>

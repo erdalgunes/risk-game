@@ -49,11 +49,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
 function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl p-8 max-w-md w-full border border-red-500">
-        <div className="flex items-center mb-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-900 p-4">
+      <div className="w-full max-w-md rounded-lg border border-red-500 bg-gray-800 p-8 shadow-xl">
+        <div className="mb-4 flex items-center">
           <svg
-            className="w-8 h-8 text-red-500 mr-3"
+            className="mr-3 h-8 w-8 text-red-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -68,15 +68,15 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
           <h2 className="text-2xl font-bold text-white">Something went wrong</h2>
         </div>
 
-        <p className="text-gray-300 mb-4">
+        <p className="mb-4 text-gray-300">
           An unexpected error occurred. This has been logged and will be investigated.
         </p>
 
         <details className="mb-6">
-          <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-300">
+          <summary className="cursor-pointer text-sm text-gray-400 hover:text-gray-300">
             Error details
           </summary>
-          <pre className="mt-2 p-3 bg-gray-900 rounded text-xs text-red-400 overflow-auto max-h-40">
+          <pre className="mt-2 max-h-40 overflow-auto rounded bg-gray-900 p-3 text-xs text-red-400">
             {error.message}
             {error.stack && `\n\n${error.stack}`}
           </pre>
@@ -85,13 +85,13 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
         <div className="flex gap-3">
           <button
             onClick={reset}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold text-white transition"
+            className="flex-1 rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
           >
             Try Again
           </button>
           <button
-            onClick={() => window.location.href = '/'}
-            className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded font-semibold text-white transition"
+            onClick={() => (window.location.href = '/')}
+            className="flex-1 rounded bg-gray-700 px-4 py-2 font-semibold text-white transition hover:bg-gray-600"
           >
             Go Home
           </button>
@@ -105,15 +105,16 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
  * Game-specific error fallback with context about game state
  */
 export function GameErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
-  const isNetworkError = error.message.toLowerCase().includes('network') ||
+  const isNetworkError =
+    error.message.toLowerCase().includes('network') ||
     error.message.toLowerCase().includes('fetch');
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl p-8 max-w-md w-full border border-red-500">
-        <div className="flex items-center mb-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-900 p-4">
+      <div className="w-full max-w-md rounded-lg border border-red-500 bg-gray-800 p-8 shadow-xl">
+        <div className="mb-4 flex items-center">
           <svg
-            className="w-8 h-8 text-red-500 mr-3"
+            className="mr-3 h-8 w-8 text-red-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -130,17 +131,17 @@ export function GameErrorFallback({ error, reset }: { error: Error; reset: () =>
           </h2>
         </div>
 
-        <p className="text-gray-300 mb-4">
+        <p className="mb-4 text-gray-300">
           {isNetworkError
             ? 'Unable to connect to the game server. Please check your internet connection.'
             : 'An error occurred while loading the game. Your game state has been preserved.'}
         </p>
 
         <details className="mb-6">
-          <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-300">
+          <summary className="cursor-pointer text-sm text-gray-400 hover:text-gray-300">
             Technical details
           </summary>
-          <pre className="mt-2 p-3 bg-gray-900 rounded text-xs text-red-400 overflow-auto max-h-40">
+          <pre className="mt-2 max-h-40 overflow-auto rounded bg-gray-900 p-3 text-xs text-red-400">
             {error.message}
           </pre>
         </details>
@@ -148,13 +149,13 @@ export function GameErrorFallback({ error, reset }: { error: Error; reset: () =>
         <div className="flex gap-3">
           <button
             onClick={reset}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold text-white transition"
+            className="flex-1 rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
           >
             Retry
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded font-semibold text-white transition"
+            className="flex-1 rounded bg-gray-700 px-4 py-2 font-semibold text-white transition hover:bg-gray-600"
           >
             Refresh Page
           </button>

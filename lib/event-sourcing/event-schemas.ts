@@ -26,14 +26,7 @@ const gamePhaseSchema = z.enum(['reinforcement', 'attack', 'fortify']);
 /**
  * Player color values
  */
-const playerColorSchema = z.enum([
-  'red',
-  'blue',
-  'green',
-  'yellow',
-  'purple',
-  'orange',
-]);
+const playerColorSchema = z.enum(['red', 'blue', 'green', 'yellow', 'purple', 'orange']);
 
 /**
  * Event payload schemas by event type
@@ -141,7 +134,9 @@ export function validateEventPayload(
     return { success: true, data: parsed };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errors = error.issues
+        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ');
       return {
         success: false,
         error: `Invalid payload for ${eventType}: ${errors}`,

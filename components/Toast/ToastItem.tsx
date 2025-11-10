@@ -42,12 +42,7 @@ export function ToastItem({ toast, onClose }: ToastItemProps) {
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
-      className={`
-        ${toastStyles[toast.type]}
-        border-2 rounded-lg p-4 shadow-lg
-        text-white flex items-start gap-3
-        animate-slide-in-right
-      `}
+      className={` ${toastStyles[toast.type]} animate-slide-in-right flex items-start gap-3 rounded-lg border-2 p-4 text-white shadow-lg`}
     >
       <span className="text-xl font-bold" aria-hidden="true">
         {toastIcons[toast.type]}
@@ -55,12 +50,7 @@ export function ToastItem({ toast, onClose }: ToastItemProps) {
       <p className="flex-1 text-sm font-medium">{toast.message}</p>
       <button
         onClick={() => onClose(toast.id)}
-        className="
-          text-white hover:text-gray-200
-          focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2
-          focus:ring-offset-transparent rounded p-1
-          transition-colors
-        "
+        className="rounded p-1 text-white transition-colors hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent"
         aria-label="Close notification"
         type="button"
       >

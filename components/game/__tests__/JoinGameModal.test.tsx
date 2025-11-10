@@ -14,7 +14,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('@/app/actions/game', () => ({
-  joinGameAction: vi.fn(() => Promise.resolve({ success: true, result: { gameId: 'game-123', playerId: 'player-123' } })),
+  joinGameAction: vi.fn(() =>
+    Promise.resolve({ success: true, result: { gameId: 'game-123', playerId: 'player-123' } })
+  ),
 }));
 
 vi.mock('@/lib/hooks/useToast', () => ({
@@ -237,7 +239,7 @@ describe('JoinGameModal', () => {
       render(<JoinGameModal gameId={mockGameId} game={mockGame} players={players} />);
 
       const colorSelect = screen.getByLabelText(/your color/i) as HTMLSelectElement;
-      const options = Array.from(colorSelect.options).map(opt => opt.value);
+      const options = Array.from(colorSelect.options).map((opt) => opt.value);
 
       expect(options).not.toContain('red');
       expect(options).not.toContain('blue');
@@ -246,9 +248,7 @@ describe('JoinGameModal', () => {
     });
 
     it('should auto-select first available color', async () => {
-      const players = [
-        createTestPlayer({ color: 'red', game_id: mockGameId }),
-      ];
+      const players = [createTestPlayer({ color: 'red', game_id: mockGameId })];
 
       render(<JoinGameModal gameId={mockGameId} game={mockGame} players={players} />);
 

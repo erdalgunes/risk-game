@@ -7,7 +7,7 @@ const envPath = resolve(__dirname, '.env.test');
 const envContent = readFileSync(envPath, 'utf-8');
 const envVars: Record<string, string> = {};
 
-envContent.split('\n').forEach(line => {
+envContent.split('\n').forEach((line) => {
   const match = line.match(/^([^#][^=]+)=(.+)$/);
   if (match) {
     const [, key, value] = match;
@@ -43,10 +43,7 @@ export default defineConfig({
   workers: 2,
 
   // Reporter to use
-  reporter: [
-    ['html', { outputFolder: 'playwright-report-test' }],
-    ['list'],
-  ],
+  reporter: [['html', { outputFolder: 'playwright-report-test' }], ['list']],
 
   // Shared settings for all projects
   use: {

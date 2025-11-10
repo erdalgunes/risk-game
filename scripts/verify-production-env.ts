@@ -19,7 +19,12 @@ interface CheckResult {
 
 const results: CheckResult[] = [];
 
-function addResult(name: string, status: 'pass' | 'fail' | 'warn', message: string, details?: string) {
+function addResult(
+  name: string,
+  status: 'pass' | 'fail' | 'warn',
+  message: string,
+  details?: string
+) {
   results.push({ name, status, message, details });
 }
 
@@ -30,7 +35,11 @@ async function checkSupabaseConfig() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
-    addResult('Supabase Env Vars', 'fail', 'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    addResult(
+      'Supabase Env Vars',
+      'fail',
+      'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY'
+    );
     return;
   }
 
@@ -57,17 +66,20 @@ async function checkSupabaseConfig() {
 
     // Check if we can insert (tests RLS policies)
     const testGameId = randomUUID();
-    const { error: insertError } = await supabase
-      .from('games')
-      .insert({
-        id: testGameId,
-        status: 'waiting',
-        current_player_order: 0,
-        phase: 'waiting',
-      });
+    const { error: insertError } = await supabase.from('games').insert({
+      id: testGameId,
+      status: 'waiting',
+      current_player_order: 0,
+      phase: 'waiting',
+    });
 
     if (insertError) {
-      addResult('RLS Policies (Insert)', 'fail', 'Anonymous insert blocked - RLS policies may be too restrictive', insertError.message);
+      addResult(
+        'RLS Policies (Insert)',
+        'fail',
+        'Anonymous insert blocked - RLS policies may be too restrictive',
+        insertError.message
+      );
     } else {
       addResult('RLS Policies (Insert)', 'pass', 'Anonymous insert allowed');
 
@@ -77,7 +89,8 @@ async function checkSupabaseConfig() {
 
     // Check realtime subscriptions
     try {
-      const channel = supabase.channel('test-channel')
+      const channel = supabase
+        .channel('test-channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => {})
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -89,12 +102,10 @@ async function checkSupabaseConfig() {
         });
 
       // Wait for subscription status
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     } catch (e: any) {
       addResult('Realtime Subscriptions', 'fail', 'Failed to test realtime', e.message);
     }
-
   } catch (e: any) {
     addResult('Supabase Connection', 'fail', 'Exception during Supabase tests', e.message);
   }
@@ -147,7 +158,6 @@ async function checkSecurityHeaders() {
     } else {
       addResult('X-Content-Type-Options', 'warn', 'X-Content-Type-Options not set');
     }
-
   } catch (e: any) {
     addResult('Security Headers', 'fail', 'Failed to fetch headers', e.message);
   }
@@ -180,20 +190,21 @@ async function checkRateLimiting() {
 
   try {
     // Attempt rapid requests
-    const requests = Array.from({ length: 10 }, (_, i) =>
-      fetch(baseUrl, { method: 'HEAD' })
-    );
+    const requests = Array.from({ length: 10 }, (_, i) => fetch(baseUrl, { method: 'HEAD' }));
 
     const responses = await Promise.all(requests);
-    const rateLimited = responses.some(r => r.status === 429);
+    const rateLimited = responses.some((r) => r.status === 429);
 
     if (rateLimited) {
       addResult('Rate Limiting', 'pass', 'Rate limiting is active (429 responses detected)');
     } else {
-      addResult('Rate Limiting', 'warn', 'No rate limiting detected in 10 rapid requests',
-        'May need adjustment for production traffic');
+      addResult(
+        'Rate Limiting',
+        'warn',
+        'No rate limiting detected in 10 rapid requests',
+        'May need adjustment for production traffic'
+      );
     }
-
   } catch (e: any) {
     addResult('Rate Limiting', 'warn', 'Failed to test rate limiting', e.message);
   }
@@ -225,7 +236,6 @@ async function checkDatabaseSchema() {
         addResult(`Table: ${table}`, 'pass', `Table exists and accessible`);
       }
     }
-
   } catch (e: any) {
     addResult('Database Schema', 'fail', 'Exception during schema checks', e.message);
   }
@@ -236,9 +246,9 @@ function printResults() {
   console.log('📋 VERIFICATION RESULTS');
   console.log('='.repeat(80) + '\n');
 
-  const passed = results.filter(r => r.status === 'pass').length;
-  const failed = results.filter(r => r.status === 'fail').length;
-  const warned = results.filter(r => r.status === 'warn').length;
+  const passed = results.filter((r) => r.status === 'pass').length;
+  const failed = results.filter((r) => r.status === 'fail').length;
+  const warned = results.filter((r) => r.status === 'warn').length;
 
   for (const result of results) {
     const icon = result.status === 'pass' ? '✅' : result.status === 'fail' ? '❌' : '⚠️';

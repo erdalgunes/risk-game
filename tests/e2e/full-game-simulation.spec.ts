@@ -41,10 +41,12 @@ test.describe('Full Game Simulation', () => {
       console.log('✅ StrategicAI joined');
 
       // Verify all players are visible
-      await expect(aggressive.getPage().getByTestId('player-name').filter({ hasText: 'DefensiveAI' }))
-        .toBeVisible({ timeout: 10000 });
-      await expect(aggressive.getPage().getByTestId('player-name').filter({ hasText: 'StrategicAI' }))
-        .toBeVisible({ timeout: 10000 });
+      await expect(
+        aggressive.getPage().getByTestId('player-name').filter({ hasText: 'DefensiveAI' })
+      ).toBeVisible({ timeout: 10000 });
+      await expect(
+        aggressive.getPage().getByTestId('player-name').filter({ hasText: 'StrategicAI' })
+      ).toBeVisible({ timeout: 10000 });
 
       const playerCount = await aggressive.getPage().getByTestId('player-name').count();
       expect(playerCount).toBe(3);
@@ -75,11 +77,24 @@ test.describe('Full Game Simulation', () => {
 
       while (setupRounds < maxSetupRounds) {
         // Check if all players have 0 armies available
-        const armiesText1 = await aggressive.getPage().getByText(/armies available/i).textContent();
-        const armiesText2 = await defensive.getPage().getByText(/armies available/i).textContent();
-        const armiesText3 = await strategic.getPage().getByText(/armies available/i).textContent();
+        const armiesText1 = await aggressive
+          .getPage()
+          .getByText(/armies available/i)
+          .textContent();
+        const armiesText2 = await defensive
+          .getPage()
+          .getByText(/armies available/i)
+          .textContent();
+        const armiesText3 = await strategic
+          .getPage()
+          .getByText(/armies available/i)
+          .textContent();
 
-        if (armiesText1?.includes('0') && armiesText2?.includes('0') && armiesText3?.includes('0')) {
+        if (
+          armiesText1?.includes('0') &&
+          armiesText2?.includes('0') &&
+          armiesText3?.includes('0')
+        ) {
           console.log('✅ All armies placed');
           break;
         }
@@ -103,8 +118,9 @@ test.describe('Full Game Simulation', () => {
       console.log(`✅ Setup completed in ${setupRounds} rounds`);
 
       // Wait for transition to playing phase
-      await expect(aggressive.getPage().getByText(/playing|reinforcement/i))
-        .toBeVisible({ timeout: 15000 });
+      await expect(aggressive.getPage().getByText(/playing|reinforcement/i)).toBeVisible({
+        timeout: 15000,
+      });
       console.log('✅ Transitioned to playing phase');
 
       // ==================== PHASE 4: PLAYING (Turns) ====================
@@ -187,8 +203,7 @@ test.describe('Full Game Simulation', () => {
 
       // ==================== COMPLETE ====================
       console.log('\n🎉 SIMULATION COMPLETE!');
-      console.log('='  .repeat(60));
-
+      console.log('='.repeat(60));
     } finally {
       await aggressive.cleanup();
       await defensive.cleanup();
@@ -221,10 +236,7 @@ test.describe('Full Game Simulation', () => {
 
       // Setup phase
       for (let i = 0; i < 30; i++) {
-        await Promise.all([
-          player1.placeSetupArmies(),
-          player2.placeSetupArmies(),
-        ]);
+        await Promise.all([player1.placeSetupArmies(), player2.placeSetupArmies()]);
         await player1.getPage().waitForTimeout(200);
       }
       console.log('✅ Setup completed');
@@ -247,7 +259,6 @@ test.describe('Full Game Simulation', () => {
       expect(body2).not.toContain('Fatal');
 
       console.log('✅ 2-player game completed successfully');
-
     } finally {
       await player1.cleanup();
       await player2.cleanup();
@@ -297,7 +308,6 @@ test.describe('Full Game Simulation', () => {
       console.log('✅ Territories distributed correctly');
 
       console.log('✅ 6-player capacity test passed');
-
     } finally {
       for (const player of players) {
         await player.cleanup();
@@ -363,7 +373,6 @@ test.describe('Full Game Simulation', () => {
       }
 
       console.log('✅ Elimination scenario test completed');
-
     } finally {
       await player1.cleanup();
       await player2.cleanup();

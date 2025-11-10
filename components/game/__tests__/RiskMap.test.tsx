@@ -48,14 +48,7 @@ describe('RiskMap', () => {
     });
 
     it('should show loading state when game is null', () => {
-      render(
-        <RiskMap
-          territories={[]}
-          players={[]}
-          game={null}
-          onTerritoryClick={vi.fn()}
-        />
-      );
+      render(<RiskMap territories={[]} players={[]} game={null} onTerritoryClick={vi.fn()} />);
 
       expect(screen.getByText(/loading map/i)).toBeInTheDocument();
     });
@@ -68,19 +61,11 @@ describe('RiskMap', () => {
       const territories = [createTestTerritory()];
 
       render(
-        <RiskMap
-          territories={territories}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={territories} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Failed to load SVG map:',
-          expect.any(Error)
-        );
+        expect(consoleSpy).toHaveBeenCalledWith('Failed to load SVG map:', expect.any(Error));
       });
 
       consoleSpy.mockRestore();
@@ -93,12 +78,7 @@ describe('RiskMap', () => {
       const territories = [createTestTerritory()];
 
       render(
-        <RiskMap
-          territories={territories}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={territories} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       expect(screen.getByRole('heading', { name: /game map/i })).toBeInTheDocument();
@@ -176,12 +156,7 @@ describe('RiskMap', () => {
       });
 
       render(
-        <RiskMap
-          territories={[territory]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={[territory]} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -302,12 +277,7 @@ describe('RiskMap', () => {
       const territory = createTestTerritory({ territory_name: 'alaska' });
 
       render(
-        <RiskMap
-          territories={[territory]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={[territory]} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -325,12 +295,7 @@ describe('RiskMap', () => {
       ];
 
       render(
-        <RiskMap
-          territories={territories}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={territories} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -354,12 +319,7 @@ describe('RiskMap', () => {
       });
 
       render(
-        <RiskMap
-          territories={[territory]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={[territory]} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -376,12 +336,7 @@ describe('RiskMap', () => {
       ];
 
       render(
-        <RiskMap
-          territories={territories}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={territories} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -400,14 +355,7 @@ describe('RiskMap', () => {
         createTestPlayer({ id: 'p2', username: 'Bob', color: 'blue' }),
       ];
 
-      render(
-        <RiskMap
-          territories={[]}
-          players={players}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
-      );
+      render(<RiskMap territories={[]} players={players} game={game} onTerritoryClick={vi.fn()} />);
 
       expect(screen.getByText('Alice')).toBeInTheDocument();
       expect(screen.getByText('Bob')).toBeInTheDocument();
@@ -495,14 +443,7 @@ describe('RiskMap', () => {
         createTestPlayer({ id: 'p2', username: 'Bob', is_eliminated: true }),
       ];
 
-      render(
-        <RiskMap
-          territories={[]}
-          players={players}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
-      );
+      render(<RiskMap territories={[]} players={players} game={game} onTerritoryClick={vi.fn()} />);
 
       expect(screen.getByText(/bob/i)).toBeInTheDocument();
       expect(screen.getByText(/eliminated/i)).toBeInTheDocument();
@@ -515,12 +456,7 @@ describe('RiskMap', () => {
       const territory = createTestTerritory({ territory_name: 'alaska' });
 
       render(
-        <RiskMap
-          territories={[territory]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={[territory]} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -538,12 +474,7 @@ describe('RiskMap', () => {
       const territory = createTestTerritory({ territory_name: 'nonexistent-territory' as any });
 
       render(
-        <RiskMap
-          territories={[territory]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={[territory]} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -558,14 +489,7 @@ describe('RiskMap', () => {
     it('should handle empty territory list', async () => {
       const game = createTestGame();
 
-      render(
-        <RiskMap
-          territories={[]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
-      );
+      render(<RiskMap territories={[]} players={[]} game={game} onTerritoryClick={vi.fn()} />);
 
       expect(screen.getByRole('heading', { name: /game map/i })).toBeInTheDocument();
     });
@@ -578,12 +502,7 @@ describe('RiskMap', () => {
       });
 
       render(
-        <RiskMap
-          territories={[territory]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
+        <RiskMap territories={[territory]} players={[]} game={game} onTerritoryClick={vi.fn()} />
       );
 
       await waitFor(() => {
@@ -597,14 +516,7 @@ describe('RiskMap', () => {
     it('should show click instructions', async () => {
       const game = createTestGame();
 
-      render(
-        <RiskMap
-          territories={[]}
-          players={[]}
-          game={game}
-          onTerritoryClick={vi.fn()}
-        />
-      );
+      render(<RiskMap territories={[]} players={[]} game={game} onTerritoryClick={vi.fn()} />);
 
       expect(screen.getByText(/click/i)).toBeInTheDocument();
       expect(screen.getByText(/territories to select them/i)).toBeInTheDocument();

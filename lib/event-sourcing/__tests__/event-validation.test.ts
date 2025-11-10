@@ -212,56 +212,41 @@ describe('Event Validation', () => {
   describe('validateEventTransition', () => {
     describe('phase transitions', () => {
       it('should allow valid phase transition: reinforcement -> attack', () => {
-        const result = validateEventTransition(
-          'phase_changed',
-          'playing',
-          'reinforcement',
-          { new_phase: 'attack' }
-        );
+        const result = validateEventTransition('phase_changed', 'playing', 'reinforcement', {
+          new_phase: 'attack',
+        });
 
         expect(result.valid).toBe(true);
       });
 
       it('should allow valid phase transition: attack -> fortify', () => {
-        const result = validateEventTransition(
-          'phase_changed',
-          'playing',
-          'attack',
-          { new_phase: 'fortify' }
-        );
+        const result = validateEventTransition('phase_changed', 'playing', 'attack', {
+          new_phase: 'fortify',
+        });
 
         expect(result.valid).toBe(true);
       });
 
       it('should allow valid phase transition: fortify -> reinforcement', () => {
-        const result = validateEventTransition(
-          'phase_changed',
-          'playing',
-          'fortify',
-          { new_phase: 'reinforcement' }
-        );
+        const result = validateEventTransition('phase_changed', 'playing', 'fortify', {
+          new_phase: 'reinforcement',
+        });
 
         expect(result.valid).toBe(true);
       });
 
       it('should allow skipping phases: reinforcement -> fortify', () => {
-        const result = validateEventTransition(
-          'phase_changed',
-          'playing',
-          'reinforcement',
-          { new_phase: 'fortify' }
-        );
+        const result = validateEventTransition('phase_changed', 'playing', 'reinforcement', {
+          new_phase: 'fortify',
+        });
 
         expect(result.valid).toBe(true);
       });
 
       it('should reject invalid phase transition: fortify -> attack', () => {
-        const result = validateEventTransition(
-          'phase_changed',
-          'playing',
-          'fortify',
-          { new_phase: 'attack' }
-        );
+        const result = validateEventTransition('phase_changed', 'playing', 'fortify', {
+          new_phase: 'attack',
+        });
 
         expect(result.valid).toBe(false);
         if (!result.valid) {
@@ -272,34 +257,21 @@ describe('Event Validation', () => {
 
     describe('status transitions', () => {
       it('should allow game_started in waiting status', () => {
-        const result = validateEventTransition(
-          'game_started',
-          'waiting',
-          'reinforcement',
-          {}
-        );
+        const result = validateEventTransition('game_started', 'waiting', 'reinforcement', {});
 
         expect(result.valid).toBe(true);
       });
 
       it('should allow turn_started in setup status', () => {
-        const result = validateEventTransition(
-          'turn_started',
-          'setup',
-          'reinforcement',
-          {}
-        );
+        const result = validateEventTransition('turn_started', 'setup', 'reinforcement', {});
 
         expect(result.valid).toBe(true);
       });
 
       it('should allow game_finished in playing status', () => {
-        const result = validateEventTransition(
-          'game_finished',
-          'playing',
-          'attack',
-          { winner_id: '123e4567-e89b-12d3-a456-426614174000' }
-        );
+        const result = validateEventTransition('game_finished', 'playing', 'attack', {
+          winner_id: '123e4567-e89b-12d3-a456-426614174000',
+        });
 
         expect(result.valid).toBe(true);
       });
@@ -307,23 +279,13 @@ describe('Event Validation', () => {
 
     describe('general events', () => {
       it('should allow army_placed in any status', () => {
-        const result = validateEventTransition(
-          'army_placed',
-          'playing',
-          'reinforcement',
-          {}
-        );
+        const result = validateEventTransition('army_placed', 'playing', 'reinforcement', {});
 
         expect(result.valid).toBe(true);
       });
 
       it('should allow territory_attacked in any status', () => {
-        const result = validateEventTransition(
-          'territory_attacked',
-          'playing',
-          'attack',
-          {}
-        );
+        const result = validateEventTransition('territory_attacked', 'playing', 'attack', {});
 
         expect(result.valid).toBe(true);
       });

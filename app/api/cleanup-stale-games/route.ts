@@ -23,10 +23,7 @@ export async function POST(request: Request) {
     if (apiKey) {
       const authHeader = request.headers.get('authorization');
       if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
 
@@ -40,7 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: error.message
+          error: error.message,
         },
         { status: 500 }
       );
@@ -54,13 +51,12 @@ export async function POST(request: Request) {
       message: `Cleaned up ${deletedCount} stale game(s)`,
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('Unexpected error in cleanup:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

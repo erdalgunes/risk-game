@@ -15,14 +15,17 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (entry.resetTime < now) {
-      rateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (entry.resetTime < now) {
+        rateLimitStore.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);
 
 export interface RateLimitConfig {
   /**
@@ -100,15 +103,15 @@ export function checkRateLimit(config: RateLimitConfig): RateLimitResult {
  * More restrictive than client-side to prevent abuse
  */
 export const SERVER_RATE_LIMITS = {
-  CREATE_GAME: { limit: 3, windowMs: 60000 },      // 3 games per minute per IP
-  JOIN_GAME: { limit: 5, windowMs: 60000 },        // 5 joins per minute per IP
-  START_GAME: { limit: 10, windowMs: 60000 },      // 10 starts per minute per player
-  PLACE_ARMIES: { limit: 20, windowMs: 60000 },    // 20 placements per minute per player
-  ATTACK: { limit: 40, windowMs: 60000 },          // 40 attacks per minute per player
-  FORTIFY: { limit: 20, windowMs: 60000 },         // 20 fortifications per minute per player
-  END_TURN: { limit: 15, windowMs: 60000 },        // 15 turn ends per minute per player
-  CHANGE_PHASE: { limit: 15, windowMs: 60000 },    // 15 phase changes per minute per player
-  UNDO_ACTION: { limit: 5, windowMs: 60000 },      // 5 undos per minute per player (prevent undo abuse)
+  CREATE_GAME: { limit: 3, windowMs: 60000 }, // 3 games per minute per IP
+  JOIN_GAME: { limit: 5, windowMs: 60000 }, // 5 joins per minute per IP
+  START_GAME: { limit: 10, windowMs: 60000 }, // 10 starts per minute per player
+  PLACE_ARMIES: { limit: 20, windowMs: 60000 }, // 20 placements per minute per player
+  ATTACK: { limit: 40, windowMs: 60000 }, // 40 attacks per minute per player
+  FORTIFY: { limit: 20, windowMs: 60000 }, // 20 fortifications per minute per player
+  END_TURN: { limit: 15, windowMs: 60000 }, // 15 turn ends per minute per player
+  CHANGE_PHASE: { limit: 15, windowMs: 60000 }, // 15 phase changes per minute per player
+  UNDO_ACTION: { limit: 5, windowMs: 60000 }, // 5 undos per minute per player (prevent undo abuse)
 } as const;
 
 /**

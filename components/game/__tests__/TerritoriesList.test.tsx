@@ -10,13 +10,7 @@ describe('TerritoriesList', () => {
 
   describe('Rendering', () => {
     it('should render territories list heading', () => {
-      render(
-        <TerritoriesList
-          territories={[]}
-          players={[]}
-          currentPlayerId={undefined}
-        />
-      );
+      render(<TerritoriesList territories={[]} players={[]} currentPlayerId={undefined} />);
 
       expect(screen.getByRole('heading', { name: /territories/i })).toBeInTheDocument();
     });
@@ -58,11 +52,7 @@ describe('TerritoriesList', () => {
       ];
 
       render(
-        <TerritoriesList
-          territories={territories}
-          players={[]}
-          currentPlayerId={mockPlayerId}
-        />
+        <TerritoriesList territories={territories} players={[]} currentPlayerId={mockPlayerId} />
       );
 
       // North America has +5 bonus - use getAllByText since multiple continents are rendered
@@ -147,11 +137,7 @@ describe('TerritoriesList', () => {
       ];
 
       render(
-        <TerritoriesList
-          territories={territories}
-          players={[]}
-          currentPlayerId={mockPlayerId}
-        />
+        <TerritoriesList territories={territories} players={[]} currentPlayerId={mockPlayerId} />
       );
 
       expect(screen.getByText('Unclaimed')).toBeInTheDocument();
@@ -500,13 +486,7 @@ describe('TerritoriesList', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty territories array', () => {
-      render(
-        <TerritoriesList
-          territories={[]}
-          players={[]}
-          currentPlayerId={undefined}
-        />
-      );
+      render(<TerritoriesList territories={[]} players={[]} currentPlayerId={undefined} />);
 
       expect(screen.getByRole('heading', { name: /territories/i })).toBeInTheDocument();
     });
@@ -546,11 +526,7 @@ describe('TerritoriesList', () => {
       ];
 
       render(
-        <TerritoriesList
-          territories={territories}
-          players={[]}
-          currentPlayerId={mockPlayerId}
-        />
+        <TerritoriesList territories={territories} players={[]} currentPlayerId={mockPlayerId} />
       );
 
       expect(screen.getByText('Unknown')).toBeInTheDocument();

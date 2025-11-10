@@ -55,13 +55,7 @@ export type ActionType =
   | 'change_phase';
 
 // Player colors
-export type PlayerColor =
-  | 'red'
-  | 'blue'
-  | 'green'
-  | 'yellow'
-  | 'purple'
-  | 'orange';
+export type PlayerColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange';
 
 // Territory names (42 territories from classic Risk)
 export type TerritoryName =

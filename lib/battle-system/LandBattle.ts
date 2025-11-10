@@ -12,11 +12,7 @@
  * Multiple rounds are handled by the BattleManager.
  */
 
-import {
-  AbstractBattle,
-  type BattleOutcome,
-  type BattleContext,
-} from './AbstractBattle';
+import { AbstractBattle, type BattleOutcome, type BattleContext } from './AbstractBattle';
 
 /**
  * LandBattle - single round of Risk land combat
@@ -50,29 +46,15 @@ export class LandBattle extends AbstractBattle {
     }
 
     // Roll dice
-    const attackerDice = this.rollDice(
-      attackerDiceCount,
-      this.context.attacker.id,
-      'attacker'
-    );
+    const attackerDice = this.rollDice(attackerDiceCount, this.context.attacker.id, 'attacker');
 
-    const defenderDice = this.rollDice(
-      defenderDiceCount,
-      this.context.defender.id,
-      'defender'
-    );
+    const defenderDice = this.rollDice(defenderDiceCount, this.context.defender.id, 'defender');
 
     // Compare dice and calculate losses
-    const { attackerLosses, defenderLosses } = this.compareDice(
-      attackerDice,
-      defenderDice
-    );
+    const { attackerLosses, defenderLosses } = this.compareDice(attackerDice, defenderDice);
 
     // Apply loss modifiers
-    const modifiedLosses = this.applyLossModifiers(
-      attackerLosses,
-      defenderLosses
-    );
+    const modifiedLosses = this.applyLossModifiers(attackerLosses, defenderLosses);
 
     // Check if territory was conquered
     const remainingDefenders = defendingArmies - modifiedLosses.defenderLosses;

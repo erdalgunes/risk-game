@@ -353,10 +353,7 @@ describe.skip('placeArmies Server Action', () => {
     mockSupabase.from.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({
-        data: [
-          { armies_available: 0 },
-          { armies_available: 0 },
-        ],
+        data: [{ armies_available: 0 }, { armies_available: 0 }],
         error: null,
       }),
     });

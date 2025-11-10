@@ -100,10 +100,7 @@ export class EventStore {
    * @param options Event metadata (game_id, player_id, etc.)
    * @returns The stored event with sequence number
    */
-  async appendEvent(
-    event: BaseEvent,
-    options: AppendEventOptions
-  ): Promise<StoredEvent> {
+  async appendEvent(event: BaseEvent, options: AppendEventOptions): Promise<StoredEvent> {
     // Validate event payload
     const validation = validateEventPayload(event.event_type, event.payload);
     if (!validation.success) {
@@ -139,10 +136,7 @@ export class EventStore {
    * @param options Event metadata
    * @returns Array of stored events
    */
-  async appendEvents(
-    events: BaseEvent[],
-    options: AppendEventOptions
-  ): Promise<StoredEvent[]> {
+  async appendEvents(events: BaseEvent[], options: AppendEventOptions): Promise<StoredEvent[]> {
     if (events.length === 0) return [];
 
     // Validate all events first
@@ -164,10 +158,7 @@ export class EventStore {
       causation_id: options.causation_id,
     }));
 
-    const { data, error } = await this.supabase
-      .from('game_events')
-      .insert(inserts)
-      .select('*');
+    const { data, error } = await this.supabase.from('game_events').insert(inserts).select('*');
 
     if (error) {
       throw new Error(`Failed to append events: ${error.message}`);
@@ -183,10 +174,7 @@ export class EventStore {
    * @param fromSequence Start from this sequence number (default: 0)
    * @returns Array of events in order
    */
-  async getEvents(
-    game_id: string,
-    fromSequence: number = 0
-  ): Promise<StoredEvent[]> {
+  async getEvents(game_id: string, fromSequence: number = 0): Promise<StoredEvent[]> {
     const { data, error } = await this.supabase.rpc('get_game_events', {
       p_game_id: game_id,
       p_from_sequence: fromSequence,
@@ -207,10 +195,7 @@ export class EventStore {
    * @param event_type Filter by event type
    * @returns Array of matching events
    */
-  async getEventsByType(
-    game_id: string,
-    event_type: GameEventType
-  ): Promise<StoredEvent[]> {
+  async getEventsByType(game_id: string, event_type: GameEventType): Promise<StoredEvent[]> {
     const { data, error } = await this.supabase
       .from('game_events')
       .select('*')
@@ -232,9 +217,7 @@ export class EventStore {
    * @param correlation_id The correlation ID
    * @returns Array of related events
    */
-  async getEventsByCorrelation(
-    correlation_id: string
-  ): Promise<StoredEvent[]> {
+  async getEventsByCorrelation(correlation_id: string): Promise<StoredEvent[]> {
     const { data, error } = await this.supabase
       .from('game_events')
       .select('*')
@@ -304,10 +287,7 @@ export class EventStore {
    * @param threshold Number of events before snapshot (default: 50)
    * @returns True if snapshot should be created
    */
-  async shouldCreateSnapshot(
-    game_id: string,
-    threshold: number = 50
-  ): Promise<boolean> {
+  async shouldCreateSnapshot(game_id: string, threshold: number = 50): Promise<boolean> {
     const { data, error } = await this.supabase.rpc('events_since_snapshot', {
       p_game_id: game_id,
     });
@@ -362,11 +342,7 @@ export class EventStore {
     if (!state) {
       const [gameResult, playersResult, territoriesResult] = await Promise.all([
         this.supabase.from('games').select('*').eq('id', game_id).single(),
-        this.supabase
-          .from('players')
-          .select('*')
-          .eq('game_id', game_id)
-          .order('turn_order'),
+        this.supabase.from('players').select('*').eq('game_id', game_id).order('turn_order'),
         this.supabase.from('territories').select('*').eq('game_id', game_id),
       ]);
 
@@ -397,16 +373,15 @@ export class EventStore {
       eventsReplayed: eventsToReplayCount,
       snapshotUsed: !!snapshot,
       snapshotEffectiveness,
-      eventsPerMs: eventsToReplayCount > 0
-        ? (eventsToReplayCount / projectionDuration).toFixed(2)
-        : 'N/A',
+      eventsPerMs:
+        eventsToReplayCount > 0 ? (eventsToReplayCount / projectionDuration).toFixed(2) : 'N/A',
     });
 
     // Monitoring: Warn about slow replays
     if (totalDuration > 1000) {
       console.warn(
         `[EventStore] Slow replay detected (${totalDuration.toFixed(2)}ms) for game ${game_id}. ` +
-        `Consider creating a snapshot (${eventsToReplayCount} events replayed).`
+          `Consider creating a snapshot (${eventsToReplayCount} events replayed).`
       );
     }
 
@@ -420,9 +395,7 @@ export class EventStore {
    * @param game_id The game ID
    * @returns Validation result with any issues found
    */
-  async validateEventSequence(
-    game_id: string
-  ): Promise<{ valid: boolean; issues: string[] }> {
+  async validateEventSequence(game_id: string): Promise<{ valid: boolean; issues: string[] }> {
     const events = await this.getEvents(game_id);
     const issues: string[] = [];
 
@@ -462,9 +435,7 @@ export class EventStore {
    * @param game_id The game ID
    * @returns Event statistics
    */
-  async getEventStats(
-    game_id: string
-  ): Promise<{
+  async getEventStats(game_id: string): Promise<{
     total_events: number;
     events_by_type: Record<string, number>;
     first_event: string | null;
@@ -474,8 +445,7 @@ export class EventStore {
 
     const events_by_type: Record<string, number> = {};
     for (const event of events) {
-      events_by_type[event.event_type] =
-        (events_by_type[event.event_type] || 0) + 1;
+      events_by_type[event.event_type] = (events_by_type[event.event_type] || 0) + 1;
     }
 
     return {

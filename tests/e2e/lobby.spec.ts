@@ -149,7 +149,7 @@ test.describe('Lobby Accessibility', () => {
     await createButton.focus();
 
     // Check if button receives focus (may depend on browser/OS)
-    const isFocused = await createButton.evaluate(el => el === document.activeElement);
+    const isFocused = await createButton.evaluate((el) => el === document.activeElement);
     expect(isFocused).toBe(true);
 
     // Tab navigation should work

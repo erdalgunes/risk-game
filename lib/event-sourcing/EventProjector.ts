@@ -144,15 +144,14 @@ export class EventProjector {
     }
   }
 
-  private static applyTerritoryClaimed(
-    state: GameState,
-    event: StoredEvent
-  ): void {
+  private static applyTerritoryClaimed(state: GameState, event: StoredEvent): void {
     const { territory_id, owner_id } = event.payload;
 
     const territory = state.territories.find((t) => t.id === territory_id);
     if (!territory) {
-      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Territory ${territory_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     territory.owner_id = owner_id;
     territory.army_count = 1; // Initial claim = 1 army
@@ -172,7 +171,9 @@ export class EventProjector {
     // Add armies to territory
     const territory = state.territories.find((t) => t.id === territory_id);
     if (!territory) {
-      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event_type})`);
+      throw new Error(
+        `Territory ${territory_id} not found during event replay (event: ${event_type})`
+      );
     }
     territory.army_count += count;
 
@@ -184,10 +185,7 @@ export class EventProjector {
     player.armies_available -= count;
   }
 
-  private static applySetupArmyPlaced(
-    state: GameState,
-    event: StoredEvent
-  ): void {
+  private static applySetupArmyPlaced(state: GameState, event: StoredEvent): void {
     const { territory_id, count, player_id } = event.payload;
     this.applyArmyPlacementToState(state, territory_id, count, player_id, event.event_type);
   }
@@ -198,15 +196,14 @@ export class EventProjector {
     state.game.phase = 'reinforcement';
   }
 
-  private static applyReinforcementCalculated(
-    state: GameState,
-    event: StoredEvent
-  ): void {
+  private static applyReinforcementCalculated(state: GameState, event: StoredEvent): void {
     const { player_id, armies } = event.payload;
 
     const player = state.players.find((p) => p.id === player_id);
     if (!player) {
-      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Player ${player_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     player.armies_available = armies;
   }
@@ -221,80 +218,71 @@ export class EventProjector {
     state.game.phase = new_phase;
   }
 
-  private static applyTerritoryAttacked(
-    state: GameState,
-    event: StoredEvent
-  ): void {
-    const {
-      from_territory_id,
-      to_territory_id,
-      attacker_losses,
-      defender_losses,
-    } = event.payload;
+  private static applyTerritoryAttacked(state: GameState, event: StoredEvent): void {
+    const { from_territory_id, to_territory_id, attacker_losses, defender_losses } = event.payload;
 
     // Reduce attacker's armies
-    const fromTerritory = state.territories.find(
-      (t) => t.id === from_territory_id
-    );
+    const fromTerritory = state.territories.find((t) => t.id === from_territory_id);
     if (!fromTerritory) {
-      throw new Error(`Territory ${from_territory_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Territory ${from_territory_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     fromTerritory.army_count -= attacker_losses;
 
     // Reduce defender's armies
     const toTerritory = state.territories.find((t) => t.id === to_territory_id);
     if (!toTerritory) {
-      throw new Error(`Territory ${to_territory_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Territory ${to_territory_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     toTerritory.army_count -= defender_losses;
   }
 
-  private static applyTerritoryConquered(
-    state: GameState,
-    event: StoredEvent
-  ): void {
+  private static applyTerritoryConquered(state: GameState, event: StoredEvent): void {
     const { territory_id, new_owner_id, armies_moved } = event.payload;
 
     const territory = state.territories.find((t) => t.id === territory_id);
     if (!territory) {
-      throw new Error(`Territory ${territory_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Territory ${territory_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     territory.owner_id = new_owner_id;
     territory.army_count = armies_moved;
   }
 
-  private static applyPlayerEliminated(
-    state: GameState,
-    event: StoredEvent
-  ): void {
+  private static applyPlayerEliminated(state: GameState, event: StoredEvent): void {
     const { player_id } = event.payload;
 
     const player = state.players.find((p) => p.id === player_id);
     if (!player) {
-      throw new Error(`Player ${player_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Player ${player_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     player.is_eliminated = true;
   }
 
-  private static applyArmyFortified(
-    state: GameState,
-    event: StoredEvent
-  ): void {
+  private static applyArmyFortified(state: GameState, event: StoredEvent): void {
     const { from_territory_id, to_territory_id, count } = event.payload;
 
     // Remove armies from source territory
-    const fromTerritory = state.territories.find(
-      (t) => t.id === from_territory_id
-    );
+    const fromTerritory = state.territories.find((t) => t.id === from_territory_id);
     if (!fromTerritory) {
-      throw new Error(`Territory ${from_territory_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Territory ${from_territory_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     fromTerritory.army_count -= count;
 
     // Add armies to destination territory
     const toTerritory = state.territories.find((t) => t.id === to_territory_id);
     if (!toTerritory) {
-      throw new Error(`Territory ${to_territory_id} not found during event replay (event: ${event.event_type})`);
+      throw new Error(
+        `Territory ${to_territory_id} not found during event replay (event: ${event.event_type})`
+      );
     }
     toTerritory.army_count += count;
   }

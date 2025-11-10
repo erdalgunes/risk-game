@@ -47,10 +47,7 @@ export const createAllTerritories = (
  * @param players - Array of players
  * @returns Array of territories distributed among players
  */
-export const createDistributedTerritories = (
-  gameId: string,
-  players: Player[]
-): Territory[] => {
+export const createDistributedTerritories = (gameId: string, players: Player[]): Territory[] => {
   if (players.length < 2 || players.length > 6) {
     throw new Error('Player count must be between 2 and 6');
   }
@@ -76,10 +73,7 @@ export const createDistributedTerritories = (
  * @param gameId - The game ID
  * @param ownerId - The player who owns all territories
  */
-export const createPlayerOwnedTerritories = (
-  gameId: string,
-  ownerId: string
-): Territory[] => {
+export const createPlayerOwnedTerritories = (gameId: string, ownerId: string): Territory[] => {
   return createAllTerritories(gameId, ownerId);
 };
 

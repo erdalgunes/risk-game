@@ -1,13 +1,18 @@
-import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
-import { withSentryConfig } from "@sentry/nextjs";
+import type { NextConfig } from 'next';
+import withPWAInit from '@ducanh2912/next-pwa';
+import { withSentryConfig } from '@sentry/nextjs';
+
+// Bundle analyzer (run with: ANALYZE=true npm run build)
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const withPWA = withPWAInit({
-  dest: "public",
+  dest: 'public',
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === 'development',
   workboxOptions: {
     disableDevLogs: true,
   },
@@ -22,7 +27,7 @@ const nextConfig: NextConfig = {
 
   experimental: {
     serverActions: {
-      bodySizeLimit: "2mb",
+      bodySizeLimit: '2mb',
     },
   },
 
@@ -30,11 +35,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: '/:path*',
         headers: [
           // Content Security Policy
           {
-            key: "Content-Security-Policy",
+            key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com",
@@ -47,37 +52,37 @@ const nextConfig: NextConfig = {
               "base-uri 'self'",
               "form-action 'self'",
               "frame-ancestors 'none'",
-              "upgrade-insecure-requests",
-            ].join("; "),
+              'upgrade-insecure-requests',
+            ].join('; '),
           },
           // Additional security headers
           {
-            key: "X-DNS-Prefetch-Control",
-            value: "on",
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
           },
           {
-            key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains",
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
           },
           {
-            key: "X-Frame-Options",
-            value: "DENY",
+            key: 'X-Frame-Options',
+            value: 'DENY',
           },
           {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
           {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
           {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
           },
           {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
           },
         ],
       },
@@ -85,10 +90,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Wrap with PWA first, then Sentry
+// Wrap with PWA first, then Bundle Analyzer, then Sentry
 const configWithPWA = withPWA(nextConfig);
+const configWithAnalyzer = withBundleAnalyzer(configWithPWA);
 
-export default withSentryConfig(configWithPWA, {
+export default withSentryConfig(configWithAnalyzer, {
   // Sentry webpack plugin options
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -107,6 +113,6 @@ export default withSentryConfig(configWithPWA, {
   // Additional config
   widenClientFileUpload: true,
   transpileClientSDK: true,
-  tunnelRoute: "/monitoring",
+  tunnelRoute: '/monitoring',
   automaticVercelMonitors: true,
 } as any); // Type workaround for Sentry config incompatibility
