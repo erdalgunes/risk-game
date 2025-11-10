@@ -72,7 +72,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder
     const supabaseUrl = await input({
       message: 'Supabase Project URL:',
       default: 'https://your-project.supabase.co',
-      validate: (value) => {
+      validate: (value: string) => {
         if (!value.startsWith('https://') || !value.includes('supabase.co')) {
           return 'Must be a valid Supabase URL (https://xxx.supabase.co)';
         }
@@ -82,7 +82,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder
 
     const supabaseKey = await input({
       message: 'Supabase Anon Key:',
-      validate: (value) => {
+      validate: (value: string) => {
         if (value.length < 50) {
           return 'Anon key is too short (should be ~300 characters)';
         }
