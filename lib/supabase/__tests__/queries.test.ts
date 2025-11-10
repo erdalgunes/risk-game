@@ -15,6 +15,32 @@ vi.mock('@/lib/monitoring/performance', () => ({
   monitorQuery: vi.fn((name, table, fn) => fn()),
 }));
 
+// Helper to mock Supabase game query
+const mockGameQuery = (data: any, error: any = null) => {
+  vi.mocked(supabase.from).mockReturnValueOnce({
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data, error }),
+  } as any);
+};
+
+// Helper to mock Supabase players query
+const mockPlayersQuery = (data: any, error: any = null) => {
+  vi.mocked(supabase.from).mockReturnValueOnce({
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockResolvedValue({ data, error }),
+  } as any);
+};
+
+// Helper to mock Supabase territories query
+const mockTerritoriesQuery = (data: any, error: any = null) => {
+  vi.mocked(supabase.from).mockReturnValueOnce({
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockResolvedValue({ data, error }),
+  } as any);
+};
+
 describe('queries', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,26 +52,9 @@ describe('queries', () => {
       const mockPlayers = [createTestPlayer({ game_id: mockGame.id })];
       const mockTerritories = [createTestTerritory({ game_id: mockGame.id })];
 
-      // Mock the three parallel calls in Promise.all
-      // Games query
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockGame, error: null }),
-      } as any);
-
-      // Players query
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockPlayers, error: null }),
-      } as any);
-
-      // Territories query
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: mockTerritories, error: null }),
-      } as any);
+      mockGameQuery(mockGame);
+      mockPlayersQuery(mockPlayers);
+      mockTerritoriesQuery(mockTerritories);
 
       const result = await queries.getGameState(mockGame.id);
 
@@ -55,28 +64,11 @@ describe('queries', () => {
     });
 
     it('should return null game when game does not exist (PGRST116)', async () => {
-      // Mock the PGRST116 error (not found)
       const notFoundError = { code: 'PGRST116', message: 'No rows found' };
 
-      // Games query returns 404
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: notFoundError }),
-      } as any);
-
-      // Players query (won't be awaited due to Promise.all but needs to be mocked)
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      } as any);
-
-      // Territories query (won't be awaited due to Promise.all but needs to be mocked)
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-      } as any);
+      mockGameQuery(null, notFoundError);
+      mockPlayersQuery([]);
+      mockTerritoriesQuery([]);
 
       const result = await queries.getGameState('11111111-1111-4111-8111-111111111111');
 
@@ -87,28 +79,11 @@ describe('queries', () => {
     });
 
     it('should throw error for network or other errors', async () => {
-      // Mock a network error
       const networkError = { code: 'NETWORK_ERROR', message: 'Failed to fetch' };
 
-      // Games query returns network error
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: networkError }),
-      } as any);
-
-      // Players query
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      } as any);
-
-      // Territories query
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-      } as any);
+      mockGameQuery(null, networkError);
+      mockPlayersQuery([]);
+      mockTerritoriesQuery([]);
 
       await expect(queries.getGameState('11111111-1111-4111-8111-111111111111')).rejects.toEqual(networkError);
     });
@@ -117,25 +92,9 @@ describe('queries', () => {
       const mockGame = createTestGame();
       const playersError = { code: 'ERROR', message: 'Players query failed' };
 
-      // Games query succeeds
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockGame, error: null }),
-      } as any);
-
-      // Players query fails
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: playersError }),
-      } as any);
-
-      // Territories query (won't matter due to error)
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-      } as any);
+      mockGameQuery(mockGame);
+      mockPlayersQuery(null, playersError);
+      mockTerritoriesQuery([]);
 
       await expect(queries.getGameState(mockGame.id)).rejects.toEqual(playersError);
     });
@@ -145,25 +104,9 @@ describe('queries', () => {
       const mockPlayers = [createTestPlayer()];
       const territoriesError = { code: 'ERROR', message: 'Territories query failed' };
 
-      // Games query succeeds
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockGame, error: null }),
-      } as any);
-
-      // Players query succeeds
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockPlayers, error: null }),
-      } as any);
-
-      // Territories query fails
-      vi.mocked(supabase.from).mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: null, error: territoriesError }),
-      } as any);
+      mockGameQuery(mockGame);
+      mockPlayersQuery(mockPlayers);
+      mockTerritoriesQuery(null, territoriesError);
 
       await expect(queries.getGameState(mockGame.id)).rejects.toEqual(territoriesError);
     });
