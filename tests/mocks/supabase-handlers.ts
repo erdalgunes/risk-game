@@ -13,7 +13,7 @@ const db = {
 export const handlers = [
   // POST /rest/v1/games - Create game
   http.post(`${REST_API}/games`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = (await request.json()) as Record<string, any>;
     const gameId = crypto.randomUUID();
     const game = {
       id: gameId,
@@ -43,7 +43,7 @@ export const handlers = [
 
   // POST /rest/v1/players - Join game
   http.post(`${REST_API}/players`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = (await request.json()) as Record<string, any>;
     const playerId = crypto.randomUUID();
     const player = {
       id: playerId,
@@ -74,7 +74,7 @@ export const handlers = [
   http.patch(`${REST_API}/games`, async ({ request }) => {
     const url = new URL(request.url);
     const id = url.searchParams.get('id')?.replace('eq.', '');
-    const body = await request.json() as any;
+    const body = (await request.json()) as Record<string, any>;
 
     if (id && db.games.has(id)) {
       const game = db.games.get(id);
@@ -87,7 +87,7 @@ export const handlers = [
 
   // POST /rest/v1/territories - Create territories
   http.post(`${REST_API}/territories`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = (await request.json()) as Record<string, any> | Record<string, any>[];
     const territories = Array.isArray(body) ? body : [body];
 
     const created = territories.map(t => {
