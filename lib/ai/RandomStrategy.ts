@@ -181,6 +181,7 @@ export class RandomStrategy implements AIStrategy {
     console.log(`[AI ${player.username}] Starting fortify phase`);
 
     // 50% chance to skip fortification
+    // NOSONAR: Math.random() is safe for game AI decisions (not cryptographic use)
     if (Math.random() < 0.5) {
       console.log(`[AI ${player.username}] Skipping fortification`);
       await this.finishTurn(game, player);

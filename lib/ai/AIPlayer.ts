@@ -25,18 +25,9 @@ export class AIPlayer {
    * Create strategy based on difficulty level
    */
   private createStrategy(difficulty: AIDifficulty): AIStrategy {
-    switch (difficulty) {
-      case 'easy':
-        return new RandomStrategy();
-      case 'medium':
-        // TODO: Implement medium difficulty strategy
-        return new RandomStrategy();
-      case 'hard':
-        // TODO: Implement hard difficulty strategy
-        return new RandomStrategy();
-      default:
-        return new RandomStrategy();
-    }
+    // TODO: Implement medium and hard difficulty strategies
+    // For now, all difficulties use RandomStrategy
+    return new RandomStrategy();
   }
 
   /**

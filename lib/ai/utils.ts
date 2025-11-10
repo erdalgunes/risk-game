@@ -149,6 +149,7 @@ export function checkTerritoriesConnected(
  */
 export function randomElement<T>(array: T[]): T | undefined {
   if (array.length === 0) return undefined;
+  // NOSONAR: Math.random() is safe for game AI decisions (not cryptographic use)
   return array[Math.floor(Math.random() * array.length)];
 }
 
@@ -156,6 +157,7 @@ export function randomElement<T>(array: T[]): T | undefined {
  * Get random integer between min (inclusive) and max (inclusive)
  */
 export function randomInt(min: number, max: number): number {
+  // NOSONAR: Math.random() is safe for game AI decisions (not cryptographic use)
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
@@ -165,6 +167,7 @@ export function randomInt(min: number, max: number): number {
 export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
+    // NOSONAR: Math.random() is safe for game AI decisions (not cryptographic use)
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
