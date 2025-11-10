@@ -243,7 +243,7 @@ export async function createGameAction(username: string, color: string, maxPlaye
         },
         {
           event_type: 'player_joined',
-          payload: { username, color, turn_order: 0 },
+          payload: { player_id: player.id, username, color, turn_order: 0 },
         },
       ],
       {
@@ -322,7 +322,7 @@ export async function joinGameAction(gameId: string, username: string, color: st
     await eventStore.appendEvent(
       {
         event_type: 'player_joined',
-        payload: { username: validatedUsername, color, turn_order: turnOrder },
+        payload: { player_id: player.id, username: validatedUsername, color, turn_order: turnOrder },
       },
       {
         game_id: validatedGameId,
