@@ -270,7 +270,11 @@ export function Lobby() {
             </div>
 
             {createError && (
-              <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm" role="alert">
+              <div
+                data-testid="create-error-alert"
+                className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm"
+                role="alert"
+              >
                 <strong>Error:</strong> {createError}
               </div>
             )}
@@ -304,6 +308,16 @@ export function Lobby() {
               Refresh
             </button>
           </div>
+
+          {joinError && (
+            <div
+              data-testid="join-error-alert"
+              className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm mb-4"
+              role="alert"
+            >
+              <strong>Error:</strong> {joinError}
+            </div>
+          )}
 
           {availableGames.length === 0 ? (
             <div className="max-h-96 space-y-3 overflow-y-auto">

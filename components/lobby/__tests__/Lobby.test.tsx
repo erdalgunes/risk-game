@@ -258,7 +258,9 @@ describe('Lobby', () => {
       await user.click(createButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/failed to create game. please try again./i)).toBeInTheDocument();
+        const alertDiv = screen.getByTestId('create-error-alert');
+        expect(alertDiv).toHaveTextContent(/Error:/);
+        expect(alertDiv).toHaveTextContent(/Creation failed/);
       });
     });
   });
@@ -463,9 +465,9 @@ describe('Lobby', () => {
       await user.click(joinButton);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/failed to join game\. color may be taken or game is full\./i)
-        ).toBeInTheDocument();
+        const alertDiv = screen.getByTestId('join-error-alert');
+        expect(alertDiv).toHaveTextContent(/Error:/);
+        expect(alertDiv).toHaveTextContent(/Join failed/);
       });
     });
   });
