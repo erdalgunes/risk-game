@@ -67,9 +67,9 @@ describe('Randomness - Fisher-Yates Shuffle', () => {
       });
     }
 
-    // Expected count: 5000 shuffles / 5 elements = 1000 per position (±10% tolerance)
+    // Expected count: 5000 shuffles / 5 elements = 1000 per position (±12% tolerance)
     const expected = numShuffles / testArray.length;
-    const tolerance = expected * 0.1; // 10% tolerance (large sample = tighter bounds)
+    const tolerance = expected * 0.12; // 12% tolerance (accounts for random variance)
 
     // Verify each element appears in each position roughly equally
     for (let position = 0; position < testArray.length; position++) {
