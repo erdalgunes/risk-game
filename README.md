@@ -61,6 +61,41 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+## Using Git Worktrees (Advanced)
+
+Git worktrees let you work on multiple branches simultaneously without switching.
+
+### Create a worktree for a feature
+
+```bash
+# From your main repository
+git worktree add ../risk-feature-name feature/branch-name
+
+# Work in the new directory
+cd ../risk-feature-name
+npm install  # Each worktree needs its own dependencies
+npm run dev
+```
+
+### Benefits
+
+- No branch switching (maintain dev server state)
+- Run multiple dev servers on different ports
+- Test features in parallel
+- Isolate dependencies per branch
+
+### Cleanup
+
+```bash
+# List all worktrees
+git worktree list
+
+# Remove a worktree
+git worktree remove ../risk-feature-name
+```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed worktree workflows.
+
 ## Project Structure
 
 ```
