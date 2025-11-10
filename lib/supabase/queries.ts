@@ -14,7 +14,22 @@ export async function getGameState(gameId: string) {
       supabase.from('territories').select('*').eq('game_id', gameId),
     ]);
 
-    if (gameResult.error) throw gameResult.error;
+    // Handle game not found (404) gracefully - return null instead of throwing
+    if (gameResult.error) {
+      if (gameResult.error.code === 'PGRST116') {
+        // Game not found - this is expected for deleted/non-existent games
+        return {
+          game: null,
+          players: [],
+          territories: [],
+          currentPlayer: null,
+        };
+      }
+      // For other errors (network, permissions, etc.), throw
+      throw gameResult.error;
+    }
+
+    // These should not fail if game exists, but handle gracefully
     if (playersResult.error) throw playersResult.error;
     if (territoriesResult.error) throw territoriesResult.error;
 
