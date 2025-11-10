@@ -55,9 +55,8 @@ jobs:
     name: E2E Smoke Tests (Fast)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Only run E2E tests on main branch pushes (requires real Supabase)
-    # TODO: Implement mock backend for CI E2E testing
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # E2E tests use MSW to mock Supabase - no real credentials needed
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
 
     steps:
       - name: Checkout code
@@ -78,16 +77,16 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
 
       - name: Run smoke tests
         run: npm run test:e2e:smoke
         env:
           CI: true
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: mock-service-key
 
       - name: Upload Playwright report
         if: always()
