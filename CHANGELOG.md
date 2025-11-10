@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated TESTING.md to clarify two Playwright configurations
+- CI: E2E smoke tests now skip on PR runs (only run on main branch merges)
+  * TODO: Implement mock Supabase backend for CI E2E testing (MSW or similar)
+  * Current limitation: E2E tests require real Supabase instance
 
 ### Removed
 - Duplicate .env files (.env.production.template, .env.local.example)
