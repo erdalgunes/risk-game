@@ -55,8 +55,8 @@ jobs:
     name: E2E Smoke Tests (Fast)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Skip if Supabase secrets are not configured
-    if: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+    # Skip E2E tests for forked PRs (no access to secrets)
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
 
     steps:
       - name: Checkout code
@@ -109,8 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Only run full regression on pushes to main/develop, not on PRs
-    # Skip if Supabase secrets are not configured
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != ''
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 
     steps:
       - name: Checkout code
