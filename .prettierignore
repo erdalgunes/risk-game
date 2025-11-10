@@ -1,0 +1,33 @@
+# Build outputs
+.next/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Environment
+.env*
+
+# Coverage
+coverage/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Auto-generated
+*.config.js
+*.config.mjs
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Documentation (preserve formatting)
+*.md

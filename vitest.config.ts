@@ -8,7 +8,11 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    include: ['**/__tests__/**/*.test.{ts,tsx}', '**/*.test.{ts,tsx}'],
+    include: [
+      '**/__tests__/**/*.test.{ts,tsx}',
+      '**/*.test.{ts,tsx}',
+      'tests/integration/**/*.test.ts',
+    ],
     exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', 'playwright.config.test.ts'],
     coverage: {
       provider: 'v8',
@@ -22,15 +26,15 @@ export default defineConfig({
         '**/node_modules/**',
         '**/dist/**',
         'tests/**',
-        '.next/**'
+        '.next/**',
       ],
       thresholds: {
-        lines: 40,
-        functions: 45,
-        branches: 70,
-        statements: 40
-      }
-    }
+        lines: 50,
+        functions: 55,
+        branches: 75,
+        statements: 50,
+      },
+    },
   },
   resolve: {
     alias: {
