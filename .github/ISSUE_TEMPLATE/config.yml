@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a Question
+    url: https://github.com/erdalgunes/risk-game/discussions/new?category=q-a
+    about: Ask questions and discuss with the community
+  - name: Documentation
+    url: https://github.com/erdalgunes/risk-game#readme
+    about: Read the project documentation
+  - name: Production Deployment Guide
+    url: https://github.com/erdalgunes/risk-game/blob/main/DEPLOYMENT.md
+    about: Step-by-step deployment instructions
