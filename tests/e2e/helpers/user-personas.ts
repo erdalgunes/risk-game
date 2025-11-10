@@ -190,7 +190,7 @@ export class PersonaSimulator {
     const myColor = this.config.color;
     const myTerritories = this.page
       .getByTestId('territory-card')
-      .filter({ hasText: new RegExp(myColor, 'i') });
+      .filter({ hasText: myColor });
     const count = await myTerritories.count();
 
     if (count === 0) {
@@ -247,7 +247,7 @@ export class PersonaSimulator {
 
     // Find territories that can attack
     const myTerritories = this.page.getByTestId('territory-card').filter({
-      hasText: new RegExp(this.config.color, 'i'),
+      hasText: this.config.color,
     });
 
     const count = await myTerritories.count();
@@ -301,7 +301,7 @@ export class PersonaSimulator {
 
     // Find territories to fortify between
     const myTerritories = this.page.getByTestId('territory-card').filter({
-      hasText: new RegExp(this.config.color, 'i'),
+      hasText: this.config.color,
     });
 
     const count = await myTerritories.count();

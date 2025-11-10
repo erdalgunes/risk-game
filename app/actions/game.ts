@@ -8,7 +8,6 @@ import {
   calculateReinforcements,
   resolveCombat,
   isPlayerEliminated,
-  getWinner,
 } from '@/lib/game-engine';
 import { canAttack, canFortify } from '@/lib/game-engine/validation';
 import type { Player, Territory, AttackResult, Game } from '@/types/game';
@@ -603,7 +602,7 @@ export async function endTurn(gameId: string, playerId: string) {
     );
 
     // Execute turn end atomically via stored procedure
-    const { data: txResult, error: txError } = await supabase.rpc('end_turn_transaction', {
+    const { error: txError } = await supabase.rpc('end_turn_transaction', {
       p_game_id: gameId,
       p_player_id: playerId,
       p_next_player_order: nextPlayerOrder,

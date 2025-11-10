@@ -185,10 +185,10 @@ npm run test:e2e:prod
 
 ### Test Coverage Thresholds
 Current minimums (see `vitest.config.ts`):
-- Lines: 50%
-- Functions: 55%
-- Branches: 75%
-- Statements: 50%
+- Lines: 40%
+- Functions: 45%
+- Branches: 70%
+- Statements: 40%
 
 **Goal**: Increase progressively to 80%+ for critical paths.
 

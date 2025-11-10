@@ -74,7 +74,7 @@ async function resetDatabase() {
     const { error } = await supabase
       .from(table)
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+      .not('id', 'is', null);
 
     if (error) {
       console.error(colors.red(`❌ Failed to clear ${table}:`), error);
