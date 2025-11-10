@@ -21,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integration tests skeleton
   - Database reset script (`npm run reset:db`)
   - Test watch mode (`npm run test:watch`)
-- Test coverage thresholds increased (40% → 50% lines, 45% → 55% functions)
 - Organized package.json scripts with sections
 - Consolidated .env files (5 → 3)
 
