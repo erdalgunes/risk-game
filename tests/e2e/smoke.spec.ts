@@ -10,7 +10,12 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders, assertNoJavaScriptErrors } from './helpers';
+import {
+  createGameViaUI,
+  setupTwoPlayerGameSimple,
+  assertSecurityHeaders,
+  assertNoJavaScriptErrors,
+} from './helpers';
 
 test.describe('Smoke Tests @smoke', () => {
   test.describe.configure({ mode: 'serial' }); // Serial for faster execution

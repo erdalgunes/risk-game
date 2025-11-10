@@ -100,9 +100,7 @@ export function useGameState(gameId: string | null) {
             setPlayers((prev) => [...prev, payload.new as Player]);
           } else if (payload.eventType === 'UPDATE') {
             setPlayers((prev) =>
-              prev.map((p) =>
-                p.id === payload.new.id ? (payload.new as Player) : p
-              )
+              prev.map((p) => (p.id === payload.new.id ? (payload.new as Player) : p))
             );
           } else if (payload.eventType === 'DELETE') {
             setPlayers((prev) => prev.filter((p) => p.id !== payload.old.id));
@@ -122,14 +120,10 @@ export function useGameState(gameId: string | null) {
             setTerritories((prev) => [...prev, payload.new as Territory]);
           } else if (payload.eventType === 'UPDATE') {
             setTerritories((prev) =>
-              prev.map((t) =>
-                t.id === payload.new.id ? (payload.new as Territory) : t
-              )
+              prev.map((t) => (t.id === payload.new.id ? (payload.new as Territory) : t))
             );
           } else if (payload.eventType === 'DELETE') {
-            setTerritories((prev) =>
-              prev.filter((t) => t.id !== payload.old.id)
-            );
+            setTerritories((prev) => prev.filter((t) => t.id !== payload.old.id));
           }
         }
       )
@@ -147,10 +141,7 @@ export function useGameState(gameId: string | null) {
           // Attempt reconnection with exponential backoff
           if (reconnectAttemptsRef.current < maxReconnectAttempts) {
             reconnectAttemptsRef.current++;
-            const backoffMs = Math.min(
-              1000 * Math.pow(2, reconnectAttemptsRef.current),
-              30000
-            );
+            const backoffMs = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
 
             // Reconnecting with exponential backoff
             setConnectionStatus('reconnecting');

@@ -63,10 +63,7 @@ export abstract class PhaseDelegate {
    * @param context Game context
    * @returns ValidationResult indicating if action is allowed
    */
-  abstract canExecuteAction(
-    action: GameAction,
-    context: PhaseContext
-  ): ValidationResult;
+  abstract canExecuteAction(action: GameAction, context: PhaseContext): ValidationResult;
 
   /**
    * Called when phase is entered
@@ -104,30 +101,21 @@ export abstract class PhaseDelegate {
   /**
    * Find a territory by ID
    */
-  protected findTerritory(
-    territoryId: string,
-    context: PhaseContext
-  ): Territory | undefined {
+  protected findTerritory(territoryId: string, context: PhaseContext): Territory | undefined {
     return context.territories.find((t) => t.id === territoryId);
   }
 
   /**
    * Find a player by ID
    */
-  protected findPlayer(
-    playerId: string,
-    context: PhaseContext
-  ): Player | undefined {
+  protected findPlayer(playerId: string, context: PhaseContext): Player | undefined {
     return context.players.find((p) => p.id === playerId);
   }
 
   /**
    * Create a success result
    */
-  protected successResult(
-    result?: any,
-    transitionTo?: GamePhase
-  ): ActionResult {
+  protected successResult(result?: any, transitionTo?: GamePhase): ActionResult {
     return {
       success: true,
       result,
@@ -154,7 +142,11 @@ export abstract class PhaseDelegate {
     error: any,
     defaultMessage = 'Transaction failed'
   ): ActionResult | null {
-    if (error || !result || (typeof result === 'object' && 'success' in result && !result.success)) {
+    if (
+      error ||
+      !result ||
+      (typeof result === 'object' && 'success' in result && !result.success)
+    ) {
       const errorMsg = (result as any)?.error || error?.message || defaultMessage;
       return this.errorResult(errorMsg);
     }
@@ -164,10 +156,7 @@ export abstract class PhaseDelegate {
   /**
    * Validate that player owns a territory
    */
-  protected validateOwnership(
-    territory: Territory,
-    playerId: string
-  ): ValidationResult {
+  protected validateOwnership(territory: Territory, playerId: string): ValidationResult {
     if (territory.owner_id !== playerId) {
       return {
         valid: false,
@@ -180,10 +169,7 @@ export abstract class PhaseDelegate {
   /**
    * Validate that territory has enough armies
    */
-  protected validateArmyCount(
-    territory: Territory,
-    minArmies: number
-  ): ValidationResult {
+  protected validateArmyCount(territory: Territory, minArmies: number): ValidationResult {
     if (territory.army_count < minArmies) {
       return {
         valid: false,

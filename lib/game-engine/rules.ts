@@ -1,19 +1,11 @@
-import type {
-  Territory,
-  Player,
-  TerritoryName,
-  ContinentName,
-} from '@/types/game';
+import type { Territory, Player, TerritoryName, ContinentName } from '@/types/game';
 import { CONTINENTS, getContinentBonus } from '@/constants/map';
 
 /**
  * Calculate reinforcement armies for a player at the start of their turn
  * Based on: territories owned / 3 + continent bonuses (minimum 3)
  */
-export function calculateReinforcements(
-  player: Player,
-  territories: Territory[]
-): number {
+export function calculateReinforcements(player: Player, territories: Territory[]): number {
   const playerTerritories = territories.filter((t) => t.owner_id === player.id);
   const territoryCount = playerTerritories.length;
 
@@ -21,10 +13,7 @@ export function calculateReinforcements(
   let reinforcements = Math.max(3, Math.floor(territoryCount / 3));
 
   // Add continent bonuses
-  const continentBonuses = calculateContinentBonuses(
-    player.id,
-    playerTerritories
-  );
+  const continentBonuses = calculateContinentBonuses(player.id, playerTerritories);
   reinforcements += continentBonuses;
 
   return reinforcements;
@@ -39,9 +28,7 @@ export function calculateContinentBonuses(
 ): number {
   let bonus = 0;
 
-  const playerTerritoryNames = new Set(
-    playerTerritories.map((t) => t.territory_name)
-  );
+  const playerTerritoryNames = new Set(playerTerritories.map((t) => t.territory_name));
 
   // Check each continent
   for (const continent of CONTINENTS) {
@@ -72,18 +59,13 @@ export function ownsContinent(
     territories.filter((t) => t.owner_id === playerId).map((t) => t.territory_name)
   );
 
-  return continentDef.territories.every((territoryName) =>
-    playerTerritoryNames.has(territoryName)
-  );
+  return continentDef.territories.every((territoryName) => playerTerritoryNames.has(territoryName));
 }
 
 /**
  * Check if a player has been eliminated
  */
-export function isPlayerEliminated(
-  playerId: string,
-  territories: Territory[]
-): boolean {
+export function isPlayerEliminated(playerId: string, territories: Territory[]): boolean {
   return !territories.some((t) => t.owner_id === playerId);
 }
 
@@ -91,10 +73,7 @@ export function isPlayerEliminated(
  * Get the winner of the game (if any)
  * Returns null if game is still ongoing
  */
-export function getWinner(
-  players: Player[],
-  territories: Territory[]
-): Player | null {
+export function getWinner(players: Player[], territories: Territory[]): Player | null {
   // Filter out eliminated players
   const activePlayers = players.filter(
     (p) => !p.is_eliminated && !isPlayerEliminated(p.id, territories)

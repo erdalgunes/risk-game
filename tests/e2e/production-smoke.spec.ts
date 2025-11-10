@@ -10,7 +10,13 @@
  */
 
 import { test, expect, Page, Browser, BrowserContext } from '@playwright/test';
-import { createGameViaUI, joinGameViaUI, setupTwoPlayerGameSimple, assertSecurityHeaders, assertNoJavaScriptErrors } from './helpers';
+import {
+  createGameViaUI,
+  joinGameViaUI,
+  setupTwoPlayerGameSimple,
+  assertSecurityHeaders,
+  assertNoJavaScriptErrors,
+} from './helpers';
 
 test.describe('Production Smoke Tests - Critical Path', () => {
   test.describe.configure({ mode: 'serial' }); // Run in order for faster execution
@@ -35,7 +41,7 @@ test.describe('Production Smoke Tests - Critical Path', () => {
 
     // No console errors
     const consoleErrors: string[] = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error') {
         consoleErrors.push(msg.text());
       }
@@ -137,7 +143,7 @@ test.describe('Production Smoke Tests - Critical Path', () => {
 
     // Check for WebSocket connection (no connection errors in console)
     const consoleErrors: string[] = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error' && msg.text().toLowerCase().includes('websocket')) {
         consoleErrors.push(msg.text());
       }
@@ -162,7 +168,7 @@ test.describe('Production Smoke Tests - Critical Path', () => {
     const cookies = await page.context().cookies();
 
     // Should have a player session cookie
-    const sessionCookie = cookies.find(c => c.name.startsWith('player_session_'));
+    const sessionCookie = cookies.find((c) => c.name.startsWith('player_session_'));
 
     expect(sessionCookie).toBeDefined();
     expect(sessionCookie?.httpOnly).toBe(true);
@@ -204,7 +210,7 @@ test.describe('Production Smoke Tests - Critical Path', () => {
     }
 
     // At least one request should be rate limited (not all 5 should succeed)
-    const successCount = results.filter(r => r).length;
+    const successCount = results.filter((r) => r).length;
     expect(successCount).toBeLessThan(5);
   });
 
@@ -216,13 +222,13 @@ test.describe('Production Smoke Tests - Critical Path', () => {
 
     // Should not have placeholder Supabase URL in errors
     const consoleMessages: string[] = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       consoleMessages.push(msg.text());
     });
 
     await page.waitForTimeout(2000);
 
-    const placeholderMessages = consoleMessages.filter(msg =>
+    const placeholderMessages = consoleMessages.filter((msg) =>
       msg.includes('placeholder.supabase.co')
     );
 
@@ -295,7 +301,10 @@ test.describe('Production Smoke Tests - Error Handling', () => {
     expect(response?.status()).toBeLessThan(500);
 
     // Should show error message or redirect to homepage
-    const hasError = await page.getByText(/not found|invalid|error/i).isVisible({ timeout: 5000 }).catch(() => false);
+    const hasError = await page
+      .getByText(/not found|invalid|error/i)
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
     const isHomepage = page.url().includes('/') && !page.url().includes('/game/');
 
     expect(hasError || isHomepage).toBe(true);

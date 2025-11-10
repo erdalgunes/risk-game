@@ -75,13 +75,7 @@ describe('PlayersList', () => {
       const player = createTestPlayer({ id: 'current-player' });
       const players = [player];
 
-      render(
-        <PlayersList
-          players={players}
-          currentPlayer={player}
-          yourPlayerId={undefined}
-        />
-      );
+      render(<PlayersList players={players} currentPlayer={player} yourPlayerId={undefined} />);
 
       expect(screen.getByText('Active')).toBeInTheDocument();
     });
@@ -92,11 +86,7 @@ describe('PlayersList', () => {
       const players = [currentPlayer, otherPlayer];
 
       render(
-        <PlayersList
-          players={players}
-          currentPlayer={currentPlayer}
-          yourPlayerId={undefined}
-        />
+        <PlayersList players={players} currentPlayer={currentPlayer} yourPlayerId={undefined} />
       );
 
       const activeBadges = screen.getAllByText('Active');
@@ -108,11 +98,7 @@ describe('PlayersList', () => {
       const players = [player];
 
       const { container } = render(
-        <PlayersList
-          players={players}
-          currentPlayer={player}
-          yourPlayerId={undefined}
-        />
+        <PlayersList players={players} currentPlayer={player} yourPlayerId={undefined} />
       );
 
       const playerCard = container.querySelector('[class*="bg-blue-900"]');
@@ -125,13 +111,7 @@ describe('PlayersList', () => {
       const yourPlayer = createTestPlayer({ id: 'your-id', username: 'You' });
       const players = [yourPlayer];
 
-      render(
-        <PlayersList
-          players={players}
-          currentPlayer={null}
-          yourPlayerId="your-id"
-        />
-      );
+      render(<PlayersList players={players} currentPlayer={null} yourPlayerId="your-id" />);
 
       expect(screen.getByText(/you \(you\)/i)).toBeInTheDocument();
     });
@@ -141,13 +121,7 @@ describe('PlayersList', () => {
       const otherPlayer = createTestPlayer({ id: 'other-id', username: 'Bob' });
       const players = [yourPlayer, otherPlayer];
 
-      render(
-        <PlayersList
-          players={players}
-          currentPlayer={null}
-          yourPlayerId="your-id"
-        />
-      );
+      render(<PlayersList players={players} currentPlayer={null} yourPlayerId="your-id" />);
 
       expect(screen.getByText('Alice (You)')).toBeInTheDocument();
       expect(screen.getByText('Bob')).toBeInTheDocument();
@@ -183,13 +157,7 @@ describe('PlayersList', () => {
 
       const currentPlayer = players[1];
 
-      render(
-        <PlayersList
-          players={players}
-          currentPlayer={currentPlayer}
-          yourPlayerId="p1"
-        />
-      );
+      render(<PlayersList players={players} currentPlayer={currentPlayer} yourPlayerId="p1" />);
 
       // Check all usernames
       expect(screen.getByText('Player1 (You)')).toBeInTheDocument();
@@ -217,13 +185,7 @@ describe('PlayersList', () => {
       const otherPlayer = createTestPlayer({ id: 'p2', username: 'Other', turn_order: 1 });
       const players = [yourPlayer, otherPlayer];
 
-      render(
-        <PlayersList
-          players={players}
-          currentPlayer={yourPlayer}
-          yourPlayerId="p1"
-        />
-      );
+      render(<PlayersList players={players} currentPlayer={yourPlayer} yourPlayerId="p1" />);
 
       expect(screen.getByText('You (You)')).toBeInTheDocument();
       expect(screen.getByText('Active')).toBeInTheDocument();
@@ -254,13 +216,7 @@ describe('PlayersList', () => {
         turn_order: 0,
       });
 
-      render(
-        <PlayersList
-          players={[player]}
-          currentPlayer={player}
-          yourPlayerId={player.id}
-        />
-      );
+      render(<PlayersList players={[player]} currentPlayer={player} yourPlayerId={player.id} />);
 
       expect(screen.getByText('Solitaire (You)')).toBeInTheDocument();
       expect(screen.getByText('Active')).toBeInTheDocument();

@@ -33,10 +33,7 @@ export async function autoCreateSnapshot(
     const eventStore = createEventStore(supabase);
 
     // Check if snapshot should be created
-    const shouldCreate = await eventStore.shouldCreateSnapshot(
-      game_id,
-      threshold
-    );
+    const shouldCreate = await eventStore.shouldCreateSnapshot(game_id, threshold);
 
     if (shouldCreate) {
       // Create snapshot

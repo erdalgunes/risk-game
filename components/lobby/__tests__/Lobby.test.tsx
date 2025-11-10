@@ -177,7 +177,7 @@ describe('Lobby', () => {
 
       vi.mocked(gameActions.createGameAction).mockResolvedValue({
         success: true,
-        result: { gameId: 'game-123', playerId: 'player-456' }
+        result: { gameId: 'game-123', playerId: 'player-456' },
       });
 
       renderWithProviders(<Lobby />);
@@ -198,7 +198,7 @@ describe('Lobby', () => {
 
       vi.mocked(gameActions.createGameAction).mockResolvedValue({
         success: true,
-        result: { gameId: 'game-123', playerId: 'player-456' }
+        result: { gameId: 'game-123', playerId: 'player-456' },
       });
 
       renderWithProviders(<Lobby />);
@@ -217,10 +217,17 @@ describe('Lobby', () => {
     it('should show loading state during game creation', async () => {
       const user = userEvent.setup();
       vi.mocked(gameActions.createGameAction).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({
-          success: true,
-          result: { gameId: 'game-123', playerId: 'player-456' }
-        }), 100))
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  success: true,
+                  result: { gameId: 'game-123', playerId: 'player-456' },
+                }),
+              100
+            )
+          )
       );
 
       renderWithProviders(<Lobby />);
@@ -239,7 +246,7 @@ describe('Lobby', () => {
       const user = userEvent.setup();
       vi.mocked(gameActions.createGameAction).mockResolvedValue({
         success: false,
-        error: 'Creation failed'
+        error: 'Creation failed',
       });
 
       renderWithProviders(<Lobby />);
@@ -380,7 +387,7 @@ describe('Lobby', () => {
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
       vi.mocked(gameActions.joinGameAction).mockResolvedValue({
         success: true,
-        result: { gameId: 'game-123', playerId: 'player-456' }
+        result: { gameId: 'game-123', playerId: 'player-456' },
       });
 
       renderWithProviders(<Lobby />);
@@ -414,7 +421,7 @@ describe('Lobby', () => {
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
       vi.mocked(gameActions.joinGameAction).mockResolvedValue({
         success: true,
-        result: { gameId: 'game-789', playerId: 'player-999' }
+        result: { gameId: 'game-789', playerId: 'player-999' },
       });
 
       renderWithProviders(<Lobby />);
@@ -444,7 +451,7 @@ describe('Lobby', () => {
       vi.mocked(queries.getAvailableGames).mockResolvedValue(mockGames as any);
       vi.mocked(gameActions.joinGameAction).mockResolvedValue({
         success: false,
-        error: 'Join failed'
+        error: 'Join failed',
       });
 
       renderWithProviders(<Lobby />);
@@ -456,7 +463,9 @@ describe('Lobby', () => {
       await user.click(joinButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/failed to join game\. color may be taken or game is full\./i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/failed to join game\. color may be taken or game is full\./i)
+        ).toBeInTheDocument();
       });
     });
   });

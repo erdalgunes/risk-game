@@ -18,7 +18,11 @@ describe('Phase Delegates', () => {
 
     const game = createTestGame({ phase: 'reinforcement', status: 'playing' });
     const player = createTestPlayer({ id: 'player-1', armies_available: 5 });
-    const territory = createTestTerritory({ id: 'territory-1', owner_id: 'player-1', army_count: 3 });
+    const territory = createTestTerritory({
+      id: 'territory-1',
+      owner_id: 'player-1',
+      army_count: 3,
+    });
 
     context = {
       gameId: game.id,
@@ -121,12 +125,7 @@ describe('Phase Delegates', () => {
           error: null,
         });
 
-        const result = await delegate.placeArmies(
-          context,
-          'player-1',
-          territoryId,
-          count
-        );
+        const result = await delegate.placeArmies(context, 'player-1', territoryId, count);
 
         expect(result.success).toBe(true);
         expect(result.result).toHaveProperty('placed', count);
@@ -138,12 +137,7 @@ describe('Phase Delegates', () => {
         const territory = createTestTerritory({ id: 'territory-2', owner_id: 'other-player' });
         context.territories.push(territory);
 
-        const result = await delegate.placeArmies(
-          context,
-          'player-1',
-          'territory-2',
-          3
-        );
+        const result = await delegate.placeArmies(context, 'player-1', 'territory-2', 3);
 
         expect(result.success).toBe(false);
         expect(result.error).toContain('You do not own this territory');
@@ -174,12 +168,7 @@ describe('Phase Delegates', () => {
           error: null,
         });
 
-        const result = await delegate.placeArmies(
-          context,
-          'player-1',
-          'territory-1',
-          3
-        );
+        const result = await delegate.placeArmies(context, 'player-1', 'territory-1', 3);
 
         expect(result.success).toBe(true);
         expect(result.transitionTo).toBe('attack');
@@ -192,12 +181,7 @@ describe('Phase Delegates', () => {
           error: { message: 'Database error' },
         });
 
-        const result = await delegate.placeArmies(
-          context,
-          'player-1',
-          'territory-1',
-          3
-        );
+        const result = await delegate.placeArmies(context, 'player-1', 'territory-1', 3);
 
         expect(result.success).toBe(false);
         expect(result.error).toBeDefined();

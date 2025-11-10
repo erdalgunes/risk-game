@@ -52,7 +52,7 @@ describe('Lobby Accessibility', () => {
     expect(sections.length).toBeGreaterThan(0);
 
     // Check for aria-labelledby
-    sections.forEach(section => {
+    sections.forEach((section) => {
       expect(section).toHaveAttribute('aria-labelledby');
     });
   });

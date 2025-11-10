@@ -248,9 +248,9 @@ test.describe('Multiplayer Error Recovery', () => {
       await player2Reconnect.waitForTimeout(2000);
 
       // RECONNECTION CHECK: Player 2 should see game state
-      await expect(
-        player2Reconnect.locator('text=/ConnectTest1|ConnectTest2/i')
-      ).toBeVisible({ timeout: 10000 });
+      await expect(player2Reconnect.locator('text=/ConnectTest1|ConnectTest2/i')).toBeVisible({
+        timeout: 10000,
+      });
 
       // Game should still be functional
       const hasGameContent = await elementExists(
@@ -322,8 +322,14 @@ test.describe('Multiplayer Error Recovery', () => {
 
       // RACE CONDITION CHECK: Game should start only once
       // Both players should end up in same consistent state
-      const player1Status = await player1.locator('text=/waiting|setup|playing/i').first().textContent();
-      const player2Status = await player2.locator('text=/waiting|setup|playing/i').first().textContent();
+      const player1Status = await player1
+        .locator('text=/waiting|setup|playing/i')
+        .first()
+        .textContent();
+      const player2Status = await player2
+        .locator('text=/waiting|setup|playing/i')
+        .first()
+        .textContent();
 
       // Statuses should match (eventually consistent)
       await player1.waitForTimeout(1000);

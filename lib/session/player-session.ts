@@ -16,10 +16,7 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
 /**
  * Create a secure player session after joining a game
  */
-export async function createPlayerSession(
-  gameId: string,
-  playerId: string
-): Promise<void> {
+export async function createPlayerSession(gameId: string, playerId: string): Promise<void> {
   const cookieStore = await cookies();
 
   cookieStore.set(`${SESSION_PREFIX}${gameId}`, playerId, {
@@ -50,10 +47,7 @@ export async function getPlayerSession(gameId: string): Promise<string | null> {
  * Verify that the provided player ID matches the session
  * Critical for preventing player impersonation attacks
  */
-export async function verifyPlayerSession(
-  gameId: string,
-  playerId: string
-): Promise<boolean> {
+export async function verifyPlayerSession(gameId: string, playerId: string): Promise<boolean> {
   const sessionPlayerId = await getPlayerSession(gameId);
 
   if (!sessionPlayerId || sessionPlayerId !== playerId) {

@@ -1,10 +1,4 @@
-import type {
-  Territory,
-  Player,
-  Game,
-  TerritoryName,
-  GamePhase,
-} from '@/types/game';
+import type { Territory, Player, Game, TerritoryName, GamePhase } from '@/types/game';
 import { areTerritoriesAdjacent, getTerritoryDefinition } from '@/constants/map';
 
 /**
@@ -45,12 +39,7 @@ export function canAttack(
   }
 
   // Territories must be adjacent
-  if (
-    !areTerritoriesAdjacent(
-      fromTerritory.territory_name,
-      toTerritory.territory_name
-    )
-  ) {
+  if (!areTerritoriesAdjacent(fromTerritory.territory_name, toTerritory.territory_name)) {
     return { valid: false, reason: 'Territories are not adjacent' };
   }
 
@@ -122,9 +111,7 @@ export function areTerritoriesConnected(
   if (from.id === to.id) return true;
 
   const playerTerritories = new Set(
-    allTerritories
-      .filter((t) => t.owner_id === playerId)
-      .map((t) => t.territory_name)
+    allTerritories.filter((t) => t.owner_id === playerId).map((t) => t.territory_name)
   );
 
   const visited = new Set<TerritoryName>();

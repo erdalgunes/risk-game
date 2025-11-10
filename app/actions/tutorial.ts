@@ -2,8 +2,18 @@
 
 import { createServerClient } from '@/lib/supabase/server';
 import { TUTORIAL_SCENARIO, getTutorialStep } from '@/constants/tutorial';
-import { decidePlaceArmies, decideAttack, decideFortify, shouldContinueAttacking } from '@/lib/ai/tutorial-ai';
-import { resolveCombat, calculateReinforcements, isPlayerEliminated, getWinner } from '@/lib/game-engine';
+import {
+  decidePlaceArmies,
+  decideAttack,
+  decideFortify,
+  shouldContinueAttacking,
+} from '@/lib/ai/tutorial-ai';
+import {
+  resolveCombat,
+  calculateReinforcements,
+  isPlayerEliminated,
+  getWinner,
+} from '@/lib/game-engine';
 import type { Player, Territory, TerritoryName } from '@/types/game';
 import { createPlayerSession, verifyPlayerSession } from '@/lib/session/player-session';
 import { checkRateLimit, SERVER_RATE_LIMITS, getRateLimitError } from '@/lib/middleware/rate-limit';
@@ -131,12 +141,14 @@ export async function createTutorialGame(username: string) {
 
     // Create territories with pre-defined distribution
     const territoryInserts = [
-      ...TUTORIAL_SCENARIO.playerTerritories.map((t: { territory: TerritoryName; armies: number }) => ({
-        game_id: game.id,
-        territory_name: t.territory,
-        owner_id: player.id,
-        army_count: t.armies,
-      })),
+      ...TUTORIAL_SCENARIO.playerTerritories.map(
+        (t: { territory: TerritoryName; armies: number }) => ({
+          game_id: game.id,
+          territory_name: t.territory,
+          owner_id: player.id,
+          army_count: t.armies,
+        })
+      ),
       ...TUTORIAL_SCENARIO.aiTerritories.map((t: { territory: TerritoryName; armies: number }) => ({
         game_id: game.id,
         territory_name: t.territory,
@@ -145,9 +157,7 @@ export async function createTutorialGame(username: string) {
       })),
     ];
 
-    const { error: territoriesError } = await supabase
-      .from('territories')
-      .insert(territoryInserts);
+    const { error: territoriesError } = await supabase.from('territories').insert(territoryInserts);
 
     if (territoriesError) throw territoriesError;
 
@@ -487,13 +497,15 @@ export async function executeAITurn(gameId: string) {
       const decisions = decidePlaceArmies(aiPlayer, territories);
 
       // Batch update territories (reduces N queries to 1)
-      const territoryUpdates = decisions.map((decision) => {
-        const territory = territories.find((t) => t.id === decision.territoryId);
-        return {
-          id: decision.territoryId,
-          army_count: (territory?.army_count || 0) + decision.count,
-        };
-      }).filter(update => update.id); // Remove invalid entries
+      const territoryUpdates = decisions
+        .map((decision) => {
+          const territory = territories.find((t) => t.id === decision.territoryId);
+          return {
+            id: decision.territoryId,
+            army_count: (territory?.army_count || 0) + decision.count,
+          };
+        })
+        .filter((update) => update.id); // Remove invalid entries
 
       // Log if any invalid territory IDs were filtered out (helps catch bugs in AI logic)
       if (territoryUpdates.length !== decisions.length) {
@@ -504,9 +516,7 @@ export async function executeAITurn(gameId: string) {
       }
 
       if (territoryUpdates.length > 0) {
-        const { error: updateError } = await supabase
-          .from('territories')
-          .upsert(territoryUpdates);
+        const { error: updateError } = await supabase.from('territories').upsert(territoryUpdates);
 
         if (updateError) {
           console.error('Failed to place AI armies:', updateError);
@@ -516,14 +526,8 @@ export async function executeAITurn(gameId: string) {
 
       // Update player and game in parallel (reduces 2 sequential queries to 1 parallel)
       const [playerResult, phaseResult] = await Promise.all([
-        supabase
-          .from('players')
-          .update({ armies_available: 0 })
-          .eq('id', aiPlayer.id),
-        supabase
-          .from('games')
-          .update({ phase: 'attack' })
-          .eq('id', gameId),
+        supabase.from('players').update({ armies_available: 0 }).eq('id', aiPlayer.id),
+        supabase.from('games').update({ phase: 'attack' }).eq('id', gameId),
       ]);
 
       if (playerResult.error) {
@@ -553,12 +557,8 @@ export async function executeAITurn(gameId: string) {
 
         if (!attackDecision) break;
 
-        const fromTerritory = freshTerritories.find(
-          (t) => t.id === attackDecision.fromTerritoryId
-        );
-        const toTerritory = freshTerritories.find(
-          (t) => t.id === attackDecision.toTerritoryId
-        );
+        const fromTerritory = freshTerritories.find((t) => t.id === attackDecision.fromTerritoryId);
+        const toTerritory = freshTerritories.find((t) => t.id === attackDecision.toTerritoryId);
 
         if (!fromTerritory || !toTerritory) break;
 
@@ -616,7 +616,10 @@ export async function executeAITurn(gameId: string) {
         if (postAttackTerritories) {
           const humanPlayer = players.find((p) => !p.is_ai);
           if (humanPlayer) {
-            const eliminated = isPlayerEliminated(humanPlayer.id, postAttackTerritories as Territory[]);
+            const eliminated = isPlayerEliminated(
+              humanPlayer.id,
+              postAttackTerritories as Territory[]
+            );
             if (eliminated) {
               const { error: eliminationError } = await supabase
                 .from('players')
@@ -690,10 +693,7 @@ export async function executeAITurn(gameId: string) {
       const humanPlayer = players.find((p) => !p.is_ai);
 
       if (humanPlayer && allTerritories) {
-        const reinforcements = calculateReinforcements(
-          humanPlayer,
-          allTerritories as Territory[]
-        );
+        const reinforcements = calculateReinforcements(humanPlayer, allTerritories as Territory[]);
 
         await supabase
           .from('players')
@@ -712,10 +712,7 @@ export async function executeAITurn(gameId: string) {
     }
 
     // Check for winner
-    const { data: allPlayers } = await supabase
-      .from('players')
-      .select('*')
-      .eq('game_id', gameId);
+    const { data: allPlayers } = await supabase.from('players').select('*').eq('game_id', gameId);
 
     const { data: allTerritories } = await supabase
       .from('territories')

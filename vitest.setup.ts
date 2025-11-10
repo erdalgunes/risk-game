@@ -25,13 +25,15 @@ vi.mock('next/navigation', () => ({
 
 // Mock Next.js headers and cookies
 vi.mock('next/headers', () => ({
-  cookies: vi.fn(() => Promise.resolve({
-    get: vi.fn((name: string) => ({ name, value: 'test-session-id' })),
-    set: vi.fn(),
-    delete: vi.fn(),
-    getAll: vi.fn(() => []),
-    has: vi.fn(() => true),
-  })),
+  cookies: vi.fn(() =>
+    Promise.resolve({
+      get: vi.fn((name: string) => ({ name, value: 'test-session-id' })),
+      set: vi.fn(),
+      delete: vi.fn(),
+      getAll: vi.fn(() => []),
+      has: vi.fn(() => true),
+    })
+  ),
   headers: vi.fn(() => Promise.resolve(new Headers())),
 }));
 

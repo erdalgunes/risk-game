@@ -15,7 +15,7 @@ test.describe('Network Resilience - Slow Connection', () => {
   test('Game loads successfully on slow 3G connection', async ({ page, context }) => {
     // Simulate slow 3G network
     await context.route('**/*', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+      await new Promise((resolve) => setTimeout(resolve, 100)); // 100ms delay
       await route.continue();
     });
 
@@ -34,7 +34,7 @@ test.describe('Network Resilience - Slow Connection', () => {
   test('Game creation works on throttled connection', async ({ page, context }) => {
     // Throttle connection
     await context.route('**/*', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay
+      await new Promise((resolve) => setTimeout(resolve, 200)); // 200ms delay
       await route.continue();
     });
 
@@ -55,7 +55,8 @@ test.describe('Network Resilience - Slow Connection', () => {
   });
 
   test('Real-time updates work on slow connection', async ({ browser }) => {
-    const { player1, player2 } = await setupTwoPlayerGame(browser,
+    const { player1, player2 } = await setupTwoPlayerGame(
+      browser,
       { type: 'strategic', username: 'SlowNet1', color: 'red' },
       { type: 'aggressive', username: 'SlowNet2', color: 'blue' }
     );
@@ -63,14 +64,14 @@ test.describe('Network Resilience - Slow Connection', () => {
     try {
       // Throttle player 2's connection
       await player2.getContext().route('**/*', async (route) => {
-        await new Promise(resolve => setTimeout(resolve, 300)); // 300ms delay
+        await new Promise((resolve) => setTimeout(resolve, 300)); // 300ms delay
         await route.continue();
       });
 
       // Player 1 should eventually see Player 2 with slow connection (may take longer)
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'SlowNet2' }))
-        .toBeVisible({ timeout: 15000 });
-
+      await expect(
+        player1.getPage().getByTestId('player-name').filter({ hasText: 'SlowNet2' })
+      ).toBeVisible({ timeout: 15000 });
     } finally {
       await player1.cleanup();
       await player2.cleanup();
@@ -118,7 +119,7 @@ test.describe('Network Resilience - Connection Dropout', () => {
 
     // Monitor WebSocket errors
     const wsErrors: string[] = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error' && msg.text().toLowerCase().includes('websocket')) {
         wsErrors.push(msg.text());
       }
@@ -162,7 +163,7 @@ test.describe('Network Resilience - Connection Dropout', () => {
     await context.route('**/*', async (route) => {
       if (networkBlocked && route.request().method() === 'POST') {
         // Fail POST requests (Server Actions)
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         await route.abort('failed');
       } else {
         await route.continue();
@@ -193,13 +194,13 @@ test.describe('Network Resilience - Connection Dropout', () => {
 
 test.describe('Network Resilience - Connection Recovery', () => {
   test('State synchronization after reconnection', async ({ browser }) => {
-    const { player1, player2 } = await setupTwoPlayerGame(browser,
+    const { player1, player2 } = await setupTwoPlayerGame(
+      browser,
       { type: 'defensive', username: 'Recovery1', color: 'red' },
       { type: 'strategic', username: 'Recovery2', color: 'blue' }
     );
 
     try {
-
       // Block player 2's network temporarily
       await player2.getContext().route('**/*', async (route) => {
         await route.abort('failed');
@@ -218,9 +219,9 @@ test.describe('Network Resilience - Connection Recovery', () => {
       expect(count).toBeGreaterThanOrEqual(2);
 
       // Should see Recovery1
-      await expect(player2.getPage().getByTestId('player-name').filter({ hasText: 'Recovery1' }))
-        .toBeVisible({ timeout: 10000 });
-
+      await expect(
+        player2.getPage().getByTestId('player-name').filter({ hasText: 'Recovery1' })
+      ).toBeVisible({ timeout: 10000 });
     } finally {
       await player1.cleanup();
       await player2.cleanup();
@@ -234,7 +235,7 @@ test.describe('Network Resilience - Connection Recovery', () => {
 
     // Monitor console for fallback message
     const messages: string[] = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       messages.push(msg.text());
     });
 
@@ -267,7 +268,7 @@ test.describe('Network Resilience - High Latency', () => {
   test('Game remains playable with 500ms latency', async ({ page, context }) => {
     // Simulate high latency
     await context.route('**/*', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await route.continue();
     });
 
@@ -285,7 +286,8 @@ test.describe('Network Resilience - High Latency', () => {
   });
 
   test('Multiplayer sync with asymmetric latency', async ({ browser }) => {
-    const { player1, player2 } = await setupTwoPlayerGame(browser,
+    const { player1, player2 } = await setupTwoPlayerGame(
+      browser,
       { type: 'aggressive', username: 'FastPlayer', color: 'red' },
       { type: 'defensive', username: 'SlowPlayer', color: 'blue' }
     );
@@ -293,18 +295,19 @@ test.describe('Network Resilience - High Latency', () => {
     try {
       // Player 2 has high latency
       await player2.getContext().route('**/*', async (route) => {
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, 400));
         await route.continue();
       });
 
       // Player 1 (fast) should eventually see Player 2 (slow) with high latency
-      await expect(player1.getPage().getByTestId('player-name').filter({ hasText: 'SlowPlayer' }))
-        .toBeVisible({ timeout: 20000 });
+      await expect(
+        player1.getPage().getByTestId('player-name').filter({ hasText: 'SlowPlayer' })
+      ).toBeVisible({ timeout: 20000 });
 
       // Player 2 (slow) should see Player 1 (fast)
-      await expect(player2.getPage().getByTestId('player-name').filter({ hasText: 'FastPlayer' }))
-        .toBeVisible({ timeout: 20000 });
-
+      await expect(
+        player2.getPage().getByTestId('player-name').filter({ hasText: 'FastPlayer' })
+      ).toBeVisible({ timeout: 20000 });
     } finally {
       await player1.cleanup();
       await player2.cleanup();
@@ -365,7 +368,7 @@ test.describe('Network Resilience - Timeout Handling', () => {
 
     // Delay server responses by 5 seconds
     await context.route('**/rest/v1/**', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       await route.continue();
     });
 

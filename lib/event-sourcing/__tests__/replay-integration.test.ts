@@ -267,7 +267,7 @@ skipIfNoSupabase('Replay Integration', () => {
           payload: {
             territory_id: '00000000-0000-0000-0000-000000000001',
             player_id: '00000000-0000-0000-0000-000000000002',
-            count: 5
+            count: 5,
           },
         },
         {
@@ -299,7 +299,7 @@ skipIfNoSupabase('Replay Integration', () => {
         payload: {
           territory_id: '00000000-0000-0000-0000-000000000001',
           player_id: '00000000-0000-0000-0000-000000000002',
-          count: 1
+          count: 1,
         },
       }));
 
@@ -324,24 +324,24 @@ skipIfNoSupabase('Replay Integration', () => {
           payload: {
             territory_id: '00000000-0000-0000-0000-000000000001',
             player_id: '00000000-0000-0000-0000-000000000002',
-            count: 1
-          }
+            count: 1,
+          },
         },
         {
           event_type: 'army_placed',
           payload: {
             territory_id: '00000000-0000-0000-0000-000000000001',
             player_id: '00000000-0000-0000-0000-000000000002',
-            count: 2
-          }
+            count: 2,
+          },
         },
         {
           event_type: 'army_placed',
           payload: {
             territory_id: '00000000-0000-0000-0000-000000000001',
             player_id: '00000000-0000-0000-0000-000000000002',
-            count: 3
-          }
+            count: 3,
+          },
         },
       ];
 
@@ -351,10 +351,7 @@ skipIfNoSupabase('Replay Integration', () => {
       });
 
       // Replay up to second event
-      const result = await eventStore.replay(
-        testGameId,
-        stored[1].sequence_number
-      );
+      const result = await eventStore.replay(testGameId, stored[1].sequence_number);
 
       // Note: This validates the API accepts toSequence parameter
       expect(result).toBeDefined();

@@ -16,8 +16,8 @@ export function TutorialProgress({ currentStep }: TutorialProgressProps) {
   if (!tutorialStep || currentStep === 0) return null;
 
   return (
-    <div className="bg-blue-900 border-2 border-blue-500 rounded-lg p-4 mb-4">
-      <div className="flex items-center justify-between mb-2">
+    <div className="mb-4 rounded-lg border-2 border-blue-500 bg-blue-900 p-4">
+      <div className="mb-2 flex items-center justify-between">
         <div>
           <p className="text-sm text-blue-300">Tutorial Progress</p>
           <p className="text-lg font-bold text-white">
@@ -29,9 +29,9 @@ export function TutorialProgress({ currentStep }: TutorialProgressProps) {
         </div>
       </div>
 
-      <div className="w-full bg-blue-950 rounded-full h-3 overflow-hidden">
+      <div className="h-3 w-full overflow-hidden rounded-full bg-blue-950">
         <div
-          className="bg-gradient-to-r from-blue-500 to-green-500 h-full transition-all duration-500"
+          className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
           style={{ width: `${progressPercent}%` }}
           role="progressbar"
           aria-valuenow={displayStep}
@@ -40,8 +40,8 @@ export function TutorialProgress({ currentStep }: TutorialProgressProps) {
         />
       </div>
 
-      <div className="mt-3 bg-yellow-500 bg-opacity-20 border border-yellow-400 rounded p-3">
-        <p className="text-xs text-yellow-200 font-semibold mb-1">OBJECTIVE</p>
+      <div className="mt-3 rounded border border-yellow-400 bg-yellow-500 bg-opacity-20 p-3">
+        <p className="mb-1 text-xs font-semibold text-yellow-200">OBJECTIVE</p>
         <p className="text-sm text-white">{tutorialStep.objective}</p>
       </div>
     </div>

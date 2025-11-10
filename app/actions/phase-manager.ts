@@ -54,10 +54,7 @@ export function getPhaseDelegate(phase: GamePhase): PhaseDelegate {
  * @param context Game context
  * @param newPhase Phase to transition to
  */
-export async function transitionToPhase(
-  context: PhaseContext,
-  newPhase: GamePhase
-): Promise<void> {
+export async function transitionToPhase(context: PhaseContext, newPhase: GamePhase): Promise<void> {
   const currentPhase = context.game.phase;
 
   // Skip if already in target phase
@@ -86,7 +83,6 @@ export async function transitionToPhase(
     // 4. Call onEnter for new phase
     const newDelegate = getPhaseDelegate(newPhase);
     await newDelegate.onEnter(context);
-
   } catch (error: any) {
     console.error(`Phase transition failed (${currentPhase} → ${newPhase}):`, error);
     throw new Error(`Phase transition failed: ${error.message}`);
@@ -113,10 +109,7 @@ export function getNextPhase(currentPhase: GamePhase): GamePhase {
  * @param toPhase Target phase
  * @returns true if transition is valid
  */
-export function isValidTransition(
-  fromPhase: GamePhase,
-  toPhase: GamePhase
-): boolean {
+export function isValidTransition(fromPhase: GamePhase, toPhase: GamePhase): boolean {
   // All phases can transition to any other phase
   // (Game rules allow skipping phases)
   return true;

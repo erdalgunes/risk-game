@@ -41,12 +41,7 @@ export function GameAnnouncer({ game, currentPlayer, players }: GameAnnouncerPro
   }, [game.phase, game.current_player_order, players, currentPlayer]);
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      className="sr-only"
-    >
+    <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
       {announcementRef.current}
     </div>
   );

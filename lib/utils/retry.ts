@@ -30,10 +30,7 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
  * @returns Result of the function
  * @throws Last error if all attempts fail
  */
-export async function retry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {}
-): Promise<T> {
+export async function retry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const config = { ...DEFAULT_OPTIONS, ...options };
   let lastError: Error | null = null;
 

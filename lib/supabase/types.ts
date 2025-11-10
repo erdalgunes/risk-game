@@ -1,13 +1,7 @@
 // Supabase Database Types
 // In production, generate this with: supabase gen types typescript --local
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   public: {

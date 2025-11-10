@@ -176,9 +176,7 @@ describe('GameControls', () => {
         />
       );
 
-      expect(
-        screen.getByRole('button', { name: /continue to attack phase/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /continue to attack phase/i })).toBeInTheDocument();
     });
 
     it('should call changePhase when continue button is clicked', async () => {
@@ -281,7 +279,9 @@ describe('GameControls', () => {
         />
       );
 
-      expect(screen.getByText(/click attacking territory, then target territory/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/click attacking territory, then target territory/i)
+      ).toBeInTheDocument();
     });
 
     it('should call changePhase when skip to fortify is clicked', async () => {

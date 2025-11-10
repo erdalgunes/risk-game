@@ -1,9 +1,4 @@
-import type {
-  Continent,
-  TerritoryDefinition,
-  TerritoryName,
-  PlayerColor,
-} from '@/types/game';
+import type { Continent, TerritoryDefinition, TerritoryName, PlayerColor } from '@/types/game';
 
 // Continents with bonuses
 export const CONTINENTS: Continent[] = [
@@ -43,14 +38,7 @@ export const CONTINENTS: Continent[] = [
   {
     name: 'africa',
     bonus: 3,
-    territories: [
-      'north-africa',
-      'egypt',
-      'east-africa',
-      'congo',
-      'south-africa',
-      'madagascar',
-    ],
+    territories: ['north-africa', 'egypt', 'east-africa', 'congo', 'south-africa', 'madagascar'],
   },
   {
     name: 'asia',
@@ -73,12 +61,7 @@ export const CONTINENTS: Continent[] = [
   {
     name: 'australia',
     bonus: 2,
-    territories: [
-      'indonesia',
-      'new-guinea',
-      'western-australia',
-      'eastern-australia',
-    ],
+    territories: ['indonesia', 'new-guinea', 'western-australia', 'eastern-australia'],
   },
 ];
 
@@ -103,12 +86,7 @@ export const TERRITORIES: TerritoryDefinition[] = [
   {
     name: 'alberta',
     continent: 'north-america',
-    adjacentTerritories: [
-      'alaska',
-      'northwest-territory',
-      'ontario',
-      'western-united-states',
-    ],
+    adjacentTerritories: ['alaska', 'northwest-territory', 'ontario', 'western-united-states'],
   },
   {
     name: 'ontario',
@@ -130,31 +108,17 @@ export const TERRITORIES: TerritoryDefinition[] = [
   {
     name: 'western-united-states',
     continent: 'north-america',
-    adjacentTerritories: [
-      'alberta',
-      'ontario',
-      'eastern-united-states',
-      'central-america',
-    ],
+    adjacentTerritories: ['alberta', 'ontario', 'eastern-united-states', 'central-america'],
   },
   {
     name: 'eastern-united-states',
     continent: 'north-america',
-    adjacentTerritories: [
-      'ontario',
-      'quebec',
-      'western-united-states',
-      'central-america',
-    ],
+    adjacentTerritories: ['ontario', 'quebec', 'western-united-states', 'central-america'],
   },
   {
     name: 'central-america',
     continent: 'north-america',
-    adjacentTerritories: [
-      'western-united-states',
-      'eastern-united-states',
-      'venezuela',
-    ],
+    adjacentTerritories: ['western-united-states', 'eastern-united-states', 'venezuela'],
   },
 
   // South America
@@ -188,22 +152,12 @@ export const TERRITORIES: TerritoryDefinition[] = [
   {
     name: 'great-britain',
     continent: 'europe',
-    adjacentTerritories: [
-      'iceland',
-      'scandinavia',
-      'northern-europe',
-      'western-europe',
-    ],
+    adjacentTerritories: ['iceland', 'scandinavia', 'northern-europe', 'western-europe'],
   },
   {
     name: 'scandinavia',
     continent: 'europe',
-    adjacentTerritories: [
-      'iceland',
-      'great-britain',
-      'northern-europe',
-      'ukraine',
-    ],
+    adjacentTerritories: ['iceland', 'great-britain', 'northern-europe', 'ukraine'],
   },
   {
     name: 'northern-europe',
@@ -219,12 +173,7 @@ export const TERRITORIES: TerritoryDefinition[] = [
   {
     name: 'western-europe',
     continent: 'europe',
-    adjacentTerritories: [
-      'great-britain',
-      'northern-europe',
-      'southern-europe',
-      'north-africa',
-    ],
+    adjacentTerritories: ['great-britain', 'northern-europe', 'southern-europe', 'north-africa'],
   },
   {
     name: 'southern-europe',
@@ -267,12 +216,7 @@ export const TERRITORIES: TerritoryDefinition[] = [
   {
     name: 'egypt',
     continent: 'africa',
-    adjacentTerritories: [
-      'southern-europe',
-      'middle-east',
-      'north-africa',
-      'east-africa',
-    ],
+    adjacentTerritories: ['southern-europe', 'middle-east', 'north-africa', 'east-africa'],
   },
   {
     name: 'east-africa',
@@ -321,13 +265,7 @@ export const TERRITORIES: TerritoryDefinition[] = [
   {
     name: 'kamchatka',
     continent: 'asia',
-    adjacentTerritories: [
-      'yakutsk',
-      'irkutsk',
-      'mongolia',
-      'japan',
-      'alaska',
-    ],
+    adjacentTerritories: ['yakutsk', 'irkutsk', 'mongolia', 'japan', 'alaska'],
   },
   {
     name: 'irkutsk',
@@ -352,14 +290,7 @@ export const TERRITORIES: TerritoryDefinition[] = [
   {
     name: 'china',
     continent: 'asia',
-    adjacentTerritories: [
-      'ural',
-      'siberia',
-      'mongolia',
-      'afghanistan',
-      'india',
-      'siam',
-    ],
+    adjacentTerritories: ['ural', 'siberia', 'mongolia', 'afghanistan', 'india', 'siam'],
   },
   {
     name: 'middle-east',
@@ -408,19 +339,10 @@ export const TERRITORIES: TerritoryDefinition[] = [
 ];
 
 // Player colors
-export const PLAYER_COLORS: PlayerColor[] = [
-  'red',
-  'blue',
-  'green',
-  'yellow',
-  'purple',
-  'orange',
-];
+export const PLAYER_COLORS: PlayerColor[] = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
 // Helper functions
-export function getTerritoryDefinition(
-  name: TerritoryName
-): TerritoryDefinition | undefined {
+export function getTerritoryDefinition(name: TerritoryName): TerritoryDefinition | undefined {
   return TERRITORIES.find((t) => t.name === name);
 }
 

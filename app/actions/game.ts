@@ -8,7 +8,7 @@ import {
   calculateReinforcements,
   resolveCombat,
   isPlayerEliminated,
-  getWinner
+  getWinner,
 } from '@/lib/game-engine';
 import { canAttack, canFortify } from '@/lib/game-engine/validation';
 import type { Player, Territory, AttackResult, Game } from '@/types/game';
@@ -33,7 +33,12 @@ import {
   usernameSchema,
 } from '@/lib/validation/schemas';
 import { verifyPlayerSession, createPlayerSession } from '@/lib/session/player-session';
-import { checkRateLimit, SERVER_RATE_LIMITS, getClientIP, getRateLimitError } from '@/lib/middleware/rate-limit';
+import {
+  checkRateLimit,
+  SERVER_RATE_LIMITS,
+  getClientIP,
+  getRateLimitError,
+} from '@/lib/middleware/rate-limit';
 import { headers } from 'next/headers';
 import { getPhaseDelegate, transitionToPhase } from './phase-manager';
 import type { PhaseContext } from './phases/PhaseDelegate';
@@ -116,9 +121,22 @@ async function verifyActionPlayerSession(
  */
 async function fetchGameStateForPhase(supabase: any, gameId: string) {
   const [gameResult, playersResult, territoriesResult] = await Promise.all([
-    supabase.from('games').select('id, status, phase, current_player_order, winner_id, created_at').eq('id', gameId).single(),
-    supabase.from('players').select('id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at').eq('game_id', gameId).order('turn_order'),
-    supabase.from('territories').select('id, game_id, territory_name, owner_id, army_count, updated_at').eq('game_id', gameId),
+    supabase
+      .from('games')
+      .select('id, status, phase, current_player_order, winner_id, created_at')
+      .eq('id', gameId)
+      .single(),
+    supabase
+      .from('players')
+      .select(
+        'id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at'
+      )
+      .eq('game_id', gameId)
+      .order('turn_order'),
+    supabase
+      .from('territories')
+      .select('id, game_id, territory_name, owner_id, army_count, updated_at')
+      .eq('game_id', gameId),
   ]);
 
   if (gameResult.error) throw gameResult.error;
@@ -240,8 +258,8 @@ export async function createGameAction(username: string, color: string, maxPlaye
       success: true,
       result: {
         gameId: game.id,
-        playerId: player.id
-      }
+        playerId: player.id,
+      },
     };
   } catch (error) {
     return handleActionError(error);
@@ -317,8 +335,8 @@ export async function joinGameAction(gameId: string, username: string, color: st
       success: true,
       result: {
         gameId: validatedGameId,
-        playerId: player.id
-      }
+        playerId: player.id,
+      },
     };
   } catch (error) {
     return handleActionError(error);
@@ -361,24 +379,17 @@ export async function startGame(gameId: string) {
 
     // Distribute territories
     const territoryNames = TERRITORIES.map((t) => t.name);
-    const distribution = distributeTerritoriesRandomly(
-      territoryNames,
-      players as Player[]
-    );
+    const distribution = distributeTerritoriesRandomly(territoryNames, players as Player[]);
 
     // Create territory records
-    const territoryInserts = Array.from(distribution.entries()).map(
-      ([name, ownerId]) => ({
-        game_id: gameId,
-        territory_name: name as string,
-        owner_id: ownerId,
-        army_count: 1, // Start with 1 army per territory
-      })
-    );
+    const territoryInserts = Array.from(distribution.entries()).map(([name, ownerId]) => ({
+      game_id: gameId,
+      territory_name: name as string,
+      owner_id: ownerId,
+      army_count: 1, // Start with 1 army per territory
+    }));
 
-    const { error: territoriesError } = await supabase
-      .from('territories')
-      .insert(territoryInserts);
+    const { error: territoriesError } = await supabase.from('territories').insert(territoryInserts);
 
     if (territoriesError) throw territoriesError;
 
@@ -408,16 +419,14 @@ export async function startGame(gameId: string) {
 
     // Log events
     const eventStore = createEventStore(supabase);
-    const territoryEvents = Array.from(distribution.entries()).map(
-      ([territoryName, ownerId]) => ({
-        event_type: 'territory_claimed' as const,
-        payload: {
-          territory_name: territoryName,
-          owner_id: ownerId,
-          initial_armies: 1,
-        },
-      })
-    );
+    const territoryEvents = Array.from(distribution.entries()).map(([territoryName, ownerId]) => ({
+      event_type: 'territory_claimed' as const,
+      payload: {
+        territory_name: territoryName,
+        owner_id: ownerId,
+        initial_armies: 1,
+      },
+    }));
 
     await eventStore.appendEvents(
       [
@@ -487,12 +496,7 @@ export async function placeArmies(
 
     // Use ReinforcementPhaseDelegate
     const delegate = getPhaseDelegate('reinforcement') as ReinforcementPhaseDelegate;
-    const result = await delegate.placeArmies(
-      context,
-      playerId,
-      territoryId,
-      count
-    );
+    const result = await delegate.placeArmies(context, playerId, territoryId, count);
 
     if (!result.success) {
       return { success: false, error: result.error };
@@ -565,7 +569,9 @@ export async function endTurn(gameId: string, playerId: string) {
 
     const { data: players, error: playersError } = await supabase
       .from('players')
-      .select('id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at')
+      .select(
+        'id, game_id, username, color, turn_order, armies_available, is_eliminated, created_at'
+      )
       .eq('game_id', gameId)
       .eq('is_eliminated', false)
       .order('turn_order');
@@ -573,9 +579,7 @@ export async function endTurn(gameId: string, playerId: string) {
     if (playersError || !players) throw new Error('Players not found');
 
     // Find current player
-    const currentPlayer = players.find(
-      (p) => p.turn_order === game.current_player_order
-    );
+    const currentPlayer = players.find((p) => p.turn_order === game.current_player_order);
 
     if (!currentPlayer || currentPlayer.id !== playerId) {
       throw new Error('Not your turn');
@@ -599,15 +603,12 @@ export async function endTurn(gameId: string, playerId: string) {
     );
 
     // Execute turn end atomically via stored procedure
-    const { data: txResult, error: txError } = await supabase.rpc(
-      'end_turn_transaction',
-      {
-        p_game_id: gameId,
-        p_player_id: playerId,
-        p_next_player_order: nextPlayerOrder,
-        p_reinforcements: reinforcements,
-      }
-    );
+    const { data: txResult, error: txError } = await supabase.rpc('end_turn_transaction', {
+      p_game_id: gameId,
+      p_player_id: playerId,
+      p_next_player_order: nextPlayerOrder,
+      p_reinforcements: reinforcements,
+    });
 
     if (txError) {
       throw new Error(`Transaction failed: ${txError.message}`);
@@ -674,9 +675,7 @@ export async function changePhase(
     // Get game state for phase context
     const { game, players, territories } = await fetchGameStateForPhase(supabase, gameId);
 
-    const currentPlayer = players.find(
-      (p) => p.turn_order === game.current_player_order
-    );
+    const currentPlayer = players.find((p) => p.turn_order === game.current_player_order);
 
     if (!currentPlayer || currentPlayer.id !== playerId) {
       throw new Error('Not your turn');

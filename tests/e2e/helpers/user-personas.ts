@@ -152,7 +152,9 @@ export class PersonaSimulator {
     await this.page.goto(gameUrl);
     await this.think();
 
-    const usernameInput = this.page.locator('input[placeholder*="username" i], #username-join').first();
+    const usernameInput = this.page
+      .locator('input[placeholder*="username" i], #username-join')
+      .first();
     await usernameInput.waitFor({ state: 'visible', timeout: 10000 });
     await usernameInput.fill(this.config.username);
     await this.think();
@@ -186,7 +188,9 @@ export class PersonaSimulator {
 
     // Get territories owned by this player
     const myColor = this.config.color;
-    const myTerritories = this.page.getByTestId('territory-card').filter({ hasText: new RegExp(myColor, 'i') });
+    const myTerritories = this.page
+      .getByTestId('territory-card')
+      .filter({ hasText: new RegExp(myColor, 'i') });
     const count = await myTerritories.count();
 
     if (count === 0) {
@@ -243,7 +247,7 @@ export class PersonaSimulator {
 
     // Find territories that can attack
     const myTerritories = this.page.getByTestId('territory-card').filter({
-      hasText: new RegExp(this.config.color, 'i')
+      hasText: new RegExp(this.config.color, 'i'),
     });
 
     const count = await myTerritories.count();
@@ -297,7 +301,7 @@ export class PersonaSimulator {
 
     // Find territories to fortify between
     const myTerritories = this.page.getByTestId('territory-card').filter({
-      hasText: new RegExp(this.config.color, 'i')
+      hasText: new RegExp(this.config.color, 'i'),
     });
 
     const count = await myTerritories.count();

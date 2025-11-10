@@ -149,7 +149,7 @@ export function GameControls({
 
   if (!isYourTurn) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 text-center">
+      <div className="rounded-lg border border-gray-700 bg-gray-800 p-6 text-center">
         <p className="text-gray-400">Waiting for other players...</p>
       </div>
     );
@@ -157,26 +157,20 @@ export function GameControls({
 
   if (game.status === 'waiting') {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 text-center">
-        <p className="text-white text-lg font-semibold mb-2">
-          Waiting for players to join
-        </p>
-        <p className="text-gray-400 text-sm">
-          Game will start once all players join
-        </p>
+      <div className="rounded-lg border border-gray-700 bg-gray-800 p-6 text-center">
+        <p className="mb-2 text-lg font-semibold text-white">Waiting for players to join</p>
+        <p className="text-sm text-gray-400">Game will start once all players join</p>
       </div>
     );
   }
 
   if (game.status === 'setup') {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 className="text-lg font-bold text-white mb-4">Setup Phase</h3>
-        <p className="text-gray-300 mb-4">
-          Place your initial armies on your territories
-        </p>
-        <div className="bg-blue-900 border border-blue-600 rounded-lg p-4">
-          <p className="text-white font-semibold">
+      <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
+        <h3 className="mb-4 text-lg font-bold text-white">Setup Phase</h3>
+        <p className="mb-4 text-gray-300">Place your initial armies on your territories</p>
+        <div className="rounded-lg border border-blue-600 bg-blue-900 p-4">
+          <p className="font-semibold text-white">
             Armies to place: {currentPlayerData.armies_available}
           </p>
         </div>
@@ -189,14 +183,14 @@ export function GameControls({
 
   // Playing phase
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 className="text-lg font-bold text-white mb-4">Your Turn</h3>
+    <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
+      <h3 className="mb-4 text-lg font-bold text-white">Your Turn</h3>
 
       {game.phase === 'reinforcement' && (
         <div>
-          <p className="text-gray-300 mb-4">Place your reinforcement armies</p>
-          <div className="bg-blue-900 border border-blue-600 rounded-lg p-4 mb-4">
-            <p className="text-white font-semibold">
+          <p className="mb-4 text-gray-300">Place your reinforcement armies</p>
+          <div className="mb-4 rounded-lg border border-blue-600 bg-blue-900 p-4">
+            <p className="font-semibold text-white">
               Armies to place: {currentPlayerData.armies_available}
             </p>
           </div>
@@ -205,7 +199,7 @@ export function GameControls({
               <button
                 onClick={handleUndo}
                 disabled={undoing || transitioning}
-                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                className="w-full rounded bg-yellow-600 px-4 py-2 font-semibold text-white transition hover:bg-yellow-700 disabled:cursor-not-allowed disabled:bg-gray-600"
                 aria-busy={undoing}
               >
                 {undoing ? 'Undoing...' : 'Undo Last Action'}
@@ -215,7 +209,7 @@ export function GameControls({
               <button
                 onClick={handleMoveToAttack}
                 disabled={transitioning}
-                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                className="w-full rounded bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-600"
                 aria-busy={transitioning}
               >
                 {transitioning ? 'Changing Phase...' : 'Continue to Attack Phase'}
@@ -227,8 +221,8 @@ export function GameControls({
 
       {game.phase === 'attack' && (
         <div>
-          <p className="text-gray-300 mb-4">Attack enemy territories</p>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="mb-4 text-gray-300">Attack enemy territories</p>
+          <p className="mb-4 text-sm text-gray-400">
             Click attacking territory, then target territory
           </p>
           <div className="space-y-2">
@@ -236,7 +230,7 @@ export function GameControls({
               <button
                 onClick={handleUndo}
                 disabled={undoing || transitioning}
-                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                className="w-full rounded bg-yellow-600 px-4 py-2 font-semibold text-white transition hover:bg-yellow-700 disabled:cursor-not-allowed disabled:bg-gray-600"
                 aria-busy={undoing}
               >
                 {undoing ? 'Undoing...' : 'Undo Last Attack'}
@@ -245,7 +239,7 @@ export function GameControls({
             <button
               onClick={handleSkipToFortify}
               disabled={transitioning}
-              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+              className="w-full rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-600"
               aria-busy={transitioning}
             >
               {transitioning ? 'Changing Phase...' : 'Skip to Fortify Phase'}
@@ -256,8 +250,8 @@ export function GameControls({
 
       {game.phase === 'fortify' && (
         <div>
-          <p className="text-gray-300 mb-4">Fortify your territories</p>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="mb-4 text-gray-300">Fortify your territories</p>
+          <p className="mb-4 text-sm text-gray-400">
             Move armies between connected territories (optional)
           </p>
           <div className="space-y-2">
@@ -265,7 +259,7 @@ export function GameControls({
               <button
                 onClick={handleUndo}
                 disabled={undoing || transitioning}
-                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+                className="w-full rounded bg-yellow-600 px-4 py-2 font-semibold text-white transition hover:bg-yellow-700 disabled:cursor-not-allowed disabled:bg-gray-600"
                 aria-busy={undoing}
               >
                 {undoing ? 'Undoing...' : 'Undo Last Fortify'}
@@ -274,7 +268,7 @@ export function GameControls({
             <button
               onClick={handleEndTurn}
               disabled={transitioning}
-              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white"
+              className="w-full rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-600"
               aria-busy={transitioning}
             >
               {transitioning ? 'Ending Turn...' : 'End Turn'}

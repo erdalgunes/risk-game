@@ -189,7 +189,10 @@ describe('Game Validation', () => {
         1
       );
 
-      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [fromTerritory, toTerritory]);
+      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [
+        fromTerritory,
+        toTerritory,
+      ]);
 
       expect(result.valid).toBe(false);
       expect(result.reason).toBe('Not in fortify phase');
@@ -209,7 +212,10 @@ describe('Game Validation', () => {
         1
       );
 
-      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [fromTerritory, toTerritory]);
+      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [
+        fromTerritory,
+        toTerritory,
+      ]);
 
       expect(result.valid).toBe(false);
       expect(result.reason).toBe('Not your turn');
@@ -229,7 +235,10 @@ describe('Game Validation', () => {
         1
       );
 
-      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [fromTerritory, toTerritory]);
+      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [
+        fromTerritory,
+        toTerritory,
+      ]);
 
       expect(result.valid).toBe(false);
       expect(result.reason).toBe('You do not own the source territory');
@@ -249,7 +258,10 @@ describe('Game Validation', () => {
         1
       );
 
-      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [fromTerritory, toTerritory]);
+      const result = canFortify(game, player, fromTerritory, toTerritory, 2, [
+        fromTerritory,
+        toTerritory,
+      ]);
 
       expect(result.valid).toBe(false);
       expect(result.reason).toBe('You do not own the destination territory');
@@ -269,7 +281,10 @@ describe('Game Validation', () => {
         1
       );
 
-      const result = canFortify(game, player, fromTerritory, toTerritory, 3, [fromTerritory, toTerritory]);
+      const result = canFortify(game, player, fromTerritory, toTerritory, 3, [
+        fromTerritory,
+        toTerritory,
+      ]);
 
       expect(result.valid).toBe(false);
       expect(result.reason).toBe('Must leave at least 1 army in source territory');
@@ -316,7 +331,11 @@ describe('Game Validation', () => {
     });
 
     it('should allow valid army placement in setup phase', () => {
-      const game = createTestGame({ status: 'setup', phase: 'reinforcement', current_player_order: 0 });
+      const game = createTestGame({
+        status: 'setup',
+        phase: 'reinforcement',
+        current_player_order: 0,
+      });
       const player = createTestPlayer({ turn_order: 0, armies_available: 5 });
       const territory = createTestTerritory({ owner_id: player.id });
 
@@ -421,7 +440,10 @@ describe('Game Validation', () => {
         owner_id: playerId,
       });
 
-      const result = areTerritoriesConnected(territory1, territory2, playerId, [territory1, territory2]);
+      const result = areTerritoriesConnected(territory1, territory2, playerId, [
+        territory1,
+        territory2,
+      ]);
 
       expect(result).toBe(true);
     });

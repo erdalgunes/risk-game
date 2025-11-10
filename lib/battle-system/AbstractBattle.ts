@@ -218,11 +218,7 @@ export abstract class AbstractBattle {
 
     for (const modifier of this.modifiers) {
       if (modifier.modifyLosses) {
-        losses = modifier.modifyLosses(
-          this.context,
-          losses.attackerLosses,
-          losses.defenderLosses
-        );
+        losses = modifier.modifyLosses(this.context, losses.attackerLosses, losses.defenderLosses);
       }
     }
 

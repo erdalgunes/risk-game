@@ -80,9 +80,10 @@ test.describe('Full Game Flow (Requires Database)', () => {
         await player1.waitForTimeout(2000);
 
         // Both players should see game started
-        await expect(player1.locator('text=/setup|place|reinforcement/i')).toBeVisible({ timeout: 5000 });
+        await expect(player1.locator('text=/setup|place|reinforcement/i')).toBeVisible({
+          timeout: 5000,
+        });
       }
-
     } finally {
       await context1.close();
       await context2.close();
@@ -120,7 +121,6 @@ test.describe('Full Game Flow (Requires Database)', () => {
 
       // Both pages should show 2 players (or waiting message updated)
       // This tests WebSocket/Realtime functionality
-
     } finally {
       await context1.close();
       await context2.close();
@@ -173,7 +173,6 @@ test.describe('Full Game Flow (Requires Database)', () => {
       // - Other player should see "Waiting for X's turn" or disabled actions
 
       // This test validates turn-based gameplay enforcement
-
     } finally {
       await context1.close();
       await context2.close();

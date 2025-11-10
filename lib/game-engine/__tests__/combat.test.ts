@@ -42,15 +42,13 @@ describe('Combat System', () => {
         getRandomValues: vi.fn((array: Uint32Array) => {
           array[0] = 0; // Will be overridden in tests
           return array;
-        })
+        }),
       };
       vi.stubGlobal('crypto', mockCrypto);
     });
 
     it('should throw error if attacker has less than 2 armies', () => {
-      expect(() => resolveCombat(1, 5)).toThrow(
-        'Attacker must have at least 2 armies to attack'
-      );
+      expect(() => resolveCombat(1, 5)).toThrow('Attacker must have at least 2 armies to attack');
     });
 
     it('should throw error if defender has no armies', () => {
@@ -60,8 +58,14 @@ describe('Combat System', () => {
     it('should resolve combat with attacker winning highest die', () => {
       // Mock dice rolls: attacker [6], defender [3]
       mockCrypto.getRandomValues
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 5; return array; }) // 5 % 6 + 1 = 6
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 2; return array; }); // 2 % 6 + 1 = 3
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 5;
+          return array;
+        }) // 5 % 6 + 1 = 6
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 2;
+          return array;
+        }); // 2 % 6 + 1 = 3
 
       const result = resolveCombat(2, 1);
 
@@ -74,8 +78,14 @@ describe('Combat System', () => {
     it('should resolve combat with defender winning highest die', () => {
       // Mock dice rolls: attacker [3], defender [6]
       mockCrypto.getRandomValues
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 2; return array; }) // 2 % 6 + 1 = 3
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 5; return array; }); // 5 % 6 + 1 = 6
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 2;
+          return array;
+        }) // 2 % 6 + 1 = 3
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 5;
+          return array;
+        }); // 5 % 6 + 1 = 6
 
       const result = resolveCombat(2, 1);
 
@@ -88,8 +98,14 @@ describe('Combat System', () => {
     it('should resolve combat with ties going to defender', () => {
       // Mock dice rolls: both roll 4
       mockCrypto.getRandomValues
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 3; return array; }) // 3 % 6 + 1 = 4
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 3; return array; }); // 3 % 6 + 1 = 4
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 3;
+          return array;
+        }) // 3 % 6 + 1 = 4
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 3;
+          return array;
+        }); // 3 % 6 + 1 = 4
 
       const result = resolveCombat(2, 1);
 
@@ -101,11 +117,26 @@ describe('Combat System', () => {
       // Setup: Attacker has 4 armies -> rolls 3 dice, Defender has 2 -> rolls 2 dice
       // Only top 2 dice from each are compared
       mockCrypto.getRandomValues
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 5; return array; }) // 5 % 6 + 1 = 6
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 2; return array; }) // 2 % 6 + 1 = 3
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 1; return array; }) // 1 % 6 + 1 = 2
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 4; return array; }) // 4 % 6 + 1 = 5
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 3; return array; }); // 3 % 6 + 1 = 4
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 5;
+          return array;
+        }) // 5 % 6 + 1 = 6
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 2;
+          return array;
+        }) // 2 % 6 + 1 = 3
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 1;
+          return array;
+        }) // 1 % 6 + 1 = 2
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 4;
+          return array;
+        }) // 4 % 6 + 1 = 5
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 3;
+          return array;
+        }); // 3 % 6 + 1 = 4
 
       const result = resolveCombat(4, 2);
 
@@ -119,7 +150,10 @@ describe('Combat System', () => {
     });
 
     it('should roll 3 attacker dice with 4+ armies', () => {
-      mockCrypto.getRandomValues.mockImplementation((array: Uint32Array) => { array[0] = 5; return array; }); // All roll 6
+      mockCrypto.getRandomValues.mockImplementation((array: Uint32Array) => {
+        array[0] = 5;
+        return array;
+      }); // All roll 6
 
       const result = resolveCombat(10, 5);
 
@@ -128,7 +162,10 @@ describe('Combat System', () => {
     });
 
     it('should roll 2 defender dice with 2+ armies', () => {
-      mockCrypto.getRandomValues.mockImplementation((array: Uint32Array) => { array[0] = 3; return array; }); // All roll 4
+      mockCrypto.getRandomValues.mockImplementation((array: Uint32Array) => {
+        array[0] = 3;
+        return array;
+      }); // All roll 4
 
       const result = resolveCombat(4, 3);
 
@@ -139,10 +176,22 @@ describe('Combat System', () => {
     it('should mark territory as conquered when defender has no armies left', () => {
       // Attacker: 5 armies -> rolls 3 dice, Defender: 1 army -> rolls 1 die
       mockCrypto.getRandomValues
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 5; return array; }) // 5 % 6 + 1 = 6
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 4; return array; }) // 4 % 6 + 1 = 5
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 3; return array; }) // 3 % 6 + 1 = 4
-        .mockImplementationOnce((array: Uint32Array) => { array[0] = 0; return array; }); // 0 % 6 + 1 = 1
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 5;
+          return array;
+        }) // 5 % 6 + 1 = 6
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 4;
+          return array;
+        }) // 4 % 6 + 1 = 5
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 3;
+          return array;
+        }) // 3 % 6 + 1 = 4
+        .mockImplementationOnce((array: Uint32Array) => {
+          array[0] = 0;
+          return array;
+        }); // 0 % 6 + 1 = 1
 
       const result = resolveCombat(5, 1);
 
@@ -160,7 +209,7 @@ describe('Combat System', () => {
         getRandomValues: vi.fn((array: Uint32Array) => {
           array[0] = 0;
           return array;
-        })
+        }),
       };
       vi.stubGlobal('crypto', mockCrypto);
     });

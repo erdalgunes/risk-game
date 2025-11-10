@@ -15,7 +15,7 @@ export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
     <div
       aria-live="polite"
       aria-atomic="true"
-      className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md"
+      className="fixed right-4 top-4 z-50 flex max-w-md flex-col gap-2"
       role="region"
       aria-label="Notifications"
     >

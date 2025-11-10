@@ -48,10 +48,7 @@ export interface UndoResult {
  * @param player_id Player requesting undo
  * @returns Result with success/error
  */
-export async function undoLastAction(
-  game_id: string,
-  player_id: string
-): Promise<UndoResult> {
+export async function undoLastAction(game_id: string, player_id: string): Promise<UndoResult> {
   try {
     // Rate limiting - dedicated undo rate limit to prevent abuse
     const headersList = await headers();
@@ -138,27 +135,26 @@ export async function undoLastAction(
     const replayedState = await eventStore.replay(game_id, targetSequence);
 
     // Apply undo atomically using stored procedure
-    const { data: undoResult, error: undoError } = await supabase
-      .rpc('apply_undo_state', {
-        p_game_id: game_id,
-        p_event_id: lastEvent.id,
-        p_game_state: {
-          status: replayedState.game.status,
-          phase: replayedState.game.phase,
-          current_player_order: replayedState.game.current_player_order,
-          winner_id: replayedState.game.winner_id,
-        },
-        p_players_state: replayedState.players.map(player => ({
-          id: player.id,
-          armies_available: player.armies_available,
-          is_eliminated: player.is_eliminated,
-        })),
-        p_territories_state: replayedState.territories.map(territory => ({
-          id: territory.id,
-          owner_id: territory.owner_id,
-          army_count: territory.army_count,
-        })),
-      });
+    const { data: undoResult, error: undoError } = await supabase.rpc('apply_undo_state', {
+      p_game_id: game_id,
+      p_event_id: lastEvent.id,
+      p_game_state: {
+        status: replayedState.game.status,
+        phase: replayedState.game.phase,
+        current_player_order: replayedState.game.current_player_order,
+        winner_id: replayedState.game.winner_id,
+      },
+      p_players_state: replayedState.players.map((player) => ({
+        id: player.id,
+        armies_available: player.armies_available,
+        is_eliminated: player.is_eliminated,
+      })),
+      p_territories_state: replayedState.territories.map((territory) => ({
+        id: territory.id,
+        owner_id: territory.owner_id,
+        army_count: territory.army_count,
+      })),
+    });
 
     if (undoError || !undoResult?.success) {
       return {

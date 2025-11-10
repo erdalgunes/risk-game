@@ -8,17 +8,45 @@
 // Common profanity patterns (obfuscated for code review)
 const PROFANITY_LIST = [
   // Sexual/explicit content
-  'fuck', 'shit', 'bitch', 'ass', 'damn', 'piss', 'crap',
-  'dick', 'cock', 'pussy', 'cunt', 'slut', 'whore', 'bastard',
+  'fuck',
+  'shit',
+  'bitch',
+  'ass',
+  'damn',
+  'piss',
+  'crap',
+  'dick',
+  'cock',
+  'pussy',
+  'cunt',
+  'slut',
+  'whore',
+  'bastard',
 
   // Slurs and hate speech (partial list for common terms)
-  'nigger', 'nigga', 'faggot', 'retard', 'chink', 'spic',
+  'nigger',
+  'nigga',
+  'faggot',
+  'retard',
+  'chink',
+  'spic',
 
   // Common l33tspeak variations
-  'fck', 'fuk', 'sh1t', 'b1tch', 'a55', 'd1ck', 'fag',
+  'fck',
+  'fuk',
+  'sh1t',
+  'b1tch',
+  'a55',
+  'd1ck',
+  'fag',
 
   // Partial word obfuscation
-  'f*ck', 'f**k', 's*it', 'b*tch', 'a**', 'd*ck',
+  'f*ck',
+  'f**k',
+  's*it',
+  'b*tch',
+  'a**',
+  'd*ck',
 ];
 
 // Regex patterns for leetspeak and obfuscation
@@ -31,10 +59,10 @@ const SUBSTITUTIONS: Record<string, string> = {
   '7': 't',
   '8': 'b',
   '@': 'a',
-  '$': 's',
+  $: 's',
   '!': 'i',
   '*': '',
-  '_': '',
+  _: '',
   '-': '',
 };
 

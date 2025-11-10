@@ -121,7 +121,6 @@ export function PlayerSetupForm({
   showColorSelect = true,
   disabled = false,
 }: PlayerSetupFormProps) {
-
   /**
    * Handles username input changes with real-time validation
    *
@@ -162,7 +161,10 @@ export function PlayerSetupForm({
     <div className="space-y-md3-4">
       {/* Username Input */}
       <div>
-        <label htmlFor={usernameInputId} className="block text-label-large mb-md3-2 text-surface-on">
+        <label
+          htmlFor={usernameInputId}
+          className="text-label-large mb-md3-2 text-surface-on block"
+        >
           {usernameLabel}
         </label>
         <input
@@ -172,7 +174,7 @@ export function PlayerSetupForm({
           onChange={(e) => handleUsernameChange(e.target.value)}
           placeholder="Enter your username"
           disabled={disabled}
-          className={`w-full px-md3-4 py-md3-3 rounded-md3-sm bg-surface-container border text-surface-on focus:outline-none transition-all duration-md3-short4 disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`px-md3-4 py-md3-3 rounded-md3-sm bg-surface-container text-surface-on duration-md3-short4 w-full border transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
             usernameError
               ? 'border-error focus:border-error'
               : 'border-outline focus:border-primary'
@@ -183,12 +185,17 @@ export function PlayerSetupForm({
           autoFocus
         />
         {usernameError ? (
-          <p id={`${usernameInputId}-error`} className="text-error text-body-small mt-md3-1" role="alert">
+          <p
+            id={`${usernameInputId}-error`}
+            className="text-error text-body-small mt-md3-1"
+            role="alert"
+          >
             {usernameError}
           </p>
         ) : (
           <span id={`${usernameInputId}-hint`} className="sr-only">
-            Enter a username to join the game (2-16 characters, letters, numbers, underscores, hyphens)
+            Enter a username to join the game (2-16 characters, letters, numbers, underscores,
+            hyphens)
           </span>
         )}
       </div>
@@ -196,7 +203,7 @@ export function PlayerSetupForm({
       {/* Color Selector */}
       {showColorSelect && (
         <div>
-          <label htmlFor={colorInputId} className="block text-label-large mb-md3-2 text-surface-on">
+          <label htmlFor={colorInputId} className="text-label-large mb-md3-2 text-surface-on block">
             {colorLabel}
           </label>
           {availableColors.length === 0 ? (
@@ -209,7 +216,7 @@ export function PlayerSetupForm({
               value={selectedColor}
               onChange={(e) => onColorChange(e.target.value as PlayerColor)}
               disabled={disabled}
-              className="w-full px-md3-4 py-md3-3 rounded-md3-sm bg-surface-container border border-outline text-surface-on focus:outline-none focus:border-primary transition-all duration-md3-short4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-md3-4 py-md3-3 rounded-md3-sm bg-surface-container border-outline text-surface-on focus:border-primary duration-md3-short4 w-full border transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={`Select your player color. ${availableColors.length} colors available.`}
             >
               {availableColors.map((color) => (

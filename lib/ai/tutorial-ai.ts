@@ -69,7 +69,7 @@ export function decidePlaceArmies(
   // Clone territories to avoid mutation
   const aiTerritories = territories
     .filter((t) => t.owner_id === aiPlayer.id)
-    .map(t => ({ ...t }))
+    .map((t) => ({ ...t }))
     .sort((a, b) => a.army_count - b.army_count);
 
   const decisions: AIPlaceArmiesDecision[] = [];
@@ -125,10 +125,7 @@ export function decidePlaceArmies(
  * // Returns: { fromTerritoryId: 'kamchatka', toTerritoryId: 'alaska' } or null
  * ```
  */
-export function decideAttack(
-  aiPlayer: Player,
-  territories: Territory[]
-): AIAttackDecision | null {
+export function decideAttack(aiPlayer: Player, territories: Territory[]): AIAttackDecision | null {
   const aiTerritories = territories
     .filter((t) => t.owner_id === aiPlayer.id && t.army_count >= 2)
     .sort((a, b) => b.army_count - a.army_count);
@@ -138,9 +135,7 @@ export function decideAttack(
   // Find valid attacks (AI territory adjacent to enemy)
   for (const aiTerritory of aiTerritories) {
     const adjacentEnemies = enemyTerritories
-      .filter((enemy) =>
-        areTerritoriesAdjacent(aiTerritory.territory_name, enemy.territory_name)
-      )
+      .filter((enemy) => areTerritoriesAdjacent(aiTerritory.territory_name, enemy.territory_name))
       .sort((a, b) => a.army_count - b.army_count);
 
     if (adjacentEnemies.length > 0) {
@@ -215,9 +210,7 @@ export function decideFortify(
     (territory) =>
       territory.army_count >= 2 &&
       !frontLine.some((f) => f.id === territory.id) &&
-      frontLine.some((f) =>
-        areTerritoriesAdjacent(territory.territory_name, f.territory_name)
-      )
+      frontLine.some((f) => areTerritoriesAdjacent(territory.territory_name, f.territory_name))
   );
 
   if (rear.length > 0 && frontLine.length > 0) {
@@ -225,9 +218,7 @@ export function decideFortify(
     const destination = frontLine.sort((a, b) => a.army_count - b.army_count)[0];
 
     // Only fortify if they're adjacent
-    if (
-      areTerritoriesAdjacent(source.territory_name, destination.territory_name)
-    ) {
+    if (areTerritoriesAdjacent(source.territory_name, destination.territory_name)) {
       return {
         fromTerritoryId: source.id,
         toTerritoryId: destination.id,

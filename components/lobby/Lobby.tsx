@@ -119,18 +119,33 @@ export function Lobby() {
 
   return (
     <div className="w-full max-w-4xl">
-      <div className="text-center mb-12">
-        <h1 className="text-6xl font-bold mb-4 text-white">Risk</h1>
+      <div className="mb-12 text-center">
+        <h1 className="mb-4 text-6xl font-bold text-white">Risk</h1>
         <p className="text-xl text-gray-300">Multiplayer Strategy Game</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid gap-8 md:grid-cols-2">
         {/* Create Game Section */}
-        <section className="bg-gray-800 rounded-lg p-6 border border-gray-700" aria-labelledby="create-game-heading">
-          <h2 id="create-game-heading" className="text-2xl font-bold mb-4 text-white">Create Game</h2>
-          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleCreateGame(); }} aria-label="Create new game">
+        <section
+          className="rounded-lg border border-gray-700 bg-gray-800 p-6"
+          aria-labelledby="create-game-heading"
+        >
+          <h2 id="create-game-heading" className="mb-4 text-2xl font-bold text-white">
+            Create Game
+          </h2>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleCreateGame();
+            }}
+            aria-label="Create new game"
+          >
             <div>
-              <label htmlFor="username-create" className="block text-sm font-medium mb-2 text-gray-300">
+              <label
+                htmlFor="username-create"
+                className="mb-2 block text-sm font-medium text-gray-300"
+              >
                 Username
               </label>
               <input
@@ -139,33 +154,38 @@ export function Lobby() {
                 value={username}
                 onChange={(e) => handleUsernameChange(e.target.value)}
                 placeholder="Enter your username"
-                className={`w-full px-4 py-2 rounded bg-gray-700 border text-white focus:outline-none ${
+                className={`w-full rounded border bg-gray-700 px-4 py-2 text-white focus:outline-none ${
                   usernameError
                     ? 'border-red-500 focus:border-red-500'
                     : 'border-gray-600 focus:border-blue-500'
                 }`}
                 aria-required="true"
-                aria-describedby={usernameError ? "username-error" : "username-hint"}
+                aria-describedby={usernameError ? 'username-error' : 'username-hint'}
                 aria-invalid={!!usernameError}
               />
               {usernameError ? (
-                <p id="username-error" className="text-red-400 text-sm mt-1" role="alert">
+                <p id="username-error" className="mt-1 text-sm text-red-400" role="alert">
                   {usernameError}
                 </p>
               ) : (
-                <span id="username-hint" className="sr-only">Enter a username to identify yourself in the game</span>
+                <span id="username-hint" className="sr-only">
+                  Enter a username to identify yourself in the game
+                </span>
               )}
             </div>
 
             <div>
-              <label htmlFor="color-select" className="block text-sm font-medium mb-2 text-gray-300">
+              <label
+                htmlFor="color-select"
+                className="mb-2 block text-sm font-medium text-gray-300"
+              >
                 Your Color
               </label>
               <select
                 id="color-select"
                 value={selectedColor}
                 onChange={(e) => setSelectedColor(e.target.value as any)}
-                className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-blue-500"
+                className="w-full rounded border border-gray-600 bg-gray-700 px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
                 aria-label="Select your player color"
               >
                 {PLAYER_COLORS.map((color) => (
@@ -177,14 +197,14 @@ export function Lobby() {
             </div>
 
             <div>
-              <label htmlFor="max-players" className="block text-sm font-medium mb-2 text-gray-300">
+              <label htmlFor="max-players" className="mb-2 block text-sm font-medium text-gray-300">
                 Max Players
               </label>
               <select
                 id="max-players"
                 value={maxPlayers}
                 onChange={(e) => setMaxPlayers(Number(e.target.value))}
-                className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-blue-500"
+                className="w-full rounded border border-gray-600 bg-gray-700 px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
                 aria-label="Select maximum number of players"
               >
                 {[2, 3, 4, 5, 6].map((n) => (
@@ -198,7 +218,7 @@ export function Lobby() {
             <button
               type="submit"
               disabled={loading || !username.trim() || !!usernameError}
-              className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-semibold transition text-white"
+              className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-600"
               aria-label={loading ? 'Creating game...' : 'Create game'}
               aria-busy={loading}
             >
@@ -208,12 +228,17 @@ export function Lobby() {
         </section>
 
         {/* Join Game Section */}
-        <section className="bg-gray-800 rounded-lg p-6 border border-gray-700" aria-labelledby="available-games-heading">
-          <div className="flex justify-between items-center mb-4">
-            <h2 id="available-games-heading" className="text-2xl font-bold text-white">Available Games</h2>
+        <section
+          className="rounded-lg border border-gray-700 bg-gray-800 p-6"
+          aria-labelledby="available-games-heading"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="available-games-heading" className="text-2xl font-bold text-white">
+              Available Games
+            </h2>
             <button
               onClick={loadAvailableGames}
-              className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm transition"
+              className="rounded bg-gray-700 px-3 py-1 text-sm transition hover:bg-gray-600"
               aria-label="Refresh available games list"
             >
               Refresh
@@ -221,31 +246,31 @@ export function Lobby() {
           </div>
 
           {availableGames.length === 0 ? (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              <p className="text-gray-400 text-center py-8" role="status">
+            <div className="max-h-96 space-y-3 overflow-y-auto">
+              <p className="py-8 text-center text-gray-400" role="status">
                 No games available. Create one!
               </p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto" role="list" aria-label="Available games">{
-              availableGames.map((game) => (
+            <div
+              className="max-h-96 space-y-3 overflow-y-auto"
+              role="list"
+              aria-label="Available games"
+            >
+              {availableGames.map((game) => (
                 <article
                   key={game.id}
-                  className="bg-gray-700 rounded-lg p-4 border border-gray-600"
+                  className="rounded-lg border border-gray-600 bg-gray-700 p-4"
                   role="listitem"
                   aria-label={`Game ${game.id.slice(0, 8)}, ${game.players?.length || 0} of ${game.max_players} players, ${game.status}`}
                 >
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-semibold text-white">
-                        Game #{game.id.slice(0, 8)}
-                      </p>
+                      <p className="font-semibold text-white">Game #{game.id.slice(0, 8)}</p>
                       <p className="text-sm text-gray-400">
                         Players: {game.players?.length || 0} / {game.max_players}
                       </p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        Status: {game.status}
-                      </p>
+                      <p className="text-xs capitalize text-gray-500">Status: {game.status}</p>
                     </div>
                     <button
                       onClick={() => handleJoinGame(game.id)}
@@ -255,7 +280,7 @@ export function Lobby() {
                         !!usernameError ||
                         (game.players?.length || 0) >= game.max_players
                       }
-                      className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded font-semibold transition text-white text-sm"
+                      className="rounded bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-600"
                       aria-label={`Join game ${game.id.slice(0, 8)}`}
                       aria-disabled={
                         loading ||
@@ -268,17 +293,21 @@ export function Lobby() {
                     </button>
                   </div>
                 </article>
-              ))
-            }
+              ))}
             </div>
           )}
         </section>
       </div>
 
       {/* Instructions */}
-      <section className="mt-8 bg-gray-800 rounded-lg p-6 border border-gray-700" aria-labelledby="instructions-heading">
-        <h3 id="instructions-heading" className="text-lg font-bold mb-3 text-white">How to Play</h3>
-        <ol className="text-sm text-gray-300 space-y-2 list-decimal list-inside" role="list">
+      <section
+        className="mt-8 rounded-lg border border-gray-700 bg-gray-800 p-6"
+        aria-labelledby="instructions-heading"
+      >
+        <h3 id="instructions-heading" className="mb-3 text-lg font-bold text-white">
+          How to Play
+        </h3>
+        <ol className="list-inside list-decimal space-y-2 text-sm text-gray-300" role="list">
           <li>Enter your username and choose a color</li>
           <li>Create a new game or join an existing one</li>
           <li>Wait for other players to join</li>

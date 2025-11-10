@@ -17,9 +17,7 @@ describe('Game Rules', () => {
   describe('calculateReinforcements', () => {
     it('should return minimum of 3 armies', () => {
       const player = createTestPlayer();
-      const territories = [
-        createTestTerritory({ owner_id: player.id }),
-      ];
+      const territories = [createTestTerritory({ owner_id: player.id })];
 
       const reinforcements = calculateReinforcements(player, territories);
 
@@ -30,10 +28,18 @@ describe('Game Rules', () => {
       const player = createTestPlayer();
       // Use specific territories from different continents to avoid accidental continent bonuses
       const territoryNames: TerritoryName[] = [
-        'alaska', 'alberta', 'central-america', // North America (3/9)
-        'brazil', 'argentina', 'peru', // South America (3/4)
-        'western-europe', 'northern-europe', 'southern-europe', // Europe (3/7)
-        'egypt', 'east-africa', 'congo', // Africa (3/6)
+        'alaska',
+        'alberta',
+        'central-america', // North America (3/9)
+        'brazil',
+        'argentina',
+        'peru', // South America (3/4)
+        'western-europe',
+        'northern-europe',
+        'southern-europe', // Europe (3/7)
+        'egypt',
+        'east-africa',
+        'congo', // Africa (3/6)
       ];
       const territories = territoryNames.map((name) =>
         createTestTerritory({ owner_id: player.id, territory_name: name })
@@ -48,10 +54,17 @@ describe('Game Rules', () => {
       const player = createTestPlayer();
       // Use specific territories from different continents to avoid accidental continent bonuses
       const territoryNames: TerritoryName[] = [
-        'alaska', 'alberta', 'central-america', // North America (3/9)
-        'brazil', 'argentina', 'peru', // South America (3/4)
-        'western-europe', 'northern-europe', 'southern-europe', // Europe (3/7)
-        'egypt', 'east-africa', // Africa (2/6)
+        'alaska',
+        'alberta',
+        'central-america', // North America (3/9)
+        'brazil',
+        'argentina',
+        'peru', // South America (3/4)
+        'western-europe',
+        'northern-europe',
+        'southern-europe', // Europe (3/7)
+        'egypt',
+        'east-africa', // Africa (2/6)
       ];
       const territories = territoryNames.map((name) =>
         createTestTerritory({ owner_id: player.id, territory_name: name })
@@ -130,13 +143,17 @@ describe('Game Rules', () => {
     it('should not give bonus if continent is incomplete', () => {
       const player = createTestPlayer();
       const australia = CONTINENTS.find((c) => c.name === 'australia')!;
-      const playerTerritories = createContinentTerritories('game-id', australia.territories, player.id);
+      const playerTerritories = createContinentTerritories(
+        'game-id',
+        australia.territories,
+        player.id
+      );
 
       // Make one territory owned by someone else
       playerTerritories[0].owner_id = 'other-player-id';
 
       // Pass only player-owned territories to the function (after mutation)
-      const actualPlayerTerritories = playerTerritories.filter(t => t.owner_id === player.id);
+      const actualPlayerTerritories = playerTerritories.filter((t) => t.owner_id === player.id);
 
       const bonus = calculateContinentBonuses(player.id, actualPlayerTerritories);
 
@@ -237,9 +254,7 @@ describe('Game Rules', () => {
       const player2 = createTestPlayer({ id: 'player-2', turn_order: 1, is_eliminated: true });
       const player3 = createTestPlayer({ id: 'player-3', turn_order: 2, is_eliminated: true });
 
-      const territories = [
-        createTestTerritory({ owner_id: player1.id }),
-      ];
+      const territories = [createTestTerritory({ owner_id: player1.id })];
 
       const winner = getWinner([player1, player2, player3], territories);
 
@@ -249,10 +264,7 @@ describe('Game Rules', () => {
 
   describe('distributeTerritoriesRandomly', () => {
     it('should distribute all territories among players', () => {
-      const players = [
-        createTestPlayer({ turn_order: 0 }),
-        createTestPlayer({ turn_order: 1 }),
-      ];
+      const players = [createTestPlayer({ turn_order: 0 }), createTestPlayer({ turn_order: 1 })];
 
       const allTerritoryNames: TerritoryName[] = ['alaska', 'brazil', 'china', 'egypt'];
       const distribution = distributeTerritoriesRandomly(allTerritoryNames, players);
@@ -280,10 +292,7 @@ describe('Game Rules', () => {
     });
 
     it('should handle odd number of territories', () => {
-      const players = [
-        createTestPlayer({ turn_order: 0 }),
-        createTestPlayer({ turn_order: 1 }),
-      ];
+      const players = [createTestPlayer({ turn_order: 0 }), createTestPlayer({ turn_order: 1 })];
 
       const allTerritoryNames: TerritoryName[] = ['alaska', 'brazil', 'china'];
       const distribution = distributeTerritoriesRandomly(allTerritoryNames, players);

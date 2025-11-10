@@ -41,10 +41,30 @@ describe('tutorial-ai', () => {
     it('should distribute armies evenly across weakest territories', () => {
       const aiPlayer = createMockPlayer({ armies_available: 5 });
       const territories: Territory[] = [
-        createMockTerritory({ id: 't1', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 1 }),
-        createMockTerritory({ id: 't2', territory_name: 'alberta', owner_id: 'ai-player-id', army_count: 3 }),
-        createMockTerritory({ id: 't3', territory_name: 'ontario', owner_id: 'ai-player-id', army_count: 2 }),
-        createMockTerritory({ id: 't4', territory_name: 'greenland', owner_id: 'player-id', army_count: 2 }), // Enemy
+        createMockTerritory({
+          id: 't1',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 1,
+        }),
+        createMockTerritory({
+          id: 't2',
+          territory_name: 'alberta',
+          owner_id: 'ai-player-id',
+          army_count: 3,
+        }),
+        createMockTerritory({
+          id: 't3',
+          territory_name: 'ontario',
+          owner_id: 'ai-player-id',
+          army_count: 2,
+        }),
+        createMockTerritory({
+          id: 't4',
+          territory_name: 'greenland',
+          owner_id: 'player-id',
+          army_count: 2,
+        }), // Enemy
       ];
 
       const decisions = decidePlaceArmies(aiPlayer, territories);
@@ -54,12 +74,12 @@ describe('tutorial-ai', () => {
       expect(totalArmies).toBe(5);
 
       // Should prioritize weakest territories (t1 should get more than t2)
-      const t1Armies = decisions.find(d => d.territoryId === 't1')?.count || 0;
-      const t2Armies = decisions.find(d => d.territoryId === 't2')?.count || 0;
+      const t1Armies = decisions.find((d) => d.territoryId === 't1')?.count || 0;
+      const t2Armies = decisions.find((d) => d.territoryId === 't2')?.count || 0;
       expect(t1Armies).toBeGreaterThanOrEqual(t2Armies);
 
       // Should only place on AI territories (not t4)
-      const enemyArmies = decisions.find(d => d.territoryId === 't4');
+      const enemyArmies = decisions.find((d) => d.territoryId === 't4');
       expect(enemyArmies).toBeUndefined();
     });
 
@@ -81,9 +101,9 @@ describe('tutorial-ai', () => {
         createMockTerritory({ id: 't2', owner_id: 'ai-player-id', army_count: 2 }),
       ];
 
-      const territoryCountsBefore = territories.map(t => t.army_count);
+      const territoryCountsBefore = territories.map((t) => t.army_count);
       decidePlaceArmies(aiPlayer, territories);
-      const territoryCountsAfter = territories.map(t => t.army_count);
+      const territoryCountsAfter = territories.map((t) => t.army_count);
 
       // Army counts should not change (no mutation)
       expect(territoryCountsBefore).toEqual(territoryCountsAfter);
@@ -108,10 +128,30 @@ describe('tutorial-ai', () => {
     it('should attack weakest adjacent enemy from strongest AI territory', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
-        createMockTerritory({ id: 'ai1', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 5 }),
-        createMockTerritory({ id: 'ai2', territory_name: 'alberta', owner_id: 'ai-player-id', army_count: 2 }),
-        createMockTerritory({ id: 'enemy1', territory_name: 'northwest-territory', owner_id: 'player-id', army_count: 1 }), // Weakest, adjacent to Alaska
-        createMockTerritory({ id: 'enemy2', territory_name: 'greenland', owner_id: 'player-id', army_count: 3 }),
+        createMockTerritory({
+          id: 'ai1',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 5,
+        }),
+        createMockTerritory({
+          id: 'ai2',
+          territory_name: 'alberta',
+          owner_id: 'ai-player-id',
+          army_count: 2,
+        }),
+        createMockTerritory({
+          id: 'enemy1',
+          territory_name: 'northwest-territory',
+          owner_id: 'player-id',
+          army_count: 1,
+        }), // Weakest, adjacent to Alaska
+        createMockTerritory({
+          id: 'enemy2',
+          territory_name: 'greenland',
+          owner_id: 'player-id',
+          army_count: 3,
+        }),
       ];
 
       const decision = decideAttack(aiPlayer, territories);
@@ -125,8 +165,18 @@ describe('tutorial-ai', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
         // AI territories with only 1 army (can't attack)
-        createMockTerritory({ id: 'ai1', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 1 }),
-        createMockTerritory({ id: 'enemy1', territory_name: 'northwest-territory', owner_id: 'player-id', army_count: 2 }),
+        createMockTerritory({
+          id: 'ai1',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 1,
+        }),
+        createMockTerritory({
+          id: 'enemy1',
+          territory_name: 'northwest-territory',
+          owner_id: 'player-id',
+          army_count: 2,
+        }),
       ];
 
       const decision = decideAttack(aiPlayer, territories);
@@ -138,8 +188,18 @@ describe('tutorial-ai', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
         // AI controls North America, enemy controls Asia (not adjacent)
-        createMockTerritory({ id: 'ai1', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 5 }),
-        createMockTerritory({ id: 'enemy1', territory_name: 'ural', owner_id: 'player-id', army_count: 2 }),
+        createMockTerritory({
+          id: 'ai1',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 5,
+        }),
+        createMockTerritory({
+          id: 'enemy1',
+          territory_name: 'ural',
+          owner_id: 'player-id',
+          army_count: 2,
+        }),
       ];
 
       const decision = decideAttack(aiPlayer, territories);
@@ -152,9 +212,24 @@ describe('tutorial-ai', () => {
     it('should require at least 2 armies to attack', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
-        createMockTerritory({ id: 'ai1', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 2 }), // Can attack
-        createMockTerritory({ id: 'ai2', territory_name: 'alberta', owner_id: 'ai-player-id', army_count: 1 }), // Cannot attack
-        createMockTerritory({ id: 'enemy1', territory_name: 'northwest-territory', owner_id: 'player-id', army_count: 1 }),
+        createMockTerritory({
+          id: 'ai1',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 2,
+        }), // Can attack
+        createMockTerritory({
+          id: 'ai2',
+          territory_name: 'alberta',
+          owner_id: 'ai-player-id',
+          army_count: 1,
+        }), // Cannot attack
+        createMockTerritory({
+          id: 'enemy1',
+          territory_name: 'northwest-territory',
+          owner_id: 'player-id',
+          army_count: 1,
+        }),
       ];
 
       const decision = decideAttack(aiPlayer, territories);
@@ -179,11 +254,26 @@ describe('tutorial-ai', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
         // Front-line (Alaska IS adjacent to northwest-territory)
-        createMockTerritory({ id: 'front', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 1 }),
+        createMockTerritory({
+          id: 'front',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 1,
+        }),
         // Rear (Kamchatka is NOT adjacent to northwest-territory, but IS adjacent to Alaska)
-        createMockTerritory({ id: 'rear', territory_name: 'kamchatka', owner_id: 'ai-player-id', army_count: 5 }),
+        createMockTerritory({
+          id: 'rear',
+          territory_name: 'kamchatka',
+          owner_id: 'ai-player-id',
+          army_count: 5,
+        }),
         // Enemy (Northwest Territory IS adjacent to Alaska, NOT adjacent to Kamchatka)
-        createMockTerritory({ id: 'enemy', territory_name: 'northwest-territory', owner_id: 'player-id', army_count: 2 }),
+        createMockTerritory({
+          id: 'enemy',
+          territory_name: 'northwest-territory',
+          owner_id: 'player-id',
+          army_count: 2,
+        }),
       ];
 
       const decision = decideFortify(aiPlayer, territories);
@@ -197,9 +287,24 @@ describe('tutorial-ai', () => {
     it('should return null if no rear territories with 2+ armies', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
-        createMockTerritory({ id: 'front', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 3 }),
-        createMockTerritory({ id: 'rear', territory_name: 'alberta', owner_id: 'ai-player-id', army_count: 1 }), // Only 1 army
-        createMockTerritory({ id: 'enemy', territory_name: 'northwest-territory', owner_id: 'player-id', army_count: 2 }),
+        createMockTerritory({
+          id: 'front',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 3,
+        }),
+        createMockTerritory({
+          id: 'rear',
+          territory_name: 'alberta',
+          owner_id: 'ai-player-id',
+          army_count: 1,
+        }), // Only 1 army
+        createMockTerritory({
+          id: 'enemy',
+          territory_name: 'northwest-territory',
+          owner_id: 'player-id',
+          army_count: 2,
+        }),
       ];
 
       const decision = decideFortify(aiPlayer, territories);
@@ -211,8 +316,18 @@ describe('tutorial-ai', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
         // All AI territories, no enemies adjacent
-        createMockTerritory({ id: 'ai1', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 3 }),
-        createMockTerritory({ id: 'ai2', territory_name: 'alberta', owner_id: 'ai-player-id', army_count: 5 }),
+        createMockTerritory({
+          id: 'ai1',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 3,
+        }),
+        createMockTerritory({
+          id: 'ai2',
+          territory_name: 'alberta',
+          owner_id: 'ai-player-id',
+          army_count: 5,
+        }),
       ];
 
       const decision = decideFortify(aiPlayer, territories);
@@ -224,11 +339,26 @@ describe('tutorial-ai', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
         // Front-line
-        createMockTerritory({ id: 'front', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 1 }),
+        createMockTerritory({
+          id: 'front',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 1,
+        }),
         // Rear, but NOT adjacent to front-line
-        createMockTerritory({ id: 'rear', territory_name: 'ontario', owner_id: 'ai-player-id', army_count: 5 }),
+        createMockTerritory({
+          id: 'rear',
+          territory_name: 'ontario',
+          owner_id: 'ai-player-id',
+          army_count: 5,
+        }),
         // Enemy
-        createMockTerritory({ id: 'enemy', territory_name: 'northwest-territory', owner_id: 'player-id', army_count: 2 }),
+        createMockTerritory({
+          id: 'enemy',
+          territory_name: 'northwest-territory',
+          owner_id: 'player-id',
+          army_count: 2,
+        }),
       ];
 
       const decision = decideFortify(aiPlayer, territories);
@@ -240,9 +370,24 @@ describe('tutorial-ai', () => {
     it('should move half the armies (rounded down)', () => {
       const aiPlayer = createMockPlayer();
       const territories: Territory[] = [
-        createMockTerritory({ id: 'front', territory_name: 'alaska', owner_id: 'ai-player-id', army_count: 1 }),
-        createMockTerritory({ id: 'rear', territory_name: 'kamchatka', owner_id: 'ai-player-id', army_count: 7 }),
-        createMockTerritory({ id: 'enemy', territory_name: 'northwest-territory', owner_id: 'player-id', army_count: 2 }),
+        createMockTerritory({
+          id: 'front',
+          territory_name: 'alaska',
+          owner_id: 'ai-player-id',
+          army_count: 1,
+        }),
+        createMockTerritory({
+          id: 'rear',
+          territory_name: 'kamchatka',
+          owner_id: 'ai-player-id',
+          army_count: 7,
+        }),
+        createMockTerritory({
+          id: 'enemy',
+          territory_name: 'northwest-territory',
+          owner_id: 'player-id',
+          army_count: 2,
+        }),
       ];
 
       const decision = decideFortify(aiPlayer, territories);

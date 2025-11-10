@@ -24,8 +24,8 @@ export function TerritoriesList({
   const territoryMap = new Map<string, Territory[]>();
 
   CONTINENTS.forEach((continent) => {
-    const continentTerritories = territories.filter(
-      (t) => continent.territories.includes(t.territory_name)
+    const continentTerritories = territories.filter((t) =>
+      continent.territories.includes(t.territory_name)
     );
     territoryMap.set(continent.name, continentTerritories);
   });
@@ -48,8 +48,8 @@ export function TerritoriesList({
     if (currentPlayer.armies_available <= 0) return false;
 
     // Can place during setup or reinforcement
-    const canPlace = game.status === 'setup' ||
-      (game.status === 'playing' && game.phase === 'reinforcement');
+    const canPlace =
+      game.status === 'setup' || (game.status === 'playing' && game.phase === 'reinforcement');
 
     // Must be your turn
     const isYourTurn = currentPlayer.turn_order === game.current_player_order;
@@ -64,25 +64,20 @@ export function TerritoriesList({
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-      <h3 className="text-lg font-bold text-white mb-3">Territories</h3>
-      <div className="space-y-4 max-h-96 overflow-y-auto">
+    <div className="rounded-lg border border-gray-700 bg-gray-800 p-4">
+      <h3 className="mb-3 text-lg font-bold text-white">Territories</h3>
+      <div className="max-h-96 space-y-4 overflow-y-auto">
         {CONTINENTS.map((continent) => {
           const continentTerritories = territoryMap.get(continent.name) || [];
-          const totalArmies = continentTerritories.reduce(
-            (sum, t) => sum + t.army_count,
-            0
-          );
+          const totalArmies = continentTerritories.reduce((sum, t) => sum + t.army_count, 0);
 
           return (
-            <div key={continent.name} className="border border-gray-700 rounded-lg p-3">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-bold text-white capitalize">
+            <div key={continent.name} className="rounded-lg border border-gray-700 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="font-bold capitalize text-white">
                   {continent.name.replace('-', ' ')}
                 </h4>
-                <span className="text-xs text-gray-400">
-                  Bonus: +{continent.bonus} armies
-                </span>
+                <span className="text-xs text-gray-400">Bonus: +{continent.bonus} armies</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {continentTerritories.map((territory) => {
@@ -92,28 +87,26 @@ export function TerritoriesList({
                     <div
                       key={territory.id}
                       onClick={() => handleTerritoryClick(territory)}
-                      className={`text-xs p-2 rounded transition ${
+                      className={`rounded p-2 text-xs transition ${
                         clickable
-                          ? 'bg-green-900 border border-green-500 cursor-pointer hover:bg-green-800'
+                          ? 'cursor-pointer border border-green-500 bg-green-900 hover:bg-green-800'
                           : isYours
-                          ? 'bg-blue-900 border border-blue-600'
-                          : 'bg-gray-700'
+                            ? 'border border-blue-600 bg-blue-900'
+                            : 'bg-gray-700'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-white font-medium capitalize">
+                        <span className="font-medium capitalize text-white">
                           {territory.territory_name.replace(/-/g, ' ')}
                         </span>
-                        <span className="font-bold text-white">
-                          {territory.army_count}
-                        </span>
+                        <span className="font-bold text-white">{territory.army_count}</span>
                       </div>
-                      <div className="flex items-center space-x-1 mt-1">
+                      <div className="mt-1 flex items-center space-x-1">
                         <div
-                          className="w-2 h-2 rounded-full"
+                          className="h-2 w-2 rounded-full"
                           style={{ backgroundColor: getPlayerColor(territory.owner_id) }}
                         />
-                        <span className="text-gray-400 text-xs">
+                        <span className="text-xs text-gray-400">
                           {getPlayerName(territory.owner_id)}
                         </span>
                       </div>

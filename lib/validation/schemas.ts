@@ -9,10 +9,7 @@ export const usernameSchema = z
   .string()
   .min(2, 'Username must be at least 2 characters')
   .max(16, 'Username must be at most 16 characters')
-  .regex(
-    /^[a-zA-Z0-9_-]+$/,
-    'Username can only contain letters, numbers, hyphens, and underscores'
-  )
+  .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens, and underscores')
   .trim()
   .refine((username) => !validateUsername(username), {
     message: 'Username contains inappropriate language',

@@ -30,7 +30,9 @@ test.describe('Production Flow - Game Creation & Join', () => {
     expect(gameId).toBeTruthy();
 
     // Wait for game page to load and Player 1 to appear in player list
-    await expect(page.getByTestId('player-name').filter({ hasText: /Player1/i })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('player-name').filter({ hasText: /Player1/i })).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.getByText(/waiting|setup/i).first()).toBeVisible({ timeout: 10000 });
 
     // Open incognito context for Player 2
@@ -48,8 +50,12 @@ test.describe('Production Flow - Game Creation & Join', () => {
     await player2Page.click('button:has-text("Join Game")');
 
     // Wait for both players to appear in their respective views
-    await expect(player2Page.getByTestId('player-name').filter({ hasText: /Player2/i })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId('player-name').filter({ hasText: /Player2/i })).toBeVisible({ timeout: 15000 });
+    await expect(
+      player2Page.getByTestId('player-name').filter({ hasText: /Player2/i })
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('player-name').filter({ hasText: /Player2/i })).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.getByText(/2.*players|players.*2/i)).toBeVisible({ timeout: 10000 });
 
     await incognitoContext.close();
@@ -75,7 +81,7 @@ test.describe('Production Flow - Session Security', () => {
     await page.waitForLoadState('networkidle');
 
     const cookies = await page.context().cookies();
-    const sessionCookie = cookies.find(c => c.name.startsWith('player_session_'));
+    const sessionCookie = cookies.find((c) => c.name.startsWith('player_session_'));
 
     expect(sessionCookie).toBeDefined();
     expect(sessionCookie?.httpOnly).toBe(true);
@@ -142,10 +148,14 @@ test.describe('Production Flow - Game Progression', () => {
     await expect(page.getByText(/setup|playing|place.*armies/i)).toBeVisible({ timeout: 20000 });
 
     // Verify territories were distributed (check for any territory name)
-    await expect(page.getByText(/territories|alaska|brazil|china|egypt|india/i).first()).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByText(/territories|alaska|brazil|china|egypt|india/i).first()
+    ).toBeVisible({ timeout: 10000 });
 
     // Verify armies are available to place
-    await expect(page.getByText(/armies.*available|available.*armies|\d+.*armies/i).first()).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByText(/armies.*available|available.*armies|\d+.*armies/i).first()
+    ).toBeVisible({ timeout: 10000 });
 
     await player2Context.close();
   });
@@ -216,11 +226,17 @@ test.describe('Production Flow - Realtime Updates', () => {
     await page.waitForTimeout(5000);
 
     // Player 1 should see Player 2 appear via Realtime
-    await expect(page.getByTestId('player-name').filter({ hasText: /Player2/i })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId('player-name').filter({ hasText: /Player2/i })).toBeVisible({
+      timeout: 20000,
+    });
 
     // Player 2 should also see both players
-    await expect(player2Page.getByTestId('player-name').filter({ hasText: /Player1/i })).toBeVisible({ timeout: 15000 });
-    await expect(player2Page.getByTestId('player-name').filter({ hasText: /Player2/i })).toBeVisible({ timeout: 15000 });
+    await expect(
+      player2Page.getByTestId('player-name').filter({ hasText: /Player1/i })
+    ).toBeVisible({ timeout: 15000 });
+    await expect(
+      player2Page.getByTestId('player-name').filter({ hasText: /Player2/i })
+    ).toBeVisible({ timeout: 15000 });
 
     // Verify player count updates
     await expect(page.getByText(/2.*players|players.*2/i)).toBeVisible({ timeout: 10000 });
@@ -246,7 +262,9 @@ test.describe('Production Flow - Realtime Updates', () => {
     await page.waitForTimeout(10000);
 
     // Page should still function after reconnection (check for game UI)
-    await expect(page.getByText(/players|waiting|setup|ReconnectTest/i).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/players|waiting|setup|ReconnectTest/i).first()).toBeVisible({
+      timeout: 15000,
+    });
   });
 });
 
@@ -259,7 +277,9 @@ test.describe('Production Flow - Input Validation', () => {
 
     // Should show validation error immediately (client-side)
     await expect(page.locator('#username-error')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('#username-error')).toContainText(/can only contain letters, numbers/i);
+    await expect(page.locator('#username-error')).toContainText(
+      /can only contain letters, numbers/i
+    );
 
     // Button should be disabled when validation fails
     const button = page.locator('button:has-text("Create Game")');
@@ -307,7 +327,9 @@ test.describe('Production Flow - Input Validation', () => {
     await expect(page).toHaveURL(/\/game\//, { timeout: 15000 });
 
     // Username should appear in the player list
-    await expect(page.getByTestId('player-name').filter({ hasText: /ValidUser_123/i })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('player-name').filter({ hasText: /ValidUser_123/i })).toBeVisible(
+      { timeout: 15000 }
+    );
   });
 });
 
@@ -328,7 +350,9 @@ test.describe('Production Flow - Performance & Accessibility', () => {
     await page.goto(PROD_URL);
 
     // Should have skip link for accessibility
-    const skipLink = page.locator('a:has-text("Skip to main content")').or(page.locator('[href="#main-content"]'));
+    const skipLink = page
+      .locator('a:has-text("Skip to main content")')
+      .or(page.locator('[href="#main-content"]'));
 
     // Page should have main landmarks
     await expect(page.locator('main, [role="main"]').first()).toBeVisible();

@@ -141,10 +141,7 @@ export async function waitForPlayerCount(
 /**
  * Click on a territory (if visible)
  */
-export async function clickTerritory(
-  page: Page,
-  territoryName: string
-): Promise<boolean> {
+export async function clickTerritory(page: Page, territoryName: string): Promise<boolean> {
   const territory = page.locator(`[data-testid="territory-${territoryName}"]`);
 
   if (await territory.isVisible({ timeout: 2000 })) {
@@ -204,10 +201,7 @@ export async function endTurn(page: Page): Promise<boolean> {
 /**
  * Take a screenshot with timestamp
  */
-export async function takeTimestampedScreenshot(
-  page: Page,
-  name: string
-): Promise<void> {
+export async function takeTimestampedScreenshot(page: Page, name: string): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   await page.screenshot({
     path: `tests/e2e/screenshots/${name}-${timestamp}.png`,
@@ -241,7 +235,7 @@ export async function getAvailableGameIds(page: Page): Promise<string[]> {
   const gameElements = page.locator('[data-testid="game-item"]');
   const count = await gameElements.count();
 
-  const gameIds: string[]= [];
+  const gameIds: string[] = [];
 
   for (let i = 0; i < count; i++) {
     const gameId = await gameElements.nth(i).getAttribute('data-game-id');
@@ -263,18 +257,16 @@ export async function setupTwoPlayerGame(
   player1Config: { type: PersonaType; username: string; color: string },
   player2Config: { type: PersonaType; username: string; color: string }
 ): Promise<{ player1: PersonaSimulator; player2: PersonaSimulator; gameUrl: string }> {
-  const [player1, player2] = await createMultiplePersonas(browser, [
-    player1Config,
-    player2Config,
-  ]);
+  const [player1, player2] = await createMultiplePersonas(browser, [player1Config, player2Config]);
 
   await player1.createGame();
   const gameUrl = player1.getPage().url();
   await player2.joinGame(gameUrl);
 
   // Wait for both players to see each other
-  await expect(player1.getPage().getByTestId('player-name').filter({ hasText: player2Config.username }))
-    .toBeVisible({ timeout: 10000 });
+  await expect(
+    player1.getPage().getByTestId('player-name').filter({ hasText: player2Config.username })
+  ).toBeVisible({ timeout: 10000 });
 
   return { player1, player2, gameUrl };
 }
@@ -327,10 +319,12 @@ export async function setupTwoPlayerGameSimple(
   await joinButton.click();
 
   // Wait for both players to see each other
-  await expect(player2Page.getByTestId('player-name').filter({ hasText: player2Name }))
-    .toBeVisible({ timeout: 10000 });
-  await expect(page.getByTestId('player-name').filter({ hasText: player2Name }))
-    .toBeVisible({ timeout: 10000 });
+  await expect(player2Page.getByTestId('player-name').filter({ hasText: player2Name })).toBeVisible(
+    { timeout: 10000 }
+  );
+  await expect(page.getByTestId('player-name').filter({ hasText: player2Name })).toBeVisible({
+    timeout: 10000,
+  });
 
   return { player1Page: page, player2Page, player2Context, gameUrl };
 }
@@ -360,11 +354,11 @@ export async function assertSecurityHeaders(page: Page): Promise<void> {
 export async function assertNoJavaScriptErrors(page: Page): Promise<void> {
   const errors: string[] = [];
 
-  page.on('pageerror', error => {
+  page.on('pageerror', (error) => {
     errors.push(error.message);
   });
 
-  page.on('console', msg => {
+  page.on('console', (msg) => {
     if (msg.type() === 'error') {
       errors.push(msg.text());
     }

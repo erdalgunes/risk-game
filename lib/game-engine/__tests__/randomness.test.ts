@@ -53,7 +53,7 @@ describe('Randomness - Fisher-Yates Shuffle', () => {
     // Initialize counters for each position
     for (let i = 0; i < testArray.length; i++) {
       positionCounts[i] = new Map();
-      testArray.forEach(value => {
+      testArray.forEach((value) => {
         positionCounts[i].set(String(value), 0);
       });
     }
@@ -173,7 +173,7 @@ describe('Randomness - Dice Rolls', () => {
     // Roll 100 times - should hit all values 1-6
     for (let i = 0; i < 100; i++) {
       const dice = rollDice(3);
-      dice.forEach(die => allValues.add(die));
+      dice.forEach((die) => allValues.add(die));
     }
 
     expect(allValues.size).toBe(6);

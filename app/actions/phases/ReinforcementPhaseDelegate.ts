@@ -9,7 +9,7 @@ import {
   PhaseDelegate,
   type PhaseContext,
   type ValidationResult,
-  type ActionResult
+  type ActionResult,
 } from './PhaseDelegate';
 import { canPlaceArmies } from '@/lib/game-engine/validation';
 import type { GameAction } from '@/types/game';
@@ -25,7 +25,7 @@ export class ReinforcementPhaseDelegate extends PhaseDelegate {
     if (action.action_type !== 'place_army' && action.action_type !== 'change_phase') {
       return {
         valid: false,
-        reason: 'Only army placement and phase changes are allowed during reinforcement phase'
+        reason: 'Only army placement and phase changes are allowed during reinforcement phase',
       };
     }
 
@@ -33,7 +33,7 @@ export class ReinforcementPhaseDelegate extends PhaseDelegate {
     if (action.player_id !== context.currentPlayer.id) {
       return {
         valid: false,
-        reason: 'Not your turn'
+        reason: 'Not your turn',
       };
     }
 
@@ -66,12 +66,7 @@ export class ReinforcementPhaseDelegate extends PhaseDelegate {
     }
 
     // Validate using game engine
-    const validation = canPlaceArmies(
-      context.game,
-      context.currentPlayer,
-      territory,
-      count
-    );
+    const validation = canPlaceArmies(context.game, context.currentPlayer, territory, count);
 
     if (!validation.valid) {
       return this.errorResult(validation.reason || 'Invalid army placement');
