@@ -289,3 +289,89 @@ export async function startGameAndWaitForSetup(page: Page): Promise<void> {
   await startButton.click();
   await expect(page.getByText(/setup/i)).toBeVisible({ timeout: 10000 });
 }
+
+/**
+ * Simple 2-player game setup without PersonaSimulator
+ * Creates game with player1, joins player2 in new context
+ *
+ * @returns Object with player1Page, player2Page, player2Context, and gameUrl
+ */
+export async function setupTwoPlayerGameSimple(
+  page: Page,
+  browser: Browser,
+  player1Name: string = 'Player1',
+  player2Name: string = 'Player2',
+  player1Color: string = 'red',
+  player2Color: string = 'blue'
+): Promise<{ player1Page: Page; player2Page: Page; player2Context: any; gameUrl: string }> {
+  // Player 1 creates game
+  await page.goto('/');
+  await createGameViaUI(page, player1Name, player1Color);
+  const gameUrl = page.url();
+
+  // Player 2 joins in new context
+  const player2Context = await browser.newContext();
+  const player2Page = await player2Context.newPage();
+  await player2Page.goto(gameUrl);
+
+  const usernameInput = player2Page.locator('input[placeholder*="username" i]').first();
+  await usernameInput.waitFor({ state: 'visible', timeout: 10000 });
+  await usernameInput.fill(player2Name);
+
+  const colorSelect = player2Page.locator('select').first();
+  if (await colorSelect.isVisible({ timeout: 2000 })) {
+    await colorSelect.selectOption(player2Color);
+  }
+
+  const joinButton = player2Page.getByRole('button', { name: /join/i }).first();
+  await joinButton.click();
+
+  // Wait for both players to see each other
+  await expect(player2Page.getByTestId('player-name').filter({ hasText: player2Name }))
+    .toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId('player-name').filter({ hasText: player2Name }))
+    .toBeVisible({ timeout: 10000 });
+
+  return { player1Page: page, player2Page, player2Context, gameUrl };
+}
+
+/**
+ * Verify critical security headers are present
+ * Used in smoke tests to ensure security configuration is correct
+ */
+export async function assertSecurityHeaders(page: Page): Promise<void> {
+  const response = await page.goto('/');
+  const headers = response?.headers();
+
+  expect(headers).toBeDefined();
+  if (!headers) return;
+
+  // Critical security headers
+  expect(headers['content-security-policy']).toBeDefined();
+  expect(headers['x-frame-options']).toBe('DENY');
+  expect(headers['x-content-type-options']).toBe('nosniff');
+  expect(headers['strict-transport-security']).toContain('max-age=31536000');
+}
+
+/**
+ * Verify no JavaScript errors occur on page load
+ * Used in smoke tests to ensure clean page load
+ */
+export async function assertNoJavaScriptErrors(page: Page): Promise<void> {
+  const errors: string[] = [];
+
+  page.on('pageerror', error => {
+    errors.push(error.message);
+  });
+
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      errors.push(msg.text());
+    }
+  });
+
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  expect(errors).toHaveLength(0);
+}

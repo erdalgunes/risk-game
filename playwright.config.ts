@@ -10,6 +10,8 @@ import { defineConfig, devices } from '@playwright/test';
  * - npm run test:e2e          -> Uses .env.local (default Supabase)
  * - npm run test:e2e:prod     -> Tests production URL
  * - npm run test:e2e:local    -> Uses .env.test (local Supabase)
+ * - npm run test:e2e:smoke    -> Run only @smoke tests (fast, 3-5min)
+ * - npm run test:e2e:regression -> Run all tests except @smoke (comprehensive)
  */
 export default defineConfig({
   testDir: './tests/e2e',
@@ -23,8 +25,11 @@ export default defineConfig({
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Opt out of parallel tests on CI
-  workers: process.env.CI ? 1 : undefined,
+  // Use 2 workers in CI for better performance (was 1)
+  workers: process.env.CI ? 2 : undefined,
+
+  // Filter tests by grep pattern (supports @smoke, @regression, etc.)
+  grep: process.env.TEST_GREP ? new RegExp(process.env.TEST_GREP) : undefined,
 
   // Reporter to use
   reporter: [
@@ -47,35 +52,51 @@ export default defineConfig({
 
     // Video on failure
     video: 'retain-on-failure',
+
+    // Timeout for each test (default: 30 seconds)
+    actionTimeout: 10 * 1000, // 10 seconds for actions
+    navigationTimeout: 30 * 1000, // 30 seconds for page loads
   },
 
+  // Global timeout for each test
+  timeout: 30 * 1000, // 30 seconds per test
+
   // Configure projects for major browsers
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
+  projects: process.env.CI
+    ? [
+        // On CI: Only run Chromium for speed
+        {
+          name: 'chromium',
+          use: { ...devices['Desktop Chrome'] },
+        },
+      ]
+    : [
+        // Locally: Test all browsers
+        {
+          name: 'chromium',
+          use: { ...devices['Desktop Chrome'] },
+        },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+        {
+          name: 'firefox',
+          use: { ...devices['Desktop Firefox'] },
+        },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+        {
+          name: 'webkit',
+          use: { ...devices['Desktop Safari'] },
+        },
 
-    // Test against mobile viewports
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-  ],
+        // Test against mobile viewports
+        // {
+        //   name: 'Mobile Chrome',
+        //   use: { ...devices['Pixel 5'] },
+        // },
+        // {
+        //   name: 'Mobile Safari',
+        //   use: { ...devices['iPhone 12'] },
+        // },
+      ],
 
   // Run your local dev server before starting the tests
   // Skip if testing against external URL (production/staging)
@@ -86,5 +107,11 @@ export default defineConfig({
         url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000, // 2 minutes
+        // Pass environment variables to dev server (needed in CI for Supabase)
+        env: {
+          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+          SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+        },
       },
 });

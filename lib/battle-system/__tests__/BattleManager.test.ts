@@ -17,6 +17,7 @@ const createMockPlayer = (id: string, username: string): Player => ({
   turn_order: 0,
   armies_available: 0,
   is_eliminated: false,
+  is_ai: false,
   created_at: new Date().toISOString(),
 });
 
