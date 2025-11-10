@@ -120,12 +120,16 @@ export class AttackPhaseDelegate extends PhaseDelegate {
     if (updatedGame?.status === 'finished') {
       return this.successResult({
         ...result,
+        armiesToMove,
         gameFinished: true,
         winner: updatedGame.winner_id,
       });
     }
 
-    return this.successResult(result);
+    return this.successResult({
+      ...result,
+      armiesToMove,
+    });
   }
 
   /**

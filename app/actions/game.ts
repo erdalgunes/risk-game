@@ -792,7 +792,7 @@ export async function attackTerritory(
         payload: {
           territory_id: toTerritoryId,
           new_owner_id: playerId,
-          armies_moved: attackResult.armiesToMove || 0,
+          armies_moved: attackResult.armiesToMove,
         },
       });
     }
