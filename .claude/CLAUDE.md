@@ -21,11 +21,8 @@ npm run lint             # ESLint check
 npm run type-check       # TypeScript validation only
 npm run test             # Run unit tests (Vitest)
 npm run test:coverage    # Unit tests with coverage report
-npm run test:e2e         # E2E tests (.env.local Supabase)
-npm run test:e2e:local   # E2E tests (local Supabase - recommended)
-npm run test:e2e:prod    # E2E tests (production smoke tests)
 npm run test:build       # Type check + build (pre-deploy check)
-npm run test:all         # Run all tests (unit + E2E local)
+npm run test:all         # Run all tests (unit + integration)
 npm run clean            # Clear build cache (.next, node_modules/.cache)
 npm run fresh            # Clean + reinstall + build (fixes most issues)
 
