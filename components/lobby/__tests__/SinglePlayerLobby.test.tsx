@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SinglePlayerLobby } from '../SinglePlayerLobby';
 import { createGameAction, joinGameAction, startGame } from '@/app/actions/game';
 import { validateUsername } from '@/lib/validation/username';
+import { mockSuccessfulGameCreation, mockFailedGameCreation, mockFailedGameStart, mockRouter, mockToast } from './test-helpers';
 
 // Mock dependencies
 vi.mock('next/navigation', () => ({
@@ -203,20 +204,8 @@ describe('SinglePlayerLobby', () => {
 
   describe('Game Creation', () => {
     it('should create game with human player and AI opponents', async () => {
-      const mockPush = vi.fn();
-      const { useRouter } = await import('next/navigation');
-      vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
-
-      vi.mocked(validateUsername).mockReturnValue({ isValid: true });
-      vi.mocked(createGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'player-123' },
-      });
-      vi.mocked(joinGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'ai-player-1' }
-      });
-      vi.mocked(startGame).mockResolvedValue({ success: true });
+      const mockPush = await mockRouter();
+      mockSuccessfulGameCreation();
 
       render(<SinglePlayerLobby />);
       const input = screen.getByLabelText('Your Username');
@@ -246,16 +235,7 @@ describe('SinglePlayerLobby', () => {
     });
 
     it('should add correct number of AI opponents', async () => {
-      vi.mocked(validateUsername).mockReturnValue({ isValid: true });
-      vi.mocked(createGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'player-123' },
-      });
-      vi.mocked(joinGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'ai-player-1' }
-      });
-      vi.mocked(startGame).mockResolvedValue({ success: true });
+      mockSuccessfulGameCreation();
 
       render(<SinglePlayerLobby />);
       const input = screen.getByLabelText('Your Username');
@@ -276,16 +256,7 @@ describe('SinglePlayerLobby', () => {
     });
 
     it('should use AI names for AI players', async () => {
-      vi.mocked(validateUsername).mockReturnValue({ isValid: true });
-      vi.mocked(createGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'player-123' },
-      });
-      vi.mocked(joinGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'ai-player-1' }
-      });
-      vi.mocked(startGame).mockResolvedValue({ success: true });
+      mockSuccessfulGameCreation();
 
       render(<SinglePlayerLobby />);
       const input = screen.getByLabelText('Your Username');
@@ -304,20 +275,8 @@ describe('SinglePlayerLobby', () => {
 
   describe('Error Handling', () => {
     it('should show toast when game creation fails', async () => {
-      const mockAddToast = vi.fn();
-      const { useToast } = await import('@/lib/hooks/useToast');
-      vi.mocked(useToast).mockReturnValue({
-        addToast: mockAddToast,
-        toasts: [],
-        removeToast: vi.fn(),
-        clearAll: vi.fn(),
-      });
-
-      vi.mocked(validateUsername).mockReturnValue({ isValid: true });
-      vi.mocked(createGameAction).mockResolvedValue({
-        success: false,
-        error: 'Creation failed',
-      });
+      const mockAddToast = await mockToast();
+      mockFailedGameCreation('Creation failed');
 
       render(<SinglePlayerLobby />);
       const input = screen.getByLabelText('Your Username');
@@ -332,28 +291,8 @@ describe('SinglePlayerLobby', () => {
     });
 
     it('should show toast when start game fails', async () => {
-      const mockAddToast = vi.fn();
-      const { useToast } = await import('@/lib/hooks/useToast');
-      vi.mocked(useToast).mockReturnValue({
-        addToast: mockAddToast,
-        toasts: [],
-        removeToast: vi.fn(),
-        clearAll: vi.fn(),
-      });
-
-      vi.mocked(validateUsername).mockReturnValue({ isValid: true });
-      vi.mocked(createGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'player-123' },
-      });
-      vi.mocked(joinGameAction).mockResolvedValue({
-        success: true,
-        result: { gameId: 'game-123', playerId: 'ai-player-1' }
-      });
-      vi.mocked(startGame).mockResolvedValue({
-        success: false,
-        error: 'Start failed',
-      });
+      const mockAddToast = await mockToast();
+      mockFailedGameStart('Start failed');
 
       render(<SinglePlayerLobby />);
       const input = screen.getByLabelText('Your Username');
