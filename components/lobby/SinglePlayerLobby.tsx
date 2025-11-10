@@ -67,6 +67,7 @@ export function SinglePlayerLobby() {
         const joinResponse = await joinGameAction(gameId, aiName, aiColor);
         if (!joinResponse.success) {
           console.error(`Failed to add AI player ${i + 1}:`, joinResponse.error);
+          throw new Error(`Failed to add AI player: ${joinResponse.error}`);
         }
       }
 
