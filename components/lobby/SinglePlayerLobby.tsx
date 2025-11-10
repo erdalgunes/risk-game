@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { createGameAction, joinGameAction, startGame } from '@/app/actions/game';
 import { PLAYER_COLORS } from '@/constants/map';
 import { useToast } from '@/lib/hooks/useToast';
-import { validateUsername } from '@/lib/validation/username';
 import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
+import { useUsernameInput } from '@/lib/hooks/useUsernameInput';
+import { LobbyFormFields } from './LobbyFormFields';
 
 const AI_NAMES = [
   'AI_Commander',
@@ -19,35 +20,16 @@ const AI_NAMES = [
 export function SinglePlayerLobby() {
   const router = useRouter();
   const { addToast } = useToast();
-  const [username, setUsername] = useState('');
-  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const { username, usernameError, handleUsernameChange, validateAndGetError } = useUsernameInput();
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0]);
   const [aiOpponents, setAiOpponents] = useState(2);
   const [loading, setLoading] = useState(false);
 
-  function handleUsernameChange(value: string) {
-    setUsername(value);
-
-    // Clear error when user starts typing
-    if (usernameError) {
-      setUsernameError(null);
-    }
-
-    // Validate on change (only if not empty)
-    if (value.trim()) {
-      const validation = validateUsername(value);
-      if (!validation.isValid) {
-        setUsernameError(validation.error || null);
-      }
-    }
-  }
-
   async function handleStartGame() {
     // Validate username
-    const validation = validateUsername(username);
-    if (!validation.isValid) {
-      setUsernameError(validation.error || 'Invalid username');
-      addToast(validation.error || 'Please enter a valid username', 'warning');
+    const error = validateAndGetError();
+    if (error) {
+      addToast(error, 'warning');
       return;
     }
 
@@ -128,60 +110,14 @@ export function SinglePlayerLobby() {
             }}
             aria-label="Create single player game"
           >
-            <div>
-              <label
-                htmlFor="username-single"
-                className="block text-sm font-medium mb-2 text-gray-300"
-              >
-                Your Username
-              </label>
-              <input
-                id="username-single"
-                type="text"
-                value={username}
-                onChange={(e) => handleUsernameChange(e.target.value)}
-                placeholder="Enter your username"
-                className={`w-full px-4 py-2 rounded bg-gray-700 border text-white focus:outline-none ${
-                  usernameError
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-gray-600 focus:border-blue-500'
-                }`}
-                aria-required="true"
-                aria-describedby={usernameError ? 'username-error' : 'username-hint'}
-                aria-invalid={!!usernameError}
-              />
-              {usernameError ? (
-                <p id="username-error" className="text-red-400 text-sm mt-1" role="alert">
-                  {usernameError}
-                </p>
-              ) : (
-                <span id="username-hint" className="sr-only">
-                  Enter a username to identify yourself in the game
-                </span>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="color-select-single"
-                className="block text-sm font-medium mb-2 text-gray-300"
-              >
-                Your Color
-              </label>
-              <select
-                id="color-select-single"
-                value={selectedColor}
-                onChange={(e) => setSelectedColor(e.target.value as any)}
-                className="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-blue-500"
-                aria-label="Select your player color"
-              >
-                {PLAYER_COLORS.map((color) => (
-                  <option key={color} value={color}>
-                    {color.charAt(0).toUpperCase() + color.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <LobbyFormFields
+              username={username}
+              usernameError={usernameError}
+              selectedColor={selectedColor}
+              onUsernameChange={handleUsernameChange}
+              onColorChange={(value) => setSelectedColor(value as any)}
+              usernameId="username-single"
+            />
 
             <div>
               <label

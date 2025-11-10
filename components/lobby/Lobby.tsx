@@ -6,9 +6,9 @@ import { getAvailableGames } from '@/lib/supabase/queries';
 import { createGameAction, joinGameAction } from '@/app/actions/game';
 import { PLAYER_COLORS } from '@/constants/map';
 import { useToast } from '@/lib/hooks/useToast';
-import { validateUsername } from '@/lib/validation/username';
 import { rateLimiter, RATE_LIMITS } from '@/lib/utils/rate-limiter';
 import { SinglePlayerLobby } from './SinglePlayerLobby';
+import { useUsernameInput } from '@/lib/hooks/useUsernameInput';
 
 type LobbyMode = 'multiplayer' | 'singleplayer';
 
@@ -16,8 +16,7 @@ export function Lobby() {
   const router = useRouter();
   const { addToast } = useToast();
   const [mode, setMode] = useState<LobbyMode>('multiplayer');
-  const [username, setUsername] = useState('');
-  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const { username, usernameError, handleUsernameChange, validateAndGetError } = useUsernameInput();
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0]);
   const [availableGames, setAvailableGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,23 +27,6 @@ export function Lobby() {
   useEffect(() => {
     loadAvailableGames();
   }, []);
-
-  function handleUsernameChange(value: string) {
-    setUsername(value);
-
-    // Clear error when user starts typing
-    if (usernameError) {
-      setUsernameError(null);
-    }
-
-    // Validate on change (only if not empty)
-    if (value.trim()) {
-      const validation = validateUsername(value);
-      if (!validation.isValid) {
-        setUsernameError(validation.error || null);
-      }
-    }
-  }
 
   async function loadAvailableGames() {
     try {
@@ -57,10 +39,9 @@ export function Lobby() {
 
   async function handleCreateGame() {
     // Validate username
-    const validation = validateUsername(username);
-    if (!validation.isValid) {
-      setUsernameError(validation.error || 'Invalid username');
-      addToast(validation.error || 'Please enter a valid username', 'warning');
+    const error = validateAndGetError();
+    if (error) {
+      addToast(error, 'warning');
       return;
     }
 
@@ -90,10 +71,9 @@ export function Lobby() {
 
   async function handleJoinGame(gameId: string) {
     // Validate username
-    const validation = validateUsername(username);
-    if (!validation.isValid) {
-      setUsernameError(validation.error || 'Invalid username');
-      addToast(validation.error || 'Please enter a valid username', 'warning');
+    const error = validateAndGetError();
+    if (error) {
+      addToast(error, 'warning');
       return;
     }
 
