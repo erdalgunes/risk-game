@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createInitialState } from '@risk-poc/game-engine';
 import type { GameState, TerritoryId } from '@risk-poc/game-engine';
 import { createSupabaseClient } from '@risk-poc/database';
@@ -72,12 +72,13 @@ export default function MultiplayerGame() {
   }, []);
 
   // Initialize Supabase client
-  const supabase = supabaseReady
-    ? (createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ) as any)
-    : null;
+  const supabase = useMemo(() => {
+    if (!supabaseReady) return null;
+    return createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ) as any;
+  }, [supabaseReady]);
 
   // Subscribe to game updates
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { applyMove, validateMove } from '@risk-poc/game-engine';
 import type { GameState, TerritoryId, Move } from '@risk-poc/game-engine';
 
@@ -102,6 +102,10 @@ export function useGameLogic(
     }
   };
 
+  const resetSelection = useCallback(() => {
+    setSelectedTerritory(null);
+  }, []);
+
   return {
     selectedTerritory,
     fortifyTroops,
@@ -109,6 +113,6 @@ export function useGameLogic(
     message,
     handleTerritoryClick,
     handleSkip,
-    resetSelection: () => setSelectedTerritory(null)
+    resetSelection
   };
 }
