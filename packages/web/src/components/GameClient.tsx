@@ -12,6 +12,7 @@ import {
   shouldAITakeTurn,
   type GameState,
   type TerritoryId,
+  type Territory,
 } from '@risk-poc/game-engine';
 import GameBoard from './GameBoard';
 import GameControls from './GameControls';
@@ -39,13 +40,12 @@ export default function GameClient({ gameId, mode, playerName }: GameClientProps
       try {
         const supabase = getSupabaseClient();
         // Use type assertion for untyped Supabase client
-        supabase
-          .from('game_states')
-          .insert({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase.from('game_states').insert as any)({
             id: gameId,
             state: JSON.stringify(initialState),
-          } as any)
-          .then((result) => {
+          })
+          .then((result: { error: unknown }) => {
             if (result.error) {
               console.error('Error saving game:', result.error);
               setMessage('⚠️ Multiplayer mode requires Supabase setup');
@@ -77,7 +77,7 @@ export default function GameClient({ gameId, mode, playerName }: GameClientProps
           table: 'game_states',
           filter: `id=eq.${gameId}`,
         },
-        (payload) => {
+        (payload: { new: { state: string } }) => {
           const newState = JSON.parse(payload.new.state as string) as GameState;
           setGameState(newState);
           setMessage('Game updated');
@@ -90,19 +90,6 @@ export default function GameClient({ gameId, mode, playerName }: GameClientProps
       supabase.removeChannel(channel);
     };
   }, [gameId, isMultiplayer, gameState]);
-
-  // AI turn handling
-  useEffect(() => {
-    if (!gameState || isMultiplayer) return;
-    if (!shouldAITakeTurn(gameState)) return;
-
-    const timeout = setTimeout(() => {
-      const aiMove = decideAIMove(gameState);
-      handleAIMove(aiMove);
-    }, 1000);
-
-    return () => clearTimeout(timeout);
-  }, [gameState, isMultiplayer]);
 
   const handleAIMove = useCallback(
     (aiMove: ReturnType<typeof decideAIMove>) => {
@@ -146,15 +133,27 @@ export default function GameClient({ gameId, mode, playerName }: GameClientProps
     [gameState]
   );
 
+  // AI turn handling
+  useEffect(() => {
+    if (!gameState || isMultiplayer) return;
+    if (!shouldAITakeTurn(gameState)) return;
+
+    const timeout = setTimeout(() => {
+      const aiMove = decideAIMove(gameState);
+      handleAIMove(aiMove);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [gameState, isMultiplayer, handleAIMove]);
+
   const updateGameState = useCallback(
     async (newState: GameState) => {
       setGameState(newState);
 
       if (isMultiplayer) {
         const supabase = getSupabaseClient();
-        const table = supabase.from('game_states') as any;
-        await table
-          .update({ state: JSON.stringify(newState) })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase.from('game_states').update as any)({ state: JSON.stringify(newState) })
           .eq('id', gameId);
       }
     },
@@ -168,7 +167,7 @@ export default function GameClient({ gameId, mode, playerName }: GameClientProps
       const currentPlayer = getCurrentPlayer(gameState);
       if (currentPlayer.isAI) return;
 
-      const territory = gameState.territories.find((t) => t.id === territoryId);
+      const territory = gameState.territories.find((t: Territory) => t.id === territoryId);
       if (!territory) return;
 
       // Select territory
@@ -202,7 +201,7 @@ export default function GameClient({ gameId, mode, playerName }: GameClientProps
           setSelectedTerritory(null);
         }
       } else if (gameState.phase === 'fortify') {
-        const fromTerritory = gameState.territories.find((t) => t.id === selectedTerritory);
+        const fromTerritory = gameState.territories.find((t: Territory) => t.id === selectedTerritory);
         if (fromTerritory) {
           const troopsToMove = Math.floor(fromTerritory.troops / 2);
           const { updatedState, error } = executeFortify(gameState, selectedTerritory, territoryId, troopsToMove);

@@ -1,6 +1,6 @@
 'use client';
 
-import type { GameState, TerritoryId } from '@risk-poc/game-engine';
+import type { GameState, TerritoryId, Player, Territory } from '@risk-poc/game-engine';
 
 interface GameBoardProps {
   gameState: GameState;
@@ -32,7 +32,7 @@ export default function GameBoard({ gameState, selectedTerritory, onTerritoryCli
   };
 
   const getPlayerColor = (ownerId: string): string => {
-    const player = gameState.players.find((p) => p.id === ownerId);
+    const player = gameState.players.find((p: Player) => p.id === ownerId);
     return player?.color === 'red' ? '#dc2626' : '#2563eb';
   };
 
@@ -90,7 +90,7 @@ export default function GameBoard({ gameState, selectedTerritory, onTerritoryCli
         {drawConnections()}
 
         {/* Draw territories */}
-        {gameState.territories.map((territory) => {
+        {gameState.territories.map((territory: Territory) => {
           const pos = getTerritoryPosition(territory.id);
           const color = getPlayerColor(territory.ownerId);
           const border = getTerritoryBorder(territory.id);
@@ -149,7 +149,7 @@ export default function GameBoard({ gameState, selectedTerritory, onTerritoryCli
                 fontSize="12"
                 opacity="0.7"
               >
-                {gameState.players.find((p) => p.id === territory.ownerId)?.name}
+                {gameState.players.find((p: Player) => p.id === territory.ownerId)?.name}
               </text>
             </g>
           );

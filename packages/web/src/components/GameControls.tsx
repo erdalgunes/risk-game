@@ -10,7 +10,7 @@ interface GameControlsProps {
 
 export default function GameControls({ gameState, currentPlayer, onEndTurn }: GameControlsProps) {
   if (gameState.winner) {
-    const winner = gameState.players.find((p) => p.id === gameState.winner);
+    const winner = gameState.players.find((p: Player) => p.id === gameState.winner);
     return (
       <div className="bg-green-900 border-4 border-green-500 rounded-lg p-8 text-center">
         <h2 className="text-3xl font-bold mb-2">🎉 Victory!</h2>

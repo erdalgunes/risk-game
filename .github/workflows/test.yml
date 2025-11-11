@@ -208,7 +208,7 @@ jobs:
         run: |
           echo "### Build Size Report" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          du -sh .next >> $GITHUB_STEP_SUMMARY
+          du -sh packages/web/.next >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
   status-check:
