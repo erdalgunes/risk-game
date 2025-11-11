@@ -29,6 +29,7 @@ function rollDie(): number {
   }
 
   // Fallback for testing environments
+  // NOSONAR: Math.random() fallback is only for testing, crypto.getRandomValues() is primary method
   return Math.floor(Math.random() * 6) + 1;
 }
 

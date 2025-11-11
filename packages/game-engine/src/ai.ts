@@ -34,8 +34,9 @@ export function decideAIMove(gameState: GameState): AIMove {
 
     // Randomly decide whether to attack or skip to fortify
     // 70% chance to attack if possible, 30% skip to fortify
+    // NOSONAR: Math.random() is safe for game AI decisions, not cryptographic use
     if (possibleAttacks.length > 0 && Math.random() < 0.7) {
-      const attack = possibleAttacks[Math.floor(Math.random() * possibleAttacks.length)];
+      const attack = possibleAttacks[Math.floor(Math.random() * possibleAttacks.length)]; // NOSONAR
       return {
         type: 'attack',
         fromTerritoryId: attack.from,
@@ -79,8 +80,9 @@ export function decideAIMove(gameState: GameState): AIMove {
 
     // Randomly decide whether to fortify or end turn
     // 40% chance to fortify if possible, 60% end turn
+    // NOSONAR: Math.random() is safe for game AI decisions, not cryptographic use
     if (possibleFortifies.length > 0 && Math.random() < 0.4) {
-      const fortify = possibleFortifies[Math.floor(Math.random() * possibleFortifies.length)];
+      const fortify = possibleFortifies[Math.floor(Math.random() * possibleFortifies.length)]; // NOSONAR
       return {
         type: 'fortify',
         fromTerritoryId: fortify.from,
