@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createInitialState } from '@risk-poc/game-engine';
-import type { GameState } from '@risk-poc/game-engine';
+import type { GameState, TerritoryId } from '@risk-poc/game-engine';
 import { createSupabaseClient } from '@risk-poc/database';
 import { GameBoard } from '@/components/GameBoard';
 import { GameControls } from '@/components/GameControls';
@@ -14,6 +14,7 @@ export default function MultiplayerGame() {
   const [gameId, setGameId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [supabaseReady, setSupabaseReady] = useState(false);
+  const [localPlayer, setLocalPlayer] = useState<'red' | 'blue' | null>(null);
 
   const updateGameState = async (newState: GameState) => {
     setGameState(newState);
@@ -36,9 +37,27 @@ export default function MultiplayerGame() {
     fortifyTroops,
     setFortifyTroops,
     message,
-    handleTerritoryClick,
-    handleSkip
+    handleTerritoryClick: handleTerritoryClickBase,
+    handleSkip: handleSkipBase
   } = useGameLogic(gameState, updateGameState);
+
+  const handleTerritoryClick = (territoryId: TerritoryId) => {
+    if (!gameState || !localPlayer) return;
+    if (gameState.currentPlayer !== localPlayer) {
+      setGameStateMessage(`It's ${gameState.currentPlayer}'s turn. You are playing as ${localPlayer}.`);
+      return;
+    }
+    handleTerritoryClickBase(territoryId);
+  };
+
+  const handleSkip = async () => {
+    if (!gameState || !localPlayer) return;
+    if (gameState.currentPlayer !== localPlayer) {
+      setGameStateMessage(`It's ${gameState.currentPlayer}'s turn. You are playing as ${localPlayer}.`);
+      return;
+    }
+    await handleSkipBase();
+  };
 
   const [gameStateMessage, setGameStateMessage] = useState<string>('');
 
@@ -107,7 +126,8 @@ export default function MultiplayerGame() {
 
       setGameId(data.id);
       setGameState(initialState);
-      setGameStateMessage(`Game created! Share this ID: ${data.id}`);
+      setLocalPlayer('red'); // Creator plays as red
+      setGameStateMessage(`Game created! Share this ID: ${data.id}. You are playing as RED.`);
     } catch (error) {
       setGameStateMessage('Error creating game: ' + (error as Error).message);
     } finally {
@@ -133,7 +153,8 @@ export default function MultiplayerGame() {
 
       setGameId(data.id);
       setGameState(data.state as GameState);
-      setGameStateMessage('Joined game successfully!');
+      setLocalPlayer('blue'); // Joiner plays as blue
+      setGameStateMessage('Joined game successfully! You are playing as BLUE.');
     } catch (error) {
       setGameStateMessage('Error joining game: ' + (error as Error).message);
     } finally {
