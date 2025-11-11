@@ -1,6 +1,11 @@
 import type { GameState, Move } from './types';
 import { getValidMoves } from './game';
 
+function selectRandom<T>(array: T[]): T {
+  const randomIndex = Math.floor(Math.random() * array.length);
+  return array[randomIndex];
+}
+
 export function getAIMove(state: GameState): Move {
   const validMoves = getValidMoves(state);
 
@@ -14,11 +19,9 @@ export function getAIMove(state: GameState): Move {
   // Prefer attacks over fortify moves
   const attackMoves = actionMoves.filter(m => m.type === 'attack');
   if (attackMoves.length > 0) {
-    const randomIndex = Math.floor(Math.random() * attackMoves.length);
-    return attackMoves[randomIndex];
+    return selectRandom(attackMoves);
   }
 
   // Otherwise pick a random fortify move
-  const randomIndex = Math.floor(Math.random() * actionMoves.length);
-  return actionMoves[randomIndex];
+  return selectRandom(actionMoves);
 }
