@@ -42,6 +42,7 @@ export function useGameLogic(
               await onStateUpdate(newState);
             }
             setMessage('Attack executed!');
+            setSelectedTerritory(null);
           } catch (error) {
             setMessage('Attack failed: ' + (error as Error).message);
             setSelectedTerritory(null);
