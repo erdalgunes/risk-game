@@ -1,49 +1,54 @@
-# dependencies
-/node_modules
-/.pnp
+# Dependencies
+node_modules/
+.pnp
 .pnp.js
 
-# testing
-/coverage
-/test-results/
-/playwright-report/
-/playwright-report-production/
-/playwright/.cache/
-/.vitest/
-/html-report/
+# Testing
+coverage/
+test-results/
+playwright-report/
+playwright-report-production/
+playwright/.cache/
+.vitest/
+html-report/
 
-# next.js
-/.next/
-/out/
+# Next.js
+.next/
+out/
 
-# production
-/build
+# Production builds
+build/
+dist/
 
-# misc
+# Misc
 .DS_Store
 *.pem
 
-# debug
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# env files
+# Environment files
 .env*.local
 .env
 .env.production
 
-# vercel
+# Vercel
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
 # PWA files
-/public/sw.js
-/public/workbox-*.js
-/public/worker-*.js
-/public/sw.js.map
-/public/workbox-*.js.map
-/public/worker-*.js.map
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/sw.js.map
+public/workbox-*.js.map
+public/worker-*.js.map
+
+# Backup files
+*.backup
+*_OLD.*
