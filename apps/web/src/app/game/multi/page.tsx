@@ -1,21 +1,46 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createInitialState, applyMove, validateMove } from '@risk-poc/game-engine';
-import type { GameState, TerritoryId, Move } from '@risk-poc/game-engine';
+import { createInitialState } from '@risk-poc/game-engine';
+import type { GameState } from '@risk-poc/game-engine';
 import { createSupabaseClient } from '@risk-poc/database';
 import { GameBoard } from '@/components/GameBoard';
 import { GameControls } from '@/components/GameControls';
+import { useGameLogic } from '@/hooks/useGameLogic';
 import Link from 'next/link';
 
 export default function MultiplayerGame() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
-  const [selectedTerritory, setSelectedTerritory] = useState<TerritoryId | null>(null);
-  const [fortifyTroops, setFortifyTroops] = useState(1);
-  const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [supabaseReady, setSupabaseReady] = useState(false);
+
+  const updateGameState = async (newState: GameState) => {
+    setGameState(newState);
+    if (!supabase || !gameId) return;
+
+    try {
+      const { error } = await supabase
+        .from('games')
+        .update({ state: newState })
+        .eq('id', gameId);
+
+      if (error) throw error;
+    } catch (error) {
+      setGameStateMessage('Error updating game: ' + (error as Error).message);
+    }
+  };
+
+  const {
+    selectedTerritory,
+    fortifyTroops,
+    setFortifyTroops,
+    message,
+    handleTerritoryClick,
+    handleSkip
+  } = useGameLogic(gameState, updateGameState);
+
+  const [gameStateMessage, setGameStateMessage] = useState<string>('');
 
   // Check if Supabase is configured
   useEffect(() => {
@@ -62,7 +87,7 @@ export default function MultiplayerGame() {
 
   const createNewGame = async () => {
     if (!supabase) {
-      setMessage('Supabase not configured. Please set environment variables.');
+      setGameStateMessage('Supabase not configured. Please set environment variables.');
       return;
     }
 
@@ -82,9 +107,9 @@ export default function MultiplayerGame() {
 
       setGameId(data.id);
       setGameState(initialState);
-      setMessage(`Game created! Share this ID: ${data.id}`);
+      setGameStateMessage(`Game created! Share this ID: ${data.id}`);
     } catch (error) {
-      setMessage('Error creating game: ' + (error as Error).message);
+      setGameStateMessage('Error creating game: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -92,7 +117,7 @@ export default function MultiplayerGame() {
 
   const joinGame = async (id: string) => {
     if (!supabase) {
-      setMessage('Supabase not configured. Please set environment variables.');
+      setGameStateMessage('Supabase not configured. Please set environment variables.');
       return;
     }
 
@@ -108,114 +133,11 @@ export default function MultiplayerGame() {
 
       setGameId(data.id);
       setGameState(data.state as GameState);
-      setMessage('Joined game successfully!');
+      setGameStateMessage('Joined game successfully!');
     } catch (error) {
-      setMessage('Error joining game: ' + (error as Error).message);
+      setGameStateMessage('Error joining game: ' + (error as Error).message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const updateGameState = async (newState: GameState) => {
-    if (!supabase || !gameId) return;
-
-    try {
-      const { error } = await supabase
-        .from('games')
-        .update({ state: newState })
-        .eq('id', gameId);
-
-      if (error) throw error;
-    } catch (error) {
-      setMessage('Error updating game: ' + (error as Error).message);
-    }
-  };
-
-  const handleTerritoryClick = async (territoryId: TerritoryId) => {
-    if (!gameState || gameState.winner) return;
-
-    const territory = gameState.territories[territoryId];
-
-    if (gameState.phase === 'attack') {
-      if (!selectedTerritory) {
-        if (territory.owner === gameState.currentPlayer && territory.troops > 1) {
-          setSelectedTerritory(territoryId);
-          setMessage(`Selected territory ${territoryId}. Click an adjacent enemy territory to attack.`);
-        } else {
-          setMessage('Select a territory you own with at least 2 troops.');
-        }
-      } else {
-        const move: Move = {
-          type: 'attack',
-          from: selectedTerritory,
-          to: territoryId
-        };
-
-        const error = validateMove(gameState, move);
-        if (error) {
-          setMessage(error);
-          setSelectedTerritory(null);
-        } else {
-          try {
-            const newState = applyMove(gameState, move);
-            await updateGameState(newState);
-            setGameState(newState);
-            setMessage('Attack executed!');
-          } catch (error) {
-            setMessage('Attack failed: ' + (error as Error).message);
-            setSelectedTerritory(null);
-          }
-        }
-      }
-    } else if (gameState.phase === 'fortify') {
-      if (!selectedTerritory) {
-        if (territory.owner === gameState.currentPlayer && territory.troops > 1) {
-          setSelectedTerritory(territoryId);
-          setFortifyTroops(1);
-          setMessage(`Selected territory ${territoryId}. Click a connected territory to move troops.`);
-        } else {
-          setMessage('Select a territory you own with at least 2 troops.');
-        }
-      } else {
-        const move: Move = {
-          type: 'fortify',
-          from: selectedTerritory,
-          to: territoryId,
-          troops: fortifyTroops
-        };
-
-        const error = validateMove(gameState, move);
-        if (error) {
-          setMessage(error);
-          setSelectedTerritory(null);
-        } else {
-          try {
-            const newState = applyMove(gameState, move);
-            await updateGameState(newState);
-            setGameState(newState);
-            setMessage('Troops moved!');
-            setSelectedTerritory(null);
-          } catch (error) {
-            setMessage('Move failed: ' + (error as Error).message);
-            setSelectedTerritory(null);
-          }
-        }
-      }
-    }
-  };
-
-  const handleSkip = async () => {
-    if (!gameState || gameState.winner) return;
-
-    const move: Move = { type: 'skip' };
-    try {
-      const newState = applyMove(gameState, move);
-      await updateGameState(newState);
-      setGameState(newState);
-      setSelectedTerritory(null);
-      setMessage(gameState.phase === 'attack' ? 'Moved to fortify phase' : 'Turn ended');
-    } catch (error) {
-      setMessage('Error: ' + (error as Error).message);
     }
   };
 
@@ -280,7 +202,7 @@ export default function MultiplayerGame() {
             </Link>
           </div>
 
-          {message && (
+          {(message || gameStateMessage) && (
             <div style={{
               padding: '15px',
               backgroundColor: '#2a2a2a',
@@ -288,7 +210,7 @@ export default function MultiplayerGame() {
               borderRadius: '8px',
               marginBottom: '20px'
             }}>
-              {message}
+              {message || gameStateMessage}
             </div>
           )}
 
@@ -379,7 +301,7 @@ export default function MultiplayerGame() {
           </Link>
         </div>
 
-        {message && (
+        {(message || gameStateMessage) && (
           <div style={{
             padding: '15px',
             backgroundColor: '#2a2a2a',
@@ -387,7 +309,7 @@ export default function MultiplayerGame() {
             borderRadius: '8px',
             marginBottom: '20px'
           }}>
-            {message}
+            {message || gameStateMessage}
           </div>
         )}
 

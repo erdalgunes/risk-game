@@ -1,17 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createInitialState, applyMove, validateMove, getAIMove } from '@risk-poc/game-engine';
-import type { GameState, TerritoryId, Move } from '@risk-poc/game-engine';
+import { createInitialState, getAIMove, applyMove } from '@risk-poc/game-engine';
+import type { GameState, TerritoryId } from '@risk-poc/game-engine';
 import { GameBoard } from '@/components/GameBoard';
 import { GameControls } from '@/components/GameControls';
+import { useGameLogic } from '@/hooks/useGameLogic';
 import Link from 'next/link';
 
 export default function SinglePlayerGame() {
   const [gameState, setGameState] = useState<GameState>(createInitialState);
-  const [selectedTerritory, setSelectedTerritory] = useState<TerritoryId | null>(null);
-  const [fortifyTroops, setFortifyTroops] = useState(1);
-  const [message, setMessage] = useState<string>('');
+
+  const {
+    selectedTerritory,
+    fortifyTroops,
+    setFortifyTroops,
+    message,
+    handleTerritoryClick: handleTerritoryClickBase,
+    handleSkip,
+    resetSelection
+  } = useGameLogic(gameState, setGameState);
 
   // AI player logic
   useEffect(() => {
@@ -21,7 +29,7 @@ export default function SinglePlayerGame() {
         try {
           const newState = applyMove(gameState, aiMove);
           setGameState(newState);
-          setSelectedTerritory(null);
+          resetSelection();
         } catch (error) {
           console.error('AI move error:', error);
         }
@@ -29,96 +37,11 @@ export default function SinglePlayerGame() {
 
       return () => clearTimeout(timer);
     }
-  }, [gameState]);
+  }, [gameState, resetSelection]);
 
   const handleTerritoryClick = (territoryId: TerritoryId) => {
-    if (gameState.winner || gameState.currentPlayer !== 'red') return;
-
-    const territory = gameState.territories[territoryId];
-
-    if (gameState.phase === 'attack') {
-      if (!selectedTerritory) {
-        // Select attacking territory
-        if (territory.owner === 'red' && territory.troops > 1) {
-          setSelectedTerritory(territoryId);
-          setMessage(`Selected territory ${territoryId}. Click an adjacent enemy territory to attack.`);
-        } else {
-          setMessage('Select a territory you own with at least 2 troops.');
-        }
-      } else {
-        // Execute attack
-        const move: Move = {
-          type: 'attack',
-          from: selectedTerritory,
-          to: territoryId
-        };
-
-        const error = validateMove(gameState, move);
-        if (error) {
-          setMessage(error);
-          setSelectedTerritory(null);
-        } else {
-          try {
-            const newState = applyMove(gameState, move);
-            setGameState(newState);
-            setMessage('Attack executed!');
-            // Keep territory selected for multiple attacks
-          } catch (error) {
-            setMessage('Attack failed: ' + (error as Error).message);
-            setSelectedTerritory(null);
-          }
-        }
-      }
-    } else if (gameState.phase === 'fortify') {
-      if (!selectedTerritory) {
-        // Select source territory
-        if (territory.owner === 'red' && territory.troops > 1) {
-          setSelectedTerritory(territoryId);
-          setFortifyTroops(1);
-          setMessage(`Selected territory ${territoryId}. Click a connected territory to move troops.`);
-        } else {
-          setMessage('Select a territory you own with at least 2 troops.');
-        }
-      } else {
-        // Execute fortify
-        const move: Move = {
-          type: 'fortify',
-          from: selectedTerritory,
-          to: territoryId,
-          troops: fortifyTroops
-        };
-
-        const error = validateMove(gameState, move);
-        if (error) {
-          setMessage(error);
-          setSelectedTerritory(null);
-        } else {
-          try {
-            const newState = applyMove(gameState, move);
-            setGameState(newState);
-            setMessage('Troops moved!');
-            setSelectedTerritory(null);
-          } catch (error) {
-            setMessage('Move failed: ' + (error as Error).message);
-            setSelectedTerritory(null);
-          }
-        }
-      }
-    }
-  };
-
-  const handleSkip = () => {
-    if (gameState.winner) return;
-
-    const move: Move = { type: 'skip' };
-    try {
-      const newState = applyMove(gameState, move);
-      setGameState(newState);
-      setSelectedTerritory(null);
-      setMessage(gameState.phase === 'attack' ? 'Moved to fortify phase' : 'Turn ended');
-    } catch (error) {
-      setMessage('Error: ' + (error as Error).message);
-    }
+    if (gameState.currentPlayer !== 'red') return;
+    handleTerritoryClickBase(territoryId, 'red');
   };
 
   return (
