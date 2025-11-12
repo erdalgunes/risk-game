@@ -20,7 +20,7 @@ vi.mock('@risk-poc/game-engine', () => ({
 
 // Mock the components
 vi.mock('@/components/GameBoard', () => ({
-  GameBoard: ({ state, onTerritoryClick, selectedTerritory }: any) => (
+  GameBoard: ({ state }: { state: { phase: string; currentPlayer: string } }) => (
     <div data-testid="game-board">
       Game Board - Phase: {state.phase}, Player: {state.currentPlayer}
     </div>
@@ -28,7 +28,7 @@ vi.mock('@/components/GameBoard', () => ({
 }));
 
 vi.mock('@/components/GameControls', () => ({
-  GameControls: ({ state, selectedTerritory, onSkip, fortifyTroops, onFortifyTroopsChange }: any) => (
+  GameControls: ({ state }: { state: { phase: string } }) => (
     <div data-testid="game-controls">
       Game Controls - Phase: {state.phase}
     </div>

@@ -53,7 +53,6 @@ describe('GameBoard', () => {
   });
 
   it('handles shift+click for territory selection', async () => {
-    const user = userEvent.setup();
     render(<GameBoard {...defaultProps} />);
 
     const paths = document.querySelectorAll('path');
