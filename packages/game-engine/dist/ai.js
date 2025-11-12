@@ -39,7 +39,7 @@ function getSmartDeployment(state) {
     for (const continent of continentProgress) {
         if (continent.owned > 0 && continent.owned < continent.total) {
             // Find border territories in this continent
-            const continentBorders = borderTerritories.filter(t => continents.find(c => c.name === continent.continentName)?.territories.includes(t.id));
+            const continentBorders = borderTerritories.filter(t => { var _a; return (_a = continents.find(c => c.name === continent.continentName)) === null || _a === void 0 ? void 0 : _a.territories.includes(t.id); });
             if (continentBorders.length > 0) {
                 // Deploy to weakest border territory in this continent
                 const weakest = continentBorders.reduce((min, t) => t.troops < min.troops ? t : min, continentBorders[0]);
@@ -69,36 +69,9 @@ function getSmartDeployment(state) {
     };
 }
 export function getAIMove(state) {
-    // Handle initial placement phase
-    if (state.phase === 'initial_placement') {
-        const validMoves = getValidMoves(state);
-        const subPhase = state.initialPlacementSubPhase;
-        if (subPhase === 'claiming') {
-            // During claiming, prefer territories in continents where we already have presence
-            const continentProgress = getContinentProgress(state, state.currentPlayer);
-            for (const continent of continentProgress) {
-                if (continent.owned > 0) {
-                    const availableTerritories = continent.missing.filter(t => state.territories[t].owner === null);
-                    if (availableTerritories.length > 0) {
-                        const territory = selectRandom(availableTerritories);
-                        return { type: 'deploy', territory, troops: 1 };
-                    }
-                }
-            }
-        }
-        // Fallback: random valid move
-        return selectRandom(validMoves);
-    }
     // Handle deploy phase with smart strategy
     if (state.phase === 'deploy') {
         return getSmartDeployment(state);
-    }
-    // Handle attack transfer phase
-    if (state.phase === 'attack_transfer') {
-        const validMoves = getValidMoves(state);
-        // Move as many troops as possible to strengthen the conquered territory
-        const maxTransfer = validMoves[validMoves.length - 1];
-        return maxTransfer;
     }
     const validMoves = getValidMoves(state);
     // Filter out skip moves if other moves are available
@@ -109,13 +82,7 @@ export function getAIMove(state) {
     // Prefer attacks over fortify moves
     const attackMoves = actionMoves.filter(m => m.type === 'attack');
     if (attackMoves.length > 0) {
-        // Choose attack with dice (default to max dice for simplicity)
-        const attack = selectRandom(attackMoves);
-        const from = state.territories[attack.from];
-        const to = state.territories[attack.to];
-        attack.attackerDice = Math.min(3, from.troops - 1);
-        attack.defenderDice = Math.min(2, to.troops);
-        return attack;
+        return selectRandom(attackMoves);
     }
     // Otherwise pick a random fortify move
     return selectRandom(actionMoves);

@@ -1,6 +1,6 @@
 import type { TerritoryName, ContinentName } from './territoryData';
 export type { TerritoryName, ContinentName };
-export type Player = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'neutral';
+export type Player = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange';
 export type TerritoryId = TerritoryName;
 export interface Territory {
     id: TerritoryId;
@@ -10,8 +10,12 @@ export interface Territory {
     troops: number;
     adjacentTo: TerritoryId[];
 }
-export type GamePhase = 'initial_placement' | 'deploy' | 'attack' | 'attack_transfer' | 'fortify';
-export type InitialPlacementSubPhase = 'claiming' | 'reinforcing';
+export type GamePhase = 'deploy' | 'attack' | 'fortify';
+export interface PlayerState {
+    id: Player;
+    territories: TerritoryId[];
+    continentBonus: number;
+}
 export interface PlayerState {
     id: Player;
     territories: TerritoryId[];
@@ -25,16 +29,6 @@ export interface GameState {
     winner: Player | null;
     deployableTroops: number;
     conqueredTerritoryThisTurn: boolean;
-    fortifiedThisTurn: boolean;
-    initialPlacementSubPhase?: InitialPlacementSubPhase;
-    unplacedTroops?: Record<Player, number>;
-    pendingTransfer?: {
-        from: TerritoryId;
-        to: TerritoryId;
-        minTroops: number;
-        maxTroops: number;
-    };
-    lastAttackResult: AttackResult | null;
 }
 export interface DeployMove {
     type: 'deploy';
@@ -45,12 +39,6 @@ export interface AttackMove {
     type: 'attack';
     from: TerritoryId;
     to: TerritoryId;
-    attackerDice?: 1 | 2 | 3;
-    defenderDice?: 1 | 2;
-}
-export interface TransferMove {
-    type: 'transfer';
-    troops: number;
 }
 export interface FortifyMove {
     type: 'fortify';
@@ -61,14 +49,10 @@ export interface FortifyMove {
 export interface SkipMove {
     type: 'skip';
 }
-export type Move = DeployMove | AttackMove | TransferMove | FortifyMove | SkipMove;
+export type Move = DeployMove | AttackMove | FortifyMove | SkipMove;
 export interface AttackResult {
-    attackerRolls: number[];
-    defenderRolls: number[];
     attackerLost: number;
     defenderLost: number;
     conquered: boolean;
-    diceUsed: number;
-    defender: Player | null;
 }
 //# sourceMappingURL=types.d.ts.map
