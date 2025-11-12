@@ -3,7 +3,7 @@ import { getValidMoves, getContinentBonus } from './game';
 import { continents } from './territoryData';
 
 function selectRandom<T>(array: T[]): T {
-  const randomIndex = Math.floor(Math.random() * array.length); // NOSONAR - Math.random() acceptable for AI move selection
+  const randomIndex = Math.floor(Math.random() * array.length); // NOSONAR S2245
   return array[randomIndex];
 }
 
