@@ -53,7 +53,8 @@ export function createInitialState(players = ['red', 'blue']) {
         deployableTroops: 0,
         conqueredTerritoryThisTurn: false,
         fortifiedThisTurn: false,
-        unplacedTroops
+        unplacedTroops,
+        lastAttackResult: null
     };
     return initialState;
 }
@@ -67,7 +68,7 @@ function rollMultipleDice(count) {
     }
     return rolls.sort((a, b) => b - a); // Sort descending
 }
-function resolveAttack(attackerTroops, defenderTroops, attackerDice, defenderDice) {
+function resolveAttack(attackerTroops, defenderTroops, attackerDice, defenderDice, defender) {
     // Validate dice counts
     const maxAttackerDice = Math.min(3, attackerTroops - 1);
     const maxDefenderDice = Math.min(2, defenderTroops);
@@ -95,7 +96,8 @@ function resolveAttack(attackerTroops, defenderTroops, attackerDice, defenderDic
         attackerLost,
         defenderLost,
         conquered,
-        diceUsed: actualAttackerDice
+        diceUsed: actualAttackerDice,
+        defender
     };
 }
 function isAdjacent(from, to, territoryMap) {
@@ -362,7 +364,9 @@ export function applyMove(state, move) {
         // Default to maximum dice if not specified
         const attackerDice = move.attackerDice || Math.min(3, from.troops - 1);
         const defenderDice = move.defenderDice || Math.min(2, to.troops);
-        const result = resolveAttack(from.troops, to.troops, attackerDice, defenderDice);
+        const result = resolveAttack(from.troops, to.troops, attackerDice, defenderDice, to.owner);
+        // Store the attack result for UI display
+        newState.lastAttackResult = result;
         from.troops -= result.attackerLost;
         to.troops -= result.defenderLost;
         if (result.conquered) {

@@ -1,5 +1,6 @@
 import type { GameState, TerritoryId, Player } from '@risk-poc/game-engine';
 import { getContinentBonus, getPlayerTerritoryCount, continents, calculateReinforcements } from '@risk-poc/game-engine';
+import { DiceDisplay } from './DiceDisplay';
 
 interface GameControlsProps {
   state: GameState;
@@ -164,11 +165,20 @@ export function GameControls({
           )}
 
           {state.phase === 'attack' && (
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{ fontSize: '14px', color: '#888' }}>
-                Click one of your territories with 2+ troops, then click an adjacent enemy territory to attack.
-              </p>
-            </div>
+            <>
+              {state.lastAttackResult && (
+                <DiceDisplay
+                  attackResult={state.lastAttackResult}
+                  attackerColor={currentColor}
+                  defenderColor={playerColors[state.lastAttackResult.defender || 'neutral']}
+                />
+              )}
+              <div style={{ marginBottom: '20px' }}>
+                <p style={{ fontSize: '14px', color: '#888' }}>
+                  Click one of your territories with 2+ troops, then click an adjacent enemy territory to attack.
+                </p>
+              </div>
+            </>
           )}
 
           {state.phase === 'fortify' && !state.fortifiedThisTurn && !selectedTerritory && (

@@ -49,6 +49,7 @@ export interface GameState {
     minTroops: number;
     maxTroops: number;
   };
+  lastAttackResult: AttackResult | null;
 }
 
 export interface DeployMove {
@@ -90,4 +91,5 @@ export interface AttackResult {
   defenderLost: number;
   conquered: boolean;
   diceUsed: number;
+  defender: Player | null;
 }
