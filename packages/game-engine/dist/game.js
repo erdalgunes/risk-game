@@ -36,8 +36,9 @@ export function createInitialState(players = ['red', 'blue']) {
             adjacentTo: territoryDef.neighbors
         };
     });
-    // Calculate initial armies for each player
-    const armyCount = getInitialArmyCount(actualPlayers.length);
+    // Calculate initial armies based on number of human players (excluding neutral)
+    const humanPlayerCount = players.length; // Original player count (before adding neutral)
+    const armyCount = getInitialArmyCount(humanPlayerCount);
     const unplacedTroops = {};
     actualPlayers.forEach((player) => {
         unplacedTroops[player] = armyCount;

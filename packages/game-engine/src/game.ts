@@ -53,8 +53,9 @@ export function createInitialState(players: Player[] = ['red', 'blue']): GameSta
     };
   });
 
-  // Calculate initial armies for each player
-  const armyCount = getInitialArmyCount(actualPlayers.length);
+  // Calculate initial armies based on number of human players (excluding neutral)
+  const humanPlayerCount = players.length; // Original player count (before adding neutral)
+  const armyCount = getInitialArmyCount(humanPlayerCount);
   const unplacedTroops: Record<Player, number> = {} as Record<Player, number>;
   actualPlayers.forEach((player) => {
     unplacedTroops[player] = armyCount;
