@@ -272,6 +272,33 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
     setViewBox({ ...initialViewBox.current });
   }, []);
 
+  // Shared button style and handlers
+  const zoomButtonStyle: React.CSSProperties = {
+    width: '40px',
+    height: '40px',
+    borderRadius: '8px',
+    border: '2px solid #333',
+    backgroundColor: '#2a2a2a',
+    color: '#fff',
+    fontSize: '20px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+  };
+
+  const handleButtonMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.backgroundColor = '#3a3a3a';
+    e.currentTarget.style.borderColor = '#ffd700';
+  };
+
+  const handleButtonMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.backgroundColor = '#2a2a2a';
+    e.currentTarget.style.borderColor = '#333';
+  };
+
   // Territory click with pan threshold
   const handleTerritoryClick = useCallback((territoryId: TerritoryId, e: React.MouseEvent | React.TouchEvent) => {
     if ('clientX' in e) {
@@ -441,87 +468,27 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
         <button
           onClick={handleZoomIn}
           aria-label="Zoom in"
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '8px',
-            border: '2px solid #333',
-            backgroundColor: '#2a2a2a',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#3a3a3a';
-            e.currentTarget.style.borderColor = '#ffd700';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#2a2a2a';
-            e.currentTarget.style.borderColor = '#333';
-          }}
+          style={zoomButtonStyle}
+          onMouseEnter={handleButtonMouseEnter}
+          onMouseLeave={handleButtonMouseLeave}
         >
           +
         </button>
         <button
           onClick={handleZoomOut}
           aria-label="Zoom out"
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '8px',
-            border: '2px solid #333',
-            backgroundColor: '#2a2a2a',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#3a3a3a';
-            e.currentTarget.style.borderColor = '#ffd700';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#2a2a2a';
-            e.currentTarget.style.borderColor = '#333';
-          }}
+          style={zoomButtonStyle}
+          onMouseEnter={handleButtonMouseEnter}
+          onMouseLeave={handleButtonMouseLeave}
         >
           −
         </button>
         <button
           onClick={handleReset}
           aria-label="Reset zoom"
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '8px',
-            border: '2px solid #333',
-            backgroundColor: '#2a2a2a',
-            color: '#fff',
-            fontSize: '18px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#3a3a3a';
-            e.currentTarget.style.borderColor = '#ffd700';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#2a2a2a';
-            e.currentTarget.style.borderColor = '#333';
-          }}
+          style={{ ...zoomButtonStyle, fontSize: '18px' }}
+          onMouseEnter={handleButtonMouseEnter}
+          onMouseLeave={handleButtonMouseLeave}
         >
           ⟲
         </button>
