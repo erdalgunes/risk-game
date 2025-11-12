@@ -49,6 +49,7 @@ export interface GameState {
     minTroops: number;
     maxTroops: number;
   };
+  lastAttackResult: AttackResult | null;
 }
 
 export interface DeployMove {
