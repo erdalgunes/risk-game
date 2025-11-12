@@ -49,7 +49,8 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
       green: '#2ecc71',
       yellow: '#f1c40f',
       purple: '#9b59b6',
-      orange: '#e67e22'
+      orange: '#e67e22',
+      neutral: '#777777'
     };
     return colors[owner];
   };
