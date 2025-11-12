@@ -16,6 +16,29 @@ export default function MultiplayerGame() {
   const [supabaseReady, setSupabaseReady] = useState(false);
   const [localPlayer, setLocalPlayer] = useState<'red' | 'blue' | null>(null);
 
+  // Responsive styles
+  const responsiveStyles = `
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .game-layout {
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .game-layout {
+        grid-template-columns: 3fr 1fr;
+        gap: 32px;
+      }
+    }
+  `;
+
   const updateGameState = async (newState: GameState) => {
     setGameState(newState);
     if (!supabase || !gameId) return;
@@ -165,44 +188,49 @@ export default function MultiplayerGame() {
 
   if (!supabaseReady) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#0a0a0a',
-        padding: '20px',
-        color: 'white'
-      }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', paddingTop: '100px' }}>
-          <h1>Supabase Not Configured</h1>
-          <p style={{ color: '#888', marginTop: '20px' }}>
-            Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file.
-          </p>
-          <Link
-            href="/"
-            style={{
-              display: 'inline-block',
-              marginTop: '40px',
-              padding: '10px 20px',
-              backgroundColor: '#555',
-              color: 'white',
-              textDecoration: 'none',
-              borderRadius: '8px'
-            }}
-          >
-            Back to Menu
-          </Link>
+      <>
+        <style>{responsiveStyles}</style>
+        <div style={{
+          minHeight: '100vh',
+          backgroundColor: '#0a0a0a',
+          padding: '20px',
+          color: 'white'
+        }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', paddingTop: '100px' }}>
+            <h1>Supabase Not Configured</h1>
+            <p style={{ color: '#888', marginTop: '20px' }}>
+              Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file.
+            </p>
+            <Link
+              href="/"
+              style={{
+                display: 'inline-block',
+                marginTop: '40px',
+                padding: '10px 20px',
+                backgroundColor: '#555',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '8px'
+              }}
+            >
+              Back to Menu
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!gameState) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#0a0a0a',
-        padding: '20px'
-      }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <>
+        <style>{responsiveStyles}</style>
+        <div style={{
+          minHeight: '100vh',
+          backgroundColor: '#0a0a0a',
+          padding: '20px'
+        }}>
+          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -287,16 +315,19 @@ export default function MultiplayerGame() {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0a0a0a',
-      padding: '20px'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <>
+      <style>{responsiveStyles}</style>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0a0a0a',
+        padding: '20px'
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -335,7 +366,7 @@ export default function MultiplayerGame() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+        <div className="game-layout">
           <GameBoard
             state={gameState}
             onTerritoryClick={handleTerritoryClick}
@@ -351,5 +382,6 @@ export default function MultiplayerGame() {
         </div>
       </div>
     </div>
+    </>
   );
 }

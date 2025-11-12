@@ -11,6 +11,7 @@ interface GameBoardProps {
 
 export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBoardProps) {
   const [hoveredTerritory, setHoveredTerritory] = useState<TerritoryId | null>(null);
+  const [activeTouchTerritory, setActiveTouchTerritory] = useState<TerritoryId | null>(null);
   const territories = state.territories;
 
   const getPlayerColor = (owner: Player): string => {
@@ -27,35 +28,42 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
 
   const getStrokeColor = (territoryId: TerritoryId): string => {
     if (selectedTerritory === territoryId) return '#ffd700';
-    if (hoveredTerritory === territoryId) return '#ffffff';
+    if (hoveredTerritory === territoryId || activeTouchTerritory === territoryId) return '#ffffff';
     return '#000000';
   };
 
   const getStrokeWidth = (territoryId: TerritoryId): number => {
     if (selectedTerritory === territoryId) return 4;
-    if (hoveredTerritory === territoryId) return 3;
+    if (hoveredTerritory === territoryId || activeTouchTerritory === territoryId) return 3;
     return 2;
   };
 
   const getOpacity = (territoryId: TerritoryId): number => {
     if (selectedTerritory === territoryId) return 1;
-    if (hoveredTerritory === territoryId) return 0.95;
+    if (hoveredTerritory === territoryId || activeTouchTerritory === territoryId) return 0.95;
     return 0.85;
   };
 
   return (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 750 520"
-      style={{
-        border: '2px solid #333',
-        backgroundColor: '#2a2a2a',
-        borderRadius: '8px',
-        maxWidth: '1200px',
-        maxHeight: '800px'
-      }}
-    >
+    <div style={{
+      width: '100%',
+      aspectRatio: '750 / 520',
+      maxWidth: '100%',
+      margin: '0 auto',
+    }}>
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 750 520"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          display: 'block',
+          border: '2px solid #333',
+          backgroundColor: '#2a2a2a',
+          borderRadius: '8px',
+          touchAction: 'manipulation',
+        }}
+      >
       <defs>
         {/* Shadow filter for depth */}
         <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
@@ -109,11 +117,15 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
               filter={isSelected ? "url(#glow)" : "url(#shadow)"}
               style={{
                 cursor: 'pointer',
-                transition: 'all 0.2s ease-in-out'
+                transition: 'all 0.2s ease-in-out',
+                WebkitTapHighlightColor: 'transparent'
               }}
               onClick={() => onTerritoryClick(territory.id)}
               onMouseEnter={() => setHoveredTerritory(territory.id)}
               onMouseLeave={() => setHoveredTerritory(null)}
+              onTouchStart={() => setActiveTouchTerritory(territory.id)}
+              onTouchEnd={() => setActiveTouchTerritory(null)}
+              onTouchCancel={() => setActiveTouchTerritory(null)}
             />
 
             {/* Troop count */}
@@ -136,5 +148,6 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
         );
       })}
     </svg>
+    </div>
   );
 }

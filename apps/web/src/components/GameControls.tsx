@@ -33,7 +33,8 @@ export function GameControls({
       backgroundColor: '#1a1a1a',
       borderRadius: '8px',
       color: 'white',
-      minWidth: '300px'
+      width: '100%',
+      maxWidth: '400px'
     }}>
       <h2 style={{ margin: '0 0 20px 0' }}>Game Status</h2>
 
@@ -93,12 +94,13 @@ export function GameControls({
                 onChange={(e) => onFortifyTroopsChange(parseInt(e.target.value) || 1)}
                 style={{
                   width: '100%',
-                  padding: '8px',
+                  padding: '14px',
                   fontSize: '16px',
-                  borderRadius: '4px',
+                  borderRadius: '8px',
                   border: '1px solid #555',
                   backgroundColor: '#2a2a2a',
-                  color: 'white'
+                  color: 'white',
+                  minHeight: '48px'
                 }}
               />
               <p style={{ fontSize: '14px', color: '#888', marginTop: '10px' }}>
@@ -111,14 +113,19 @@ export function GameControls({
             onClick={onSkip}
             style={{
               width: '100%',
-              padding: '12px',
+              padding: '16px',
               fontSize: '16px',
               backgroundColor: '#555',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              minHeight: '48px',
+              fontWeight: '600',
+              transition: 'background-color 200ms ease-in-out'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#666'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#555'}
           >
             {state.phase === 'attack' ? 'Skip to Fortify' : 'End Turn'}
           </button>
