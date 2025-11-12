@@ -21,7 +21,6 @@ function shuffle<T>(array: T[]): T[] {
 
 export function createInitialState(players: Player[] = ['red', 'blue']): GameState {
   const shuffledTerritories = shuffle(allTerritoryNames);
-  const territoriesPerPlayer = Math.floor(42 / players.length);
   const initialTroops = 3;
 
   const territoryMap: Record<TerritoryId, Territory> = {} as Record<TerritoryId, Territory>;

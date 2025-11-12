@@ -197,7 +197,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
       const dx = touchList[0].x - touchList[1].x;
       const dy = touchList[0].y - touchList[1].y;
       const distance = Math.hypot(dx, dy);
-      const scale = initialPinchDistance / distance;
+      const scale = distance / initialPinchDistance;
 
       const currentScale = initialViewBox.current.width / initialPinchViewBox.width;
       const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * scale));
@@ -384,9 +384,9 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
         {/* Draw territories */}
         {Object.values(territories).map((territory) => {
           const pathData = riskMapPaths[territory.id];
-          if (!pathData || !territory.owner) return null;
+          if (!pathData) return null;
 
-          const color = getPlayerColor(territory.owner);
+          const color = territory.owner ? getPlayerColor(territory.owner) : '#7f8c8d';
           const isSelected = selectedTerritory === territory.id;
 
           return (

@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" style={{ overscrollBehavior: 'none' }}>
+    <html lang="en">
       <head>
         <style>{`
           html, body {
@@ -38,7 +38,7 @@ export default function RootLayout({
           }
         `}</style>
       </head>
-      <body style={{ margin: 0, padding: 0, fontFamily: 'system-ui, sans-serif', overscrollBehavior: 'none' }}>
+      <body style={{ margin: 0, padding: 0, fontFamily: 'system-ui, sans-serif' }}>
         {children}
       </body>
     </html>
