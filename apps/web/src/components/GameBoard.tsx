@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { GameState, TerritoryId, Player } from '@risk-poc/game-engine';
 import { riskMapPaths } from '@/data/riskMapPaths';
+import { connectionLines } from '@/data/connectionLines';
 
 interface GameBoardProps {
   state: GameState;
@@ -69,6 +70,23 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
           </feMerge>
         </filter>
       </defs>
+
+      {/* Draw connection lines (under territories) */}
+      <g opacity="0.4">
+        {connectionLines.map((connection, index) => (
+          <line
+            key={`connection-${index}`}
+            x1={connection.x1}
+            y1={connection.y1}
+            x2={connection.x2}
+            y2={connection.y2}
+            stroke="#888888"
+            strokeWidth="2"
+            strokeDasharray="6,3"
+            strokeLinecap="round"
+          />
+        ))}
+      </g>
 
       {/* Draw territories */}
       {Object.values(territories).map((territory) => {
