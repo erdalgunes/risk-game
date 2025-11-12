@@ -94,8 +94,8 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
     const newWidth = initialViewBox.current.width / newScale;
     const newHeight = initialViewBox.current.height / newScale;
 
-    let newX = viewBox.x;
-    let newY = viewBox.y;
+    let newX: number;
+    let newY: number;
 
     if (centerX !== undefined && centerY !== undefined) {
       // Zoom to cursor position
@@ -168,7 +168,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
       // Start pinch zoom
       const dx = touchList[0].x - touchList[1].x;
       const dy = touchList[0].y - touchList[1].y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const distance = Math.hypot(dx, dy);
       setInitialPinchDistance(distance);
       setInitialPinchViewBox({ ...viewBox });
     } else if (touchList.length === 1) {
@@ -196,7 +196,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
       // Pinch zoom
       const dx = touchList[0].x - touchList[1].x;
       const dy = touchList[0].y - touchList[1].y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const distance = Math.hypot(dx, dy);
       const scale = initialPinchDistance / distance;
 
       const currentScale = initialViewBox.current.width / initialPinchViewBox.width;
@@ -339,9 +339,9 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
 
         {/* Draw connection lines (under territories) */}
         <g opacity="0.4">
-          {connectionLines.map((connection, index) => (
+          {connectionLines.map((connection) => (
             <line
-              key={`connection-${index}`}
+              key={`${connection.from}-${connection.to}`}
               x1={connection.x1}
               y1={connection.y1}
               x2={connection.x2}
