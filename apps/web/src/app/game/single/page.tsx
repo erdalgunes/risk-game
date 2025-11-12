@@ -62,9 +62,9 @@ export default function SinglePlayerGame() {
     }
   }, [gameState, resetSelection]);
 
-  const handleTerritoryClick = (territoryId: TerritoryId) => {
+  const handleTerritoryClick = (territoryId: TerritoryId, shiftKey?: boolean) => {
     if (gameState.currentPlayer !== 'red') return;
-    handleTerritoryClickBase(territoryId, 'red');
+    handleTerritoryClickBase(territoryId, 'red', shiftKey);
   };
 
   return (

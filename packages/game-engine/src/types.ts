@@ -15,7 +15,7 @@ export interface Territory {
   adjacentTo: TerritoryId[];
 }
 
-export type GamePhase = 'attack' | 'fortify';
+export type GamePhase = 'deploy' | 'attack' | 'fortify';
 
 export interface PlayerState {
   id: Player;
@@ -29,6 +29,14 @@ export interface GameState {
   phase: GamePhase;
   territories: Record<TerritoryId, Territory>;
   winner: Player | null;
+  deployableTroops: number;
+  conqueredTerritoryThisTurn: boolean;
+}
+
+export interface DeployMove {
+  type: 'deploy';
+  territory: TerritoryId;
+  troops: number;
 }
 
 export interface AttackMove {
@@ -48,7 +56,7 @@ export interface SkipMove {
   type: 'skip';
 }
 
-export type Move = AttackMove | FortifyMove | SkipMove;
+export type Move = DeployMove | AttackMove | FortifyMove | SkipMove;
 
 export interface AttackResult {
   attackerLost: number;

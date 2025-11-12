@@ -5,7 +5,7 @@ import { connectionLines } from '@/data/connectionLines';
 
 interface GameBoardProps {
   state: GameState;
-  onTerritoryClick: (id: TerritoryId) => void;
+  onTerritoryClick: (id: TerritoryId, shiftKey?: boolean) => void;
   selectedTerritory: TerritoryId | null;
 }
 
@@ -306,11 +306,11 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
       const dx = Math.abs(e.clientX - mouseStart.x);
       const dy = Math.abs(e.clientY - mouseStart.y);
       if (dx < TAP_THRESHOLD && dy < TAP_THRESHOLD) {
-        onTerritoryClick(territoryId);
+        onTerritoryClick(territoryId, 'shiftKey' in e ? e.shiftKey : false);
       }
     } else {
       // Touch handled separately in touch handlers
-      onTerritoryClick(territoryId);
+      onTerritoryClick(territoryId, false);
     }
   }, [mouseStart, onTerritoryClick]);
 
@@ -424,7 +424,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
                     const dy = Math.abs(touch.clientY - mouseStart.y);
 
                     if (dx < TAP_THRESHOLD && dy < TAP_THRESHOLD) {
-                      onTerritoryClick(territory.id);
+                      onTerritoryClick(territory.id, false);
                     }
                   }
                   setActiveTouchTerritory(null);

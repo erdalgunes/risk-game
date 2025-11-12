@@ -1,5 +1,5 @@
 import type { GameState, TerritoryId, Player } from '@risk-poc/game-engine';
-import { getContinentBonus, getPlayerTerritoryCount, continents } from '@risk-poc/game-engine';
+import { getContinentBonus, getPlayerTerritoryCount, continents, calculateReinforcements } from '@risk-poc/game-engine';
 
 interface GameControlsProps {
   state: GameState;
@@ -68,15 +68,42 @@ export function GameControls({
             </p>
             {selectedTerritory && (
               <p style={{ margin: '5px 0', fontSize: '16px' }}>
-                Selected: <strong>Territory {selectedTerritory}</strong>
+                Selected: <strong>{selectedTerritory.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</strong>
               </p>
             )}
           </div>
+
+          {state.phase === 'deploy' && (
+            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>
+                {state.deployableTroops} {state.deployableTroops === 1 ? 'Troop' : 'Troops'} Available
+              </div>
+              <div style={{ fontSize: '14px', color: '#888' }}>
+                <div style={{ marginBottom: '5px' }}>Income Breakdown:</div>
+                <div>• Territories: {Math.floor(getPlayerTerritoryCount(state.currentPlayer, state.territories) / 3)}</div>
+                <div>• Continent Bonus: +{getContinentBonus(state.currentPlayer, state.territories)}</div>
+                <div style={{ marginTop: '5px', color: '#aaa' }}>
+                  (Minimum: 3 troops)
+                </div>
+              </div>
+              <p style={{ fontSize: '14px', color: '#888', marginTop: '10px', marginBottom: '0' }}>
+                Click your territories to deploy troops. Click = 1 troop, Shift+Click = all troops.
+              </p>
+            </div>
+          )}
 
           {state.phase === 'attack' && (
             <div style={{ marginBottom: '20px' }}>
               <p style={{ fontSize: '14px', color: '#888' }}>
                 Click one of your territories with 2+ troops, then click an adjacent enemy territory to attack.
+              </p>
+            </div>
+          )}
+
+          {state.phase === 'fortify' && !selectedTerritory && (
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#888' }}>
+                Click one of your territories with 2+ troops to select it, then click a connected territory to move troops.
               </p>
             </div>
           )}
@@ -111,23 +138,38 @@ export function GameControls({
 
           <button
             onClick={onSkip}
+            disabled={state.phase === 'deploy' && state.deployableTroops > 0}
             style={{
               width: '100%',
               padding: '16px',
               fontSize: '16px',
-              backgroundColor: '#555',
-              color: 'white',
+              backgroundColor: state.phase === 'deploy' && state.deployableTroops > 0 ? '#333' : '#555',
+              color: state.phase === 'deploy' && state.deployableTroops > 0 ? '#666' : 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: state.phase === 'deploy' && state.deployableTroops > 0 ? 'not-allowed' : 'pointer',
               minHeight: '48px',
               fontWeight: '600',
               transition: 'background-color 200ms ease-in-out'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#666'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#555'}
+            onMouseEnter={(e) => {
+              if (!(state.phase === 'deploy' && state.deployableTroops > 0)) {
+                e.currentTarget.style.backgroundColor = '#666';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!(state.phase === 'deploy' && state.deployableTroops > 0)) {
+                e.currentTarget.style.backgroundColor = '#555';
+              }
+            }}
           >
-            {state.phase === 'attack' ? 'Skip to Fortify' : 'End Turn'}
+            {state.phase === 'deploy'
+              ? state.deployableTroops > 0
+                ? `Deploy ${state.deployableTroops} Remaining Troops`
+                : 'Start Attack Phase'
+              : state.phase === 'attack'
+                ? 'Skip to Fortify'
+                : 'End Turn'}
           </button>
         </>
       )}
