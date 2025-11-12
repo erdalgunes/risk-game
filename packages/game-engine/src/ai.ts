@@ -9,10 +9,10 @@ function getSecureRandom(): number {
     const array = new Uint32Array(1);
     window.crypto.getRandomValues(array);
     return array[0] / (0xffffffff + 1);
-  } else if (typeof global !== 'undefined' && global.crypto) {
-    // Node.js environment
+  } else if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+    // Node.js/universal environment
     const array = new Uint32Array(1);
-    global.crypto.getRandomValues(array);
+    globalThis.crypto.getRandomValues(array);
     return array[0] / (0xffffffff + 1);
   } else {
     // Deterministic fallback using current timestamp to avoid Math.random()
