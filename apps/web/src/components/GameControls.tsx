@@ -7,9 +7,9 @@ interface GameControlsProps {
   onSkip: () => void;
   fortifyTroops: number;
   onFortifyTroopsChange: (troops: number) => void;
-  transferTroops?: number;
-  onTransferTroopsChange?: (troops: number) => void;
-  onTransfer?: () => void;
+  transferTroops: number;
+  onTransferTroopsChange: (troops: number) => void;
+  onTransfer: () => void;
 }
 
 export function GameControls({
@@ -133,8 +133,8 @@ export function GameControls({
                 type="range"
                 min={state.pendingTransfer.minTroops}
                 max={state.pendingTransfer.maxTroops}
-                value={transferTroops || state.pendingTransfer.minTroops}
-                onChange={(e) => onTransferTroopsChange?.(parseInt(e.target.value))}
+                value={transferTroops}
+                onChange={(e) => onTransferTroopsChange(parseInt(e.target.value))}
                 style={{
                   width: '100%',
                   marginBottom: '15px'
