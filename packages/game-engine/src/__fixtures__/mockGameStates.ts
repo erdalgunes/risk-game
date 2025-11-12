@@ -1,7 +1,7 @@
 import { createInitialState } from '../game';
 import type { GameState } from '../types';
 
-export const mockEarlyGameState: GameState = (() => {
+export const createMockEarlyGameState = (): GameState => {
   const state = createInitialState(['red', 'blue']);
   // Modify some territories for consistent testing
   state.territories.alaska = { ...state.territories.alaska, owner: 'red', troops: 3 };
@@ -16,19 +16,23 @@ export const mockEarlyGameState: GameState = (() => {
   state.phase = 'deploy';
   state.deployableTroops = 3;
   return state;
-})();
+};
 
-export const mockMidGameState: GameState = (() => {
-  const state = { ...mockEarlyGameState };
+export const mockEarlyGameState = createMockEarlyGameState();
+
+export const createMockMidGameState = (): GameState => {
+  const state = createMockEarlyGameState();
   state.phase = 'attack';
   state.territories.alaska.troops = 5;
   state.territories.alberta.troops = 4;
   state.territories.northwest_territory.troops = 2;
   return state;
-})();
+};
 
-export const mockNearVictoryState: GameState = (() => {
-  const state = { ...mockEarlyGameState };
+export const mockMidGameState = createMockMidGameState();
+
+export const createMockNearVictoryState = (): GameState => {
+  const state = createMockEarlyGameState();
   state.phase = 'attack';
   state.territories.alaska.troops = 10;
   state.territories.alberta.troops = 8;
@@ -44,14 +48,18 @@ export const mockNearVictoryState: GameState = (() => {
   state.territories.greenland.owner = 'red';
   state.territories.greenland.troops = 3;
   return state;
-})();
+};
 
-export const mockStalemateState: GameState = (() => {
-  const state = { ...mockEarlyGameState };
+export const mockNearVictoryState = createMockNearVictoryState();
+
+export const createMockStalemateState = (): GameState => {
+  const state = createMockEarlyGameState();
   state.phase = 'attack';
   // Set all territories to have only 1 troop
   Object.values(state.territories).forEach(territory => {
     territory.troops = 1;
   });
   return state;
-})();
+};
+
+export const mockStalemateState = createMockStalemateState();

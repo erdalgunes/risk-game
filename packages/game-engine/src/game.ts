@@ -401,7 +401,9 @@ export function applyMove(state: GameState, move: Move): GameState {
   const newState = JSON.parse(JSON.stringify(state)) as GameState;
 
   if (move.type === 'skip') {
-    if (newState.phase === 'attack') {
+    if (newState.phase === 'deploy') {
+      newState.phase = 'attack';
+    } else if (newState.phase === 'attack') {
       newState.phase = 'fortify';
     } else if (newState.phase === 'fortify') {
       endTurn(newState);

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getAIMove } from './ai';
-import { mockEarlyGameState, mockMidGameState } from './__fixtures__/mockGameStates';
+import { createMockEarlyGameState, createMockMidGameState } from './__fixtures__/mockGameStates';
 import type { Move } from './types';
 
 describe('getAIMove', () => {
   it('should return a valid move during deploy phase', () => {
-    const state = { ...mockEarlyGameState, phase: 'deploy' as const, deployableTroops: 3 };
+    const state = { ...createMockEarlyGameState(), phase: 'deploy' as const, deployableTroops: 3 };
 
     const move = getAIMove(state);
 
@@ -19,7 +19,7 @@ describe('getAIMove', () => {
   });
 
   it('should return a valid move during attack phase', () => {
-    const state = { ...mockEarlyGameState, phase: 'attack' as const };
+    const state = { ...createMockEarlyGameState(), phase: 'attack' as const };
 
     const move = getAIMove(state);
 
@@ -29,7 +29,7 @@ describe('getAIMove', () => {
   });
 
   it('should return a valid move during fortify phase', () => {
-    const state = { ...mockEarlyGameState, phase: 'fortify' as const };
+    const state = { ...createMockEarlyGameState(), phase: 'fortify' as const };
 
     const move = getAIMove(state);
 
@@ -40,7 +40,7 @@ describe('getAIMove', () => {
 
   it('should prefer attack moves over fortify moves', () => {
     // Mock a state where attack moves are available
-    const state = { ...mockEarlyGameState, phase: 'attack' as const };
+    const state = { ...createMockEarlyGameState(), phase: 'attack' as const };
 
     // Mock Math.random to ensure consistent behavior
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
@@ -55,15 +55,21 @@ describe('getAIMove', () => {
   });
 
   it('should return skip when no other moves are available', () => {
-    // Create a state where no valid moves exist
-    const isolatedState = {
-      ...mockEarlyGameState,
+    // Create a state where no valid moves exist - all red territories have only 1 troop
+    const baseState = createMockEarlyGameState();
+    const isolatedState: typeof baseState = {
+      ...baseState,
       phase: 'attack' as const,
       territories: {
-        ...mockEarlyGameState.territories,
-        // Set up territories so no attacks are possible
-        alaska: { ...mockEarlyGameState.territories.alaska, troops: 1 }, // Not enough troops to attack
-      }
+        ...Object.fromEntries(
+          Object.entries(baseState.territories).map(([key, territory]) => [
+            key,
+            territory.owner === 'red'
+              ? { ...territory, troops: 1 } // Red can't attack with 1 troop
+              : territory
+          ])
+        )
+      } as typeof baseState.territories
     };
 
     const move = getAIMove(isolatedState);
@@ -72,7 +78,7 @@ describe('getAIMove', () => {
   });
 
   it('should make deterministic choices', () => {
-    const state = { ...mockEarlyGameState, phase: 'deploy' as const, deployableTroops: 3 };
+    const state = { ...createMockEarlyGameState(), phase: 'deploy' as const, deployableTroops: 3 };
 
     // Mock Math.random for consistent results
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
@@ -89,7 +95,7 @@ describe('getAIMove', () => {
 describe('AI decision making', () => {
   it('should prioritize border territories during deployment', () => {
     // Test that AI chooses territories adjacent to enemies
-    const state = { ...mockEarlyGameState, phase: 'deploy' as const, deployableTroops: 3 };
+    const state = { ...createMockEarlyGameState(), phase: 'deploy' as const, deployableTroops: 3 };
 
     const move = getAIMove(state);
 
@@ -102,7 +108,7 @@ describe('AI decision making', () => {
 
   it('should handle edge cases gracefully', () => {
     // Test with minimal troops
-    const minimalState = { ...mockEarlyGameState, phase: 'deploy' as const, deployableTroops: 1 };
+    const minimalState = { ...createMockEarlyGameState(), phase: 'deploy' as const, deployableTroops: 1 };
 
     const move = getAIMove(minimalState);
 
