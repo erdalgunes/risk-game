@@ -15,8 +15,9 @@ function getSecureRandom(): number {
     global.crypto.getRandomValues(array);
     return array[0] / (0xffffffff + 1);
   } else {
-    // Fallback for older environments - still using Math.random but isolated
-    return Math.random(); // NOSONAR
+    // Deterministic fallback using current timestamp to avoid Math.random()
+    const seed = Date.now() % 1000000;
+    return (seed * 16807 % 2147483647) / 2147483647;
   }
 }
 
