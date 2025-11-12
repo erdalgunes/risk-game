@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import type { GameState, TerritoryId, Player } from '@risk-poc/game-engine';
 import { riskMapPaths } from '@/data/riskMapPaths';
 import { connectionLines } from '@/data/connectionLines';
@@ -12,7 +13,11 @@ interface GameBoardProps {
 export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBoardProps) {
   const [hoveredTerritory, setHoveredTerritory] = useState<TerritoryId | null>(null);
   const [activeTouchTerritory, setActiveTouchTerritory] = useState<TerritoryId | null>(null);
+  const [touchStartPos, setTouchStartPos] = useState<{x: number, y: number} | null>(null);
+  const [isTransforming, setIsTransforming] = useState(false);
   const territories = state.territories;
+
+  const TAP_THRESHOLD = 10; // pixels - distinguish tap from pan
 
   const getPlayerColor = (owner: Player): string => {
     const colors: Record<Player, string> = {
@@ -50,20 +55,55 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
       aspectRatio: '750 / 520',
       maxWidth: '100%',
       margin: '0 auto',
+      position: 'relative',
+      touchAction: 'none',
+      overscrollBehavior: 'none',
+      WebkitOverflowScrolling: 'touch',
+      userSelect: 'none',
     }}>
-      <svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 750 520"
-        preserveAspectRatio="xMidYMid meet"
-        style={{
-          display: 'block',
-          border: '2px solid #333',
-          backgroundColor: '#2a2a2a',
-          borderRadius: '8px',
-          touchAction: 'manipulation',
+      <TransformWrapper
+        initialScale={1}
+        minScale={0.8}
+        maxScale={4}
+        centerOnInit={true}
+        limitToBounds={true}
+        panning={{ disabled: false }}
+        pinch={{ disabled: false }}
+        wheel={{ step: 0.1 }}
+        doubleClick={{ disabled: true }}
+        velocityAnimation={{
+          sensitivity: 1,
+          animationTime: 400,
+          animationType: "easeOut"
         }}
+        onTransformed={() => setIsTransforming(false)}
+        onPanningStart={() => setIsTransforming(true)}
+        onZoomStart={() => setIsTransforming(true)}
       >
+        {({ zoomIn, zoomOut, resetTransform }) => (
+          <>
+            <TransformComponent
+              wrapperStyle={{
+                width: '100%',
+                height: '100%',
+              }}
+              contentStyle={{
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 750 520"
+                preserveAspectRatio="xMidYMid meet"
+                style={{
+                  display: 'block',
+                  border: '2px solid #333',
+                  backgroundColor: '#2a2a2a',
+                  borderRadius: '8px',
+                }}
+              >
       <defs>
         {/* Shadow filter for depth */}
         <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
@@ -114,7 +154,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
               stroke={getStrokeColor(territory.id)}
               strokeWidth={getStrokeWidth(territory.id)}
               opacity={getOpacity(territory.id)}
-              filter={isSelected ? "url(#glow)" : "url(#shadow)"}
+              filter={!isTransforming && isSelected ? "url(#glow)" : !isTransforming ? "url(#shadow)" : "none"}
               style={{
                 cursor: 'pointer',
                 transition: 'all 0.2s ease-in-out',
@@ -123,9 +163,27 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
               onClick={() => onTerritoryClick(territory.id)}
               onMouseEnter={() => setHoveredTerritory(territory.id)}
               onMouseLeave={() => setHoveredTerritory(null)}
-              onTouchStart={() => setActiveTouchTerritory(territory.id)}
-              onTouchEnd={() => setActiveTouchTerritory(null)}
-              onTouchCancel={() => setActiveTouchTerritory(null)}
+              onTouchStart={(e) => {
+                setTouchStartPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+                setActiveTouchTerritory(territory.id);
+              }}
+              onTouchEnd={(e) => {
+                if (touchStartPos) {
+                  const dx = Math.abs(e.changedTouches[0].clientX - touchStartPos.x);
+                  const dy = Math.abs(e.changedTouches[0].clientY - touchStartPos.y);
+
+                  // Only trigger click if movement is minimal (tap, not pan)
+                  if (dx < TAP_THRESHOLD && dy < TAP_THRESHOLD) {
+                    onTerritoryClick(territory.id);
+                  }
+                }
+                setActiveTouchTerritory(null);
+                setTouchStartPos(null);
+              }}
+              onTouchCancel={() => {
+                setActiveTouchTerritory(null);
+                setTouchStartPos(null);
+              }}
             />
 
             {/* Troop count */}
@@ -147,7 +205,110 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
           </g>
         );
       })}
-    </svg>
+              </svg>
+            </TransformComponent>
+
+            {/* Zoom Controls */}
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              zIndex: 10,
+            }}>
+              <button
+                onClick={() => zoomIn()}
+                aria-label="Zoom in"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '8px',
+                  border: '2px solid #333',
+                  backgroundColor: '#2a2a2a',
+                  color: '#fff',
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                  e.currentTarget.style.borderColor = '#ffd700';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.borderColor = '#333';
+                }}
+              >
+                +
+              </button>
+              <button
+                onClick={() => zoomOut()}
+                aria-label="Zoom out"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '8px',
+                  border: '2px solid #333',
+                  backgroundColor: '#2a2a2a',
+                  color: '#fff',
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                  e.currentTarget.style.borderColor = '#ffd700';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.borderColor = '#333';
+                }}
+              >
+                −
+              </button>
+              <button
+                onClick={() => resetTransform()}
+                aria-label="Reset zoom"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '8px',
+                  border: '2px solid #333',
+                  backgroundColor: '#2a2a2a',
+                  color: '#fff',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                  e.currentTarget.style.borderColor = '#ffd700';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.borderColor = '#333';
+                }}
+              >
+                ⟲
+              </button>
+            </div>
+          </>
+        )}
+      </TransformWrapper>
     </div>
   );
 }
