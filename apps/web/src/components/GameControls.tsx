@@ -1,4 +1,5 @@
-import type { GameState, TerritoryId } from '@risk-poc/game-engine';
+import type { GameState, TerritoryId, Player } from '@risk-poc/game-engine';
+import { getContinentBonus, getPlayerTerritoryCount, continents } from '@risk-poc/game-engine';
 
 interface GameControlsProps {
   state: GameState;
@@ -15,7 +16,16 @@ export function GameControls({
   fortifyTroops,
   onFortifyTroopsChange
 }: GameControlsProps) {
-  const currentColor = state.currentPlayer === 'red' ? '#e74c3c' : '#3498db';
+  const playerColors: Record<Player, string> = {
+    red: '#e74c3c',
+    blue: '#3498db',
+    green: '#2ecc71',
+    yellow: '#f1c40f',
+    purple: '#9b59b6',
+    orange: '#e67e22'
+  };
+
+  const currentColor = playerColors[state.currentPlayer];
 
   return (
     <div style={{
@@ -23,14 +33,15 @@ export function GameControls({
       backgroundColor: '#1a1a1a',
       borderRadius: '8px',
       color: 'white',
-      minWidth: '300px'
+      width: '100%',
+      maxWidth: '400px'
     }}>
       <h2 style={{ margin: '0 0 20px 0' }}>Game Status</h2>
 
       {state.winner ? (
         <div style={{
           padding: '20px',
-          backgroundColor: state.winner === 'red' ? '#e74c3c' : '#3498db',
+          backgroundColor: playerColors[state.winner],
           borderRadius: '8px',
           textAlign: 'center'
         }}>
@@ -83,12 +94,13 @@ export function GameControls({
                 onChange={(e) => onFortifyTroopsChange(parseInt(e.target.value) || 1)}
                 style={{
                   width: '100%',
-                  padding: '8px',
+                  padding: '14px',
                   fontSize: '16px',
-                  borderRadius: '4px',
+                  borderRadius: '8px',
                   border: '1px solid #555',
                   backgroundColor: '#2a2a2a',
-                  color: 'white'
+                  color: 'white',
+                  minHeight: '48px'
                 }}
               />
               <p style={{ fontSize: '14px', color: '#888', marginTop: '10px' }}>
@@ -101,14 +113,19 @@ export function GameControls({
             onClick={onSkip}
             style={{
               width: '100%',
-              padding: '12px',
+              padding: '16px',
               fontSize: '16px',
               backgroundColor: '#555',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              minHeight: '48px',
+              fontWeight: '600',
+              transition: 'background-color 200ms ease-in-out'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#666'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#555'}
           >
             {state.phase === 'attack' ? 'Skip to Fortify' : 'End Turn'}
           </button>
@@ -116,20 +133,43 @@ export function GameControls({
       )}
 
       <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #333' }}>
-        <h3 style={{ margin: '0 0 15px 0', fontSize: '16px' }}>Territory Control</h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ color: '#e74c3c', fontWeight: 'bold' }}>RED</div>
-            <div style={{ fontSize: '24px' }}>
-              {Object.values(state.territories).filter(t => t.owner === 'red').length}/6
-            </div>
-          </div>
-          <div>
-            <div style={{ color: '#3498db', fontWeight: 'bold' }}>BLUE</div>
-            <div style={{ fontSize: '24px' }}>
-              {Object.values(state.territories).filter(t => t.owner === 'blue').length}/6
-            </div>
-          </div>
+        <h3 style={{ margin: '0 0 15px 0', fontSize: '16px' }}>Player Stats</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: state.players.length <= 3 ? `repeat(${state.players.length}, 1fr)` : 'repeat(2, 1fr)', gap: '15px' }}>
+          {state.players.map((player) => {
+            const territoryCount = getPlayerTerritoryCount(player, state.territories);
+            const continentBonus = getContinentBonus(player, state.territories);
+            const ownedContinents = continents
+              .filter(continent =>
+                continent.territories.every(t => state.territories[t].owner === player)
+              )
+              .map(c => c.displayName);
+
+            return (
+              <div key={player} style={{
+                padding: '10px',
+                backgroundColor: '#2a2a2a',
+                borderRadius: '4px',
+                border: player === state.currentPlayer ? `2px solid ${playerColors[player]}` : '2px solid transparent'
+              }}>
+                <div style={{ color: playerColors[player], fontWeight: 'bold', fontSize: '14px' }}>
+                  {player.toUpperCase()}
+                </div>
+                <div style={{ fontSize: '20px', marginTop: '5px' }}>
+                  {territoryCount}/42
+                </div>
+                {continentBonus > 0 && (
+                  <div style={{ fontSize: '12px', color: '#888', marginTop: '5px' }}>
+                    +{continentBonus} bonus
+                    {ownedContinents.length > 0 && (
+                      <div style={{ fontSize: '10px', marginTop: '2px' }}>
+                        ({ownedContinents.join(', ')})
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -8,19 +8,43 @@ import type {
   Player,
   Territory
 } from './types';
+import { territories, continents, allTerritoryNames, type TerritoryName } from './territoryData';
 
-export function createInitialState(): GameState {
+function shuffle<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+export function createInitialState(players: Player[] = ['red', 'blue']): GameState {
+  const shuffledTerritories = shuffle(allTerritoryNames);
+  const initialTroops = 3;
+
+  const territoryMap: Record<TerritoryId, Territory> = {} as Record<TerritoryId, Territory>;
+
+  // Distribute territories among players
+  shuffledTerritories.forEach((territoryName, index) => {
+    const playerIndex = index % players.length;
+    const territoryDef = territories[territoryName];
+
+    territoryMap[territoryName] = {
+      id: territoryName,
+      name: territoryName,
+      continent: territoryDef.continent,
+      owner: players[playerIndex],
+      troops: initialTroops,
+      adjacentTo: territoryDef.neighbors
+    };
+  });
+
   return {
-    currentPlayer: 'red',
+    currentPlayer: players[0],
+    players,
     phase: 'attack',
-    territories: {
-      1: { id: 1, owner: 'red', troops: 3, adjacentTo: [2, 4] },
-      2: { id: 2, owner: 'red', troops: 3, adjacentTo: [1, 3, 5] },
-      3: { id: 3, owner: 'red', troops: 3, adjacentTo: [2, 6] },
-      4: { id: 4, owner: 'blue', troops: 3, adjacentTo: [1, 5] },
-      5: { id: 5, owner: 'blue', troops: 3, adjacentTo: [2, 4, 6] },
-      6: { id: 6, owner: 'blue', troops: 3, adjacentTo: [3, 5] }
-    },
+    territories: territoryMap,
     winner: null
   };
 }
@@ -48,11 +72,11 @@ function resolveAttack(attackerTroops: number, defenderTroops: number): AttackRe
   }
 }
 
-function isAdjacent(from: TerritoryId, to: TerritoryId, territories: Record<TerritoryId, Territory>): boolean {
-  return territories[from].adjacentTo.includes(to);
+function isAdjacent(from: TerritoryId, to: TerritoryId, territoryMap: Record<TerritoryId, Territory>): boolean {
+  return territoryMap[from].adjacentTo.includes(to);
 }
 
-function areConnected(from: TerritoryId, to: TerritoryId, owner: Player, territories: Record<TerritoryId, Territory>): boolean {
+function areConnected(from: TerritoryId, to: TerritoryId, owner: Player, territoryMap: Record<TerritoryId, Territory>): boolean {
   const visited = new Set<TerritoryId>();
   const queue: TerritoryId[] = [from];
 
@@ -62,13 +86,33 @@ function areConnected(from: TerritoryId, to: TerritoryId, owner: Player, territo
     if (visited.has(current)) continue;
     visited.add(current);
 
-    const adjacent = territories[current].adjacentTo.filter(
-      id => territories[id].owner === owner
+    const adjacent = territoryMap[current].adjacentTo.filter(
+      id => territoryMap[id].owner === owner
     );
     queue.push(...adjacent);
   }
 
   return false;
+}
+
+export function getContinentBonus(player: Player, territoryMap: Record<TerritoryId, Territory>): number {
+  let bonus = 0;
+
+  for (const continent of continents) {
+    const ownsAllTerritories = continent.territories.every(
+      territoryName => territoryMap[territoryName].owner === player
+    );
+
+    if (ownsAllTerritories) {
+      bonus += continent.bonus;
+    }
+  }
+
+  return bonus;
+}
+
+export function getPlayerTerritoryCount(player: Player, territoryMap: Record<TerritoryId, Territory>): number {
+  return Object.values(territoryMap).filter(t => t.owner === player).length;
 }
 
 export function validateMove(state: GameState, move: Move): string | null {
@@ -152,7 +196,8 @@ export function applyMove(state: GameState, move: Move): GameState {
       newState.phase = 'fortify';
     } else {
       newState.phase = 'attack';
-      newState.currentPlayer = newState.currentPlayer === 'red' ? 'blue' : 'red';
+      const currentIndex = newState.players.indexOf(newState.currentPlayer);
+      newState.currentPlayer = newState.players[(currentIndex + 1) % newState.players.length];
     }
     return newState;
   }
@@ -172,7 +217,7 @@ export function applyMove(state: GameState, move: Move): GameState {
       from.troops -= 1;
     }
 
-    const winner = checkWinner(newState.territories);
+    const winner = checkWinner(newState.territories, newState.players);
     if (winner) {
       newState.winner = winner;
     }
@@ -188,7 +233,8 @@ export function applyMove(state: GameState, move: Move): GameState {
     to.troops += move.troops;
 
     newState.phase = 'attack';
-    newState.currentPlayer = newState.currentPlayer === 'red' ? 'blue' : 'red';
+    const currentIndex = newState.players.indexOf(newState.currentPlayer);
+    newState.currentPlayer = newState.players[(currentIndex + 1) % newState.players.length];
 
     return newState;
   }
@@ -196,13 +242,13 @@ export function applyMove(state: GameState, move: Move): GameState {
   return newState;
 }
 
-function checkWinner(territories: Record<TerritoryId, Territory>): Player | null {
-  const owners = Object.values(territories).map(t => t.owner);
-  const redCount = owners.filter(o => o === 'red').length;
-  const blueCount = owners.filter(o => o === 'blue').length;
-
-  if (redCount === 6) return 'red';
-  if (blueCount === 6) return 'blue';
+function checkWinner(territoryMap: Record<TerritoryId, Territory>, players: Player[]): Player | null {
+  for (const player of players) {
+    const ownedCount = getPlayerTerritoryCount(player, territoryMap);
+    if (ownedCount === 42) {
+      return player;
+    }
+  }
   return null;
 }
 
@@ -214,7 +260,7 @@ export function getValidMoves(state: GameState): Move[] {
 
   if (phase === 'attack') {
     for (const territoryId in territories) {
-      const from = territories[territoryId as unknown as TerritoryId];
+      const from = territories[territoryId as TerritoryId];
       if (from.owner === currentPlayer && from.troops > 1) {
         for (const toId of from.adjacentTo) {
           const to = territories[toId];
@@ -230,10 +276,10 @@ export function getValidMoves(state: GameState): Move[] {
     }
   } else {
     for (const territoryId in territories) {
-      const from = territories[territoryId as unknown as TerritoryId];
+      const from = territories[territoryId as TerritoryId];
       if (from.owner === currentPlayer && from.troops > 1) {
         for (const toId in territories) {
-          const to = territories[toId as unknown as TerritoryId];
+          const to = territories[toId as TerritoryId];
           if (to.owner === currentPlayer && from.id !== to.id) {
             if (areConnected(from.id, to.id, currentPlayer, territories)) {
               for (let troops = 1; troops < from.troops; troops++) {

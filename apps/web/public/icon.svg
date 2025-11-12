@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="#1a1a1a"/>
+
+  <!-- World/Globe representation -->
+  <circle cx="256" cy="256" r="180" fill="#2a2a2a" stroke="#e74c3c" stroke-width="8"/>
+
+  <!-- Continents representation (simplified) -->
+  <path d="M 200 180 L 230 160 L 250 170 L 240 190 L 220 200 Z" fill="#3498db" opacity="0.9"/>
+  <path d="M 260 180 L 290 170 L 310 190 L 300 210 L 270 200 Z" fill="#2ecc71" opacity="0.9"/>
+  <path d="M 200 220 L 230 210 L 250 230 L 240 250 L 210 240 Z" fill="#f1c40f" opacity="0.9"/>
+  <path d="M 270 220 L 300 210 L 320 230 L 310 250 L 280 240 Z" fill="#9b59b6" opacity="0.9"/>
+  <path d="M 230 260 L 260 250 L 280 270 L 270 290 L 240 280 Z" fill="#e67e22" opacity="0.9"/>
+
+  <!-- Border highlight -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#e74c3c" stroke-width="6" opacity="0.5"/>
+
+  <!-- Title text -->
+  <text x="256" y="420" font-family="system-ui, sans-serif" font-size="48" font-weight="bold" fill="#ffffff" text-anchor="middle">RISK</text>
+</svg>

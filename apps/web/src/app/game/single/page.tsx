@@ -11,6 +11,29 @@ import Link from 'next/link';
 export default function SinglePlayerGame() {
   const [gameState, setGameState] = useState<GameState>(createInitialState);
 
+  // Responsive styles
+  const responsiveStyles = `
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .game-layout {
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .game-layout {
+        grid-template-columns: 3fr 1fr;
+        gap: 32px;
+      }
+    }
+  `;
+
   const {
     selectedTerritory,
     fortifyTroops,
@@ -45,12 +68,14 @@ export default function SinglePlayerGame() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0a0a0a',
-      padding: '20px'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <>
+      <style>{responsiveStyles}</style>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0a0a0a',
+        padding: '20px'
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -84,7 +109,7 @@ export default function SinglePlayerGame() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+        <div className="game-layout">
           <GameBoard
             state={gameState}
             onTerritoryClick={handleTerritoryClick}
@@ -100,5 +125,6 @@ export default function SinglePlayerGame() {
         </div>
       </div>
     </div>
+    </>
   );
 }
