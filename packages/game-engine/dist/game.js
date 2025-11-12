@@ -362,7 +362,7 @@ export function applyMove(state, move) {
                 from: move.from,
                 to: move.to,
                 minTroops: result.diceUsed,
-                maxTroops: from.troops
+                maxTroops: from.troops - 1 // Must leave at least 1 troop behind
             };
             // Check for elimination
             const eliminatedPlayer = previousOwner;
