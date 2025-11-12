@@ -20,39 +20,59 @@ function shuffle<T>(array: T[]): T[] {
   return result;
 }
 
-export function createInitialState(players: Player[] = ['red', 'blue']): GameState {
-  const shuffledTerritories = shuffle(allTerritoryNames);
-  const initialTroops = 3;
+function getInitialArmyCount(playerCount: number): number {
+  switch (playerCount) {
+    case 2: return 40;
+    case 3: return 35;
+    case 4: return 30;
+    case 5: return 25;
+    case 6: return 20;
+    default: return 40;
+  }
+}
 
+export function createInitialState(players: Player[] = ['red', 'blue']): GameState {
   const territoryMap: Record<TerritoryId, Territory> = {} as Record<TerritoryId, Territory>;
 
-  // Distribute territories among players
-  shuffledTerritories.forEach((territoryName, index) => {
-    const playerIndex = index % players.length;
-    const territoryDef = territories[territoryName];
+  // Check if 2-player game - add neutral player
+  let actualPlayers = [...players];
+  if (players.length === 2 && !players.includes('neutral')) {
+    actualPlayers = [...players, 'neutral'];
+  }
 
+  // Initialize all territories as unclaimed
+  allTerritoryNames.forEach((territoryName) => {
+    const territoryDef = territories[territoryName];
     territoryMap[territoryName] = {
       id: territoryName,
       name: territoryName,
       continent: territoryDef.continent,
-      owner: players[playerIndex],
-      troops: initialTroops,
+      owner: null,
+      troops: 0,
       adjacentTo: territoryDef.neighbors
     };
   });
 
+  // Calculate initial armies based on number of human players (excluding neutral)
+  const humanPlayerCount = players.length; // Original player count (before adding neutral)
+  const armyCount = getInitialArmyCount(humanPlayerCount);
+  const unplacedTroops: Record<Player, number> = {} as Record<Player, number>;
+  actualPlayers.forEach((player) => {
+    unplacedTroops[player] = armyCount;
+  });
+
   const initialState: GameState = {
-    currentPlayer: players[0],
-    players,
-    phase: 'deploy',
+    currentPlayer: players[0], // First human player
+    players: actualPlayers,
+    phase: 'initial_placement',
+    initialPlacementSubPhase: 'claiming',
     territories: territoryMap,
     winner: null,
     deployableTroops: 0,
-    conqueredTerritoryThisTurn: false
+    conqueredTerritoryThisTurn: false,
+    fortifiedThisTurn: false,
+    unplacedTroops
   };
-
-  // Calculate initial reinforcements for the first player
-  initialState.deployableTroops = calculateReinforcements(initialState, players[0]);
 
   return initialState;
 }
@@ -61,23 +81,53 @@ function rollDice(): number {
   return Math.floor(Math.random() * 6) + 1;
 }
 
-function resolveAttack(attackerTroops: number, defenderTroops: number): AttackResult {
-  const attackerRoll = rollDice();
-  const defenderRoll = rollDice();
-
-  if (attackerRoll > defenderRoll) {
-    return {
-      attackerLost: 0,
-      defenderLost: 1,
-      conquered: defenderTroops === 1
-    };
-  } else {
-    return {
-      attackerLost: 1,
-      defenderLost: 0,
-      conquered: false
-    };
+function rollMultipleDice(count: number): number[] {
+  const rolls: number[] = [];
+  for (let i = 0; i < count; i++) {
+    rolls.push(rollDice());
   }
+  return rolls.sort((a, b) => b - a); // Sort descending
+}
+
+function resolveAttack(
+  attackerTroops: number,
+  defenderTroops: number,
+  attackerDice: 1 | 2 | 3,
+  defenderDice: 1 | 2
+): AttackResult {
+  // Validate dice counts
+  const maxAttackerDice = Math.min(3, attackerTroops - 1);
+  const maxDefenderDice = Math.min(2, defenderTroops);
+  const actualAttackerDice = Math.min(attackerDice, maxAttackerDice);
+  const actualDefenderDice = Math.min(defenderDice, maxDefenderDice);
+
+  // Roll dice
+  const attackerRolls = rollMultipleDice(actualAttackerDice);
+  const defenderRolls = rollMultipleDice(actualDefenderDice);
+
+  // Compare dice pairs (defender wins ties)
+  let attackerLost = 0;
+  let defenderLost = 0;
+  const comparisons = Math.min(attackerRolls.length, defenderRolls.length);
+
+  for (let i = 0; i < comparisons; i++) {
+    if (attackerRolls[i] > defenderRolls[i]) {
+      defenderLost++;
+    } else {
+      attackerLost++;
+    }
+  }
+
+  const conquered = defenderTroops - defenderLost === 0;
+
+  return {
+    attackerRolls,
+    defenderRolls,
+    attackerLost,
+    defenderLost,
+    conquered,
+    diceUsed: actualAttackerDice
+  };
 }
 
 function isAdjacent(from: TerritoryId, to: TerritoryId, territoryMap: Record<TerritoryId, Territory>): boolean {
@@ -137,17 +187,51 @@ export function calculateReinforcements(state: GameState, player: Player): numbe
 }
 
 export function validateMove(state: GameState, move: Move): string | null {
-  const { currentPlayer, phase, territories, deployableTroops } = state;
+  const { currentPlayer, phase, territories, deployableTroops, unplacedTroops, pendingTransfer, fortifiedThisTurn } = state;
 
   if (move.type === 'skip') {
     // Cannot skip deploy phase if there are troops to deploy
     if (phase === 'deploy' && deployableTroops > 0) {
       return 'Must deploy all troops before skipping';
     }
+    // Cannot skip initial placement
+    if (phase === 'initial_placement') {
+      return 'Must place troops during initial placement';
+    }
+    // Cannot skip transfer phase
+    if (phase === 'attack_transfer') {
+      return 'Must transfer troops to conquered territory';
+    }
     return null;
   }
 
   if (move.type === 'deploy') {
+    if (phase === 'initial_placement') {
+      const subPhase = state.initialPlacementSubPhase;
+      const territory = territories[move.territory];
+
+      if (move.troops !== 1) {
+        return 'Can only place 1 troop at a time during initial placement';
+      }
+
+      if (!unplacedTroops || unplacedTroops[currentPlayer] === 0) {
+        return 'No troops left to place';
+      }
+
+      if (subPhase === 'claiming') {
+        if (territory.owner !== null) {
+          return 'Territory is already claimed';
+        }
+      } else {
+        // reinforcing phase
+        if (territory.owner !== currentPlayer) {
+          return 'You do not own this territory';
+        }
+      }
+
+      return null;
+    }
+
     if (phase !== 'deploy') {
       return 'Can only deploy during deploy phase';
     }
@@ -193,12 +277,51 @@ export function validateMove(state: GameState, move: Move): string | null {
       return 'Territories are not adjacent';
     }
 
+    // Validate dice choices if provided
+    if (move.attackerDice) {
+      const maxAttackerDice = Math.min(3, from.troops - 1);
+      if (move.attackerDice > maxAttackerDice) {
+        return `Can only roll ${maxAttackerDice} dice with ${from.troops} troops`;
+      }
+    }
+
+    if (move.defenderDice) {
+      const maxDefenderDice = Math.min(2, to.troops);
+      if (move.defenderDice > maxDefenderDice) {
+        return `Defender can only roll ${maxDefenderDice} dice with ${to.troops} troops`;
+      }
+    }
+
+    return null;
+  }
+
+  if (move.type === 'transfer') {
+    if (phase !== 'attack_transfer') {
+      return 'Can only transfer during attack transfer phase';
+    }
+
+    if (!pendingTransfer) {
+      return 'No pending transfer';
+    }
+
+    if (move.troops < pendingTransfer.minTroops) {
+      return `Must move at least ${pendingTransfer.minTroops} troops`;
+    }
+
+    if (move.troops > pendingTransfer.maxTroops) {
+      return `Can only move ${pendingTransfer.maxTroops} troops`;
+    }
+
     return null;
   }
 
   if (move.type === 'fortify') {
     if (phase !== 'fortify') {
       return 'Can only fortify during fortify phase';
+    }
+
+    if (fortifiedThisTurn) {
+      return 'Can only fortify once per turn';
     }
 
     const from = territories[move.from];
@@ -230,6 +353,42 @@ export function validateMove(state: GameState, move: Move): string | null {
   return 'Invalid move type';
 }
 
+function nextPlayer(state: GameState): Player {
+  // During initial placement, include all players (including neutral)
+  const activePlayers = state.phase === 'initial_placement'
+    ? state.players
+    : state.players.filter(p => p !== 'neutral') as Exclude<Player, 'neutral'>[];
+
+  const currentIndex = activePlayers.indexOf(state.currentPlayer);
+  let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+  // During reinforcing sub-phase, skip players who have run out of troops
+  if (
+    state.phase === 'initial_placement' &&
+    state.initialPlacementSubPhase === 'reinforcing' &&
+    state.unplacedTroops &&
+    Object.values(state.unplacedTroops).some(count => count > 0)
+  ) {
+    // Skip players with 0 troops remaining
+    while (
+      state.unplacedTroops[activePlayers[nextIndex]] === 0 &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+  }
+
+  return activePlayers[nextIndex];
+}
+
+function endTurn(state: GameState): void {
+  state.currentPlayer = nextPlayer(state);
+  state.phase = 'deploy';
+  state.conqueredTerritoryThisTurn = false;
+  state.fortifiedThisTurn = false;
+  state.deployableTroops = calculateReinforcements(state, state.currentPlayer);
+}
+
 export function applyMove(state: GameState, move: Move): GameState {
   const error = validateMove(state, move);
   if (error) {
@@ -242,12 +401,7 @@ export function applyMove(state: GameState, move: Move): GameState {
     if (newState.phase === 'attack') {
       newState.phase = 'fortify';
     } else if (newState.phase === 'fortify') {
-      // End turn, move to next player
-      const currentIndex = newState.players.indexOf(newState.currentPlayer);
-      newState.currentPlayer = newState.players[(currentIndex + 1) % newState.players.length];
-      newState.phase = 'deploy';
-      newState.conqueredTerritoryThisTurn = false;
-      newState.deployableTroops = calculateReinforcements(newState, newState.currentPlayer);
+      endTurn(newState);
     }
     return newState;
   }
@@ -255,6 +409,45 @@ export function applyMove(state: GameState, move: Move): GameState {
   if (move.type === 'deploy') {
     const territory = newState.territories[move.territory];
 
+    if (newState.phase === 'initial_placement') {
+      // Initial placement logic
+      const subPhase = newState.initialPlacementSubPhase!;
+
+      if (subPhase === 'claiming') {
+        territory.owner = newState.currentPlayer;
+        territory.troops = 1;
+      } else {
+        territory.troops += 1;
+      }
+
+      newState.unplacedTroops![newState.currentPlayer] -= 1;
+
+      // Check if all territories are claimed
+      if (subPhase === 'claiming') {
+        const allClaimed = Object.values(newState.territories).every(t => t.owner !== null);
+        if (allClaimed) {
+          newState.initialPlacementSubPhase = 'reinforcing';
+        }
+      }
+
+      // Check if all troops are placed
+      const allTroopsPlaced = Object.values(newState.unplacedTroops!).every(count => count === 0);
+      if (allTroopsPlaced) {
+        // Transition to normal game
+        delete newState.initialPlacementSubPhase;
+        delete newState.unplacedTroops;
+        newState.phase = 'deploy';
+        newState.currentPlayer = newState.players.filter(p => p !== 'neutral')[0];
+        newState.deployableTroops = calculateReinforcements(newState, newState.currentPlayer);
+      } else {
+        // Move to next player
+        newState.currentPlayer = nextPlayer(newState);
+      }
+
+      return newState;
+    }
+
+    // Normal deploy phase
     territory.troops += move.troops;
     newState.deployableTroops -= move.troops;
 
@@ -270,22 +463,62 @@ export function applyMove(state: GameState, move: Move): GameState {
     const from = newState.territories[move.from];
     const to = newState.territories[move.to];
 
-    const result = resolveAttack(from.troops, to.troops);
+    // Default to maximum dice if not specified
+    const attackerDice = move.attackerDice || Math.min(3, from.troops - 1) as 1 | 2 | 3;
+    const defenderDice = move.defenderDice || Math.min(2, to.troops) as 1 | 2;
+
+    const result = resolveAttack(from.troops, to.troops, attackerDice, defenderDice);
 
     from.troops -= result.attackerLost;
     to.troops -= result.defenderLost;
 
     if (result.conquered) {
+      const previousOwner = to.owner;
       to.owner = from.owner;
-      to.troops = 1;
-      from.troops -= 1;
       newState.conqueredTerritoryThisTurn = true;
+
+      // Set up transfer phase
+      newState.phase = 'attack_transfer';
+      newState.pendingTransfer = {
+        from: move.from,
+        to: move.to,
+        minTroops: result.diceUsed,
+        maxTroops: from.troops - 1  // Must leave at least 1 troop behind
+      };
+
+      // Check for elimination
+      const eliminatedPlayer = previousOwner;
+      if (eliminatedPlayer && eliminatedPlayer !== 'neutral') {
+        const hasTerritoriesLeft = Object.values(newState.territories).some(
+          t => t.owner === eliminatedPlayer
+        );
+        if (!hasTerritoriesLeft) {
+          // Player eliminated - remove from game
+          newState.players = newState.players.filter(p => p !== eliminatedPlayer);
+        }
+      }
+
+      // Check for winner (only count human players)
+      const winner = checkWinner(newState.territories, newState.players);
+      if (winner) {
+        newState.winner = winner;
+      }
     }
 
-    const winner = checkWinner(newState.territories, newState.players);
-    if (winner) {
-      newState.winner = winner;
-    }
+    return newState;
+  }
+
+  if (move.type === 'transfer') {
+    const { from, to } = newState.pendingTransfer!;
+    const fromTerritory = newState.territories[from];
+    const toTerritory = newState.territories[to];
+
+    fromTerritory.troops -= move.troops;
+    toTerritory.troops += move.troops;
+
+    // Clear transfer state and return to attack phase
+    delete newState.pendingTransfer;
+    newState.phase = 'attack';
 
     return newState;
   }
@@ -297,12 +530,10 @@ export function applyMove(state: GameState, move: Move): GameState {
     from.troops -= move.troops;
     to.troops += move.troops;
 
-    // End turn, move to next player
-    const currentIndex = newState.players.indexOf(newState.currentPlayer);
-    newState.currentPlayer = newState.players[(currentIndex + 1) % newState.players.length];
-    newState.phase = 'deploy';
-    newState.conqueredTerritoryThisTurn = false;
-    newState.deployableTroops = calculateReinforcements(newState, newState.currentPlayer);
+    newState.fortifiedThisTurn = true;
+
+    // End turn immediately after fortifying
+    endTurn(newState);
 
     return newState;
   }
@@ -311,18 +542,69 @@ export function applyMove(state: GameState, move: Move): GameState {
 }
 
 function checkWinner(territoryMap: Record<TerritoryId, Territory>, players: Player[]): Player | null {
-  for (const player of players) {
+  // Only human players can win (not neutral)
+  const humanPlayers = players.filter(p => p !== 'neutral');
+
+  // Check if only one human player remains
+  const activePlayers = humanPlayers.filter(player => {
+    return Object.values(territoryMap).some(t => t.owner === player);
+  });
+
+  if (activePlayers.length === 1) {
+    return activePlayers[0];
+  }
+
+  // Also check if someone controls all territories (shouldn't happen with neutral but just in case)
+  for (const player of humanPlayers) {
     const ownedCount = getPlayerTerritoryCount(player, territoryMap);
     if (ownedCount === 42) {
       return player;
     }
   }
+
   return null;
 }
 
 export function getValidMoves(state: GameState): Move[] {
   const moves: Move[] = [];
-  const { currentPlayer, phase, territories, deployableTroops } = state;
+  const { currentPlayer, phase, territories, deployableTroops, pendingTransfer, fortifiedThisTurn, unplacedTroops } = state;
+
+  // Initial placement phase
+  if (phase === 'initial_placement') {
+    const subPhase = state.initialPlacementSubPhase!;
+
+    for (const territoryId in territories) {
+      const territory = territories[territoryId as TerritoryId];
+
+      if (subPhase === 'claiming' && territory.owner === null) {
+        moves.push({
+          type: 'deploy',
+          territory: territory.id,
+          troops: 1
+        });
+      } else if (subPhase === 'reinforcing' && territory.owner === currentPlayer) {
+        moves.push({
+          type: 'deploy',
+          territory: territory.id,
+          troops: 1
+        });
+      }
+    }
+
+    return moves;
+  }
+
+  // Transfer phase after conquest
+  if (phase === 'attack_transfer' && pendingTransfer) {
+    const { minTroops, maxTroops } = pendingTransfer;
+    for (let troops = minTroops; troops <= maxTroops; troops++) {
+      moves.push({
+        type: 'transfer',
+        troops
+      });
+    }
+    return moves;
+  }
 
   // Can only skip if not in deploy phase or if all troops are deployed
   if (phase !== 'deploy' || deployableTroops === 0) {
@@ -365,21 +647,24 @@ export function getValidMoves(state: GameState): Move[] {
         }
       }
     }
-  } else {
-    for (const territoryId in territories) {
-      const from = territories[territoryId as TerritoryId];
-      if (from.owner === currentPlayer && from.troops > 1) {
-        for (const toId in territories) {
-          const to = territories[toId as TerritoryId];
-          if (to.owner === currentPlayer && from.id !== to.id) {
-            if (areConnected(from.id, to.id, currentPlayer, territories)) {
-              for (let troops = 1; troops < from.troops; troops++) {
-                moves.push({
-                  type: 'fortify',
-                  from: from.id,
-                  to: to.id,
-                  troops
-                });
+  } else if (phase === 'fortify') {
+    // Only allow fortify moves if not already fortified this turn
+    if (!fortifiedThisTurn) {
+      for (const territoryId in territories) {
+        const from = territories[territoryId as TerritoryId];
+        if (from.owner === currentPlayer && from.troops > 1) {
+          for (const toId in territories) {
+            const to = territories[toId as TerritoryId];
+            if (to.owner === currentPlayer && from.id !== to.id) {
+              if (areConnected(from.id, to.id, currentPlayer, territories)) {
+                for (let troops = 1; troops < from.troops; troops++) {
+                  moves.push({
+                    type: 'fortify',
+                    from: from.id,
+                    to: to.id,
+                    troops
+                  });
+                }
               }
             }
           }

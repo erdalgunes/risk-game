@@ -7,6 +7,9 @@ interface GameControlsProps {
   onSkip: () => void;
   fortifyTroops: number;
   onFortifyTroopsChange: (troops: number) => void;
+  transferTroops: number;
+  onTransferTroopsChange: (troops: number) => void;
+  onTransfer: () => void;
 }
 
 export function GameControls({
@@ -14,7 +17,10 @@ export function GameControls({
   selectedTerritory,
   onSkip,
   fortifyTroops,
-  onFortifyTroopsChange
+  onFortifyTroopsChange,
+  transferTroops,
+  onTransferTroopsChange,
+  onTransfer
 }: GameControlsProps) {
   const playerColors: Record<Player, string> = {
     red: '#e74c3c',
@@ -22,7 +28,8 @@ export function GameControls({
     green: '#2ecc71',
     yellow: '#f1c40f',
     purple: '#9b59b6',
-    orange: '#e67e22'
+    orange: '#e67e22',
+    neutral: '#777777'
   };
 
   const currentColor = playerColors[state.currentPlayer];
@@ -73,6 +80,25 @@ export function GameControls({
             )}
           </div>
 
+          {state.phase === 'initial_placement' && (
+            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color: '#f39c12' }}>
+                Initial Setup Phase
+              </div>
+              <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                {state.initialPlacementSubPhase === 'claiming' ? 'Claiming Territories' : 'Placing Remaining Troops'}
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>
+                {state.unplacedTroops?.[state.currentPlayer] ?? 0} Troops Left
+              </div>
+              <p style={{ fontSize: '14px', color: '#888', marginTop: '10px', marginBottom: '0' }}>
+                {state.initialPlacementSubPhase === 'claiming'
+                  ? 'Click any unclaimed territory to claim it with 1 troop.'
+                  : 'Click your territories to place 1 troop at a time.'}
+              </p>
+            </div>
+          )}
+
           {state.phase === 'deploy' && (
             <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
               <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>
@@ -92,6 +118,51 @@ export function GameControls({
             </div>
           )}
 
+          {state.phase === 'attack_transfer' && state.pendingTransfer && (
+            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color: '#27ae60' }}>
+                Territory Conquered!
+              </div>
+              <div style={{ fontSize: '14px', marginBottom: '15px', color: '#888' }}>
+                Move troops from {state.pendingTransfer.from.replace(/_/g, ' ')} to {state.pendingTransfer.to.replace(/_/g, ' ')}
+              </div>
+              <label style={{ display: 'block', marginBottom: '10px' }}>
+                Troops to move: {transferTroops}
+              </label>
+              <input
+                type="range"
+                min={state.pendingTransfer.minTroops}
+                max={state.pendingTransfer.maxTroops}
+                value={transferTroops}
+                onChange={(e) => onTransferTroopsChange(parseInt(e.target.value))}
+                style={{
+                  width: '100%',
+                  marginBottom: '15px'
+                }}
+              />
+              <div style={{ fontSize: '12px', color: '#888', marginBottom: '15px' }}>
+                Min: {state.pendingTransfer.minTroops} | Max: {state.pendingTransfer.maxTroops}
+              </div>
+              <button
+                onClick={onTransfer}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: '16px',
+                  backgroundColor: '#27ae60',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  minHeight: '48px',
+                  fontWeight: '600'
+                }}
+              >
+                Confirm Transfer
+              </button>
+            </div>
+          )}
+
           {state.phase === 'attack' && (
             <div style={{ marginBottom: '20px' }}>
               <p style={{ fontSize: '14px', color: '#888' }}>
@@ -100,10 +171,24 @@ export function GameControls({
             </div>
           )}
 
-          {state.phase === 'fortify' && !selectedTerritory && (
+          {state.phase === 'fortify' && !state.fortifiedThisTurn && !selectedTerritory && (
             <div style={{ marginBottom: '20px' }}>
               <p style={{ fontSize: '14px', color: '#888' }}>
                 Click one of your territories with 2+ troops to select it, then click a connected territory to move troops.
+              </p>
+              <p style={{ fontSize: '12px', color: '#f39c12', marginTop: '10px' }}>
+                ⚠️ You can only fortify once per turn
+              </p>
+            </div>
+          )}
+
+          {state.phase === 'fortify' && state.fortifiedThisTurn && (
+            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '16px', color: '#f39c12', marginBottom: '10px' }}>
+                ✓ Already fortified this turn
+              </div>
+              <p style={{ fontSize: '14px', color: '#888' }}>
+                Click "End Turn" to pass to the next player.
               </p>
             </div>
           )}
@@ -136,41 +221,57 @@ export function GameControls({
             </div>
           )}
 
-          <button
-            onClick={onSkip}
-            disabled={state.phase === 'deploy' && state.deployableTroops > 0}
-            style={{
-              width: '100%',
-              padding: '16px',
-              fontSize: '16px',
-              backgroundColor: state.phase === 'deploy' && state.deployableTroops > 0 ? '#333' : '#555',
-              color: state.phase === 'deploy' && state.deployableTroops > 0 ? '#666' : 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: state.phase === 'deploy' && state.deployableTroops > 0 ? 'not-allowed' : 'pointer',
-              minHeight: '48px',
-              fontWeight: '600',
-              transition: 'background-color 200ms ease-in-out'
-            }}
-            onMouseEnter={(e) => {
-              if (!(state.phase === 'deploy' && state.deployableTroops > 0)) {
-                e.currentTarget.style.backgroundColor = '#666';
+          {state.phase !== 'attack_transfer' && (
+            <button
+              onClick={onSkip}
+              disabled={
+                (state.phase === 'deploy' && state.deployableTroops > 0) ||
+                (state.phase === 'initial_placement')
               }
-            }}
-            onMouseLeave={(e) => {
-              if (!(state.phase === 'deploy' && state.deployableTroops > 0)) {
-                e.currentTarget.style.backgroundColor = '#555';
-              }
-            }}
-          >
-            {state.phase === 'deploy'
-              ? state.deployableTroops > 0
-                ? `Deploy ${state.deployableTroops} Remaining Troops`
-                : 'Start Attack Phase'
-              : state.phase === 'attack'
-                ? 'Skip to Fortify'
-                : 'End Turn'}
-          </button>
+              style={{
+                width: '100%',
+                padding: '16px',
+                fontSize: '16px',
+                backgroundColor:
+                  ((state.phase === 'deploy' && state.deployableTroops > 0) || state.phase === 'initial_placement')
+                    ? '#333'
+                    : '#555',
+                color:
+                  ((state.phase === 'deploy' && state.deployableTroops > 0) || state.phase === 'initial_placement')
+                    ? '#666'
+                    : 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor:
+                  ((state.phase === 'deploy' && state.deployableTroops > 0) || state.phase === 'initial_placement')
+                    ? 'not-allowed'
+                    : 'pointer',
+                minHeight: '48px',
+                fontWeight: '600',
+                transition: 'background-color 200ms ease-in-out'
+              }}
+              onMouseEnter={(e) => {
+                if (!((state.phase === 'deploy' && state.deployableTroops > 0) || state.phase === 'initial_placement')) {
+                  e.currentTarget.style.backgroundColor = '#666';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!((state.phase === 'deploy' && state.deployableTroops > 0) || state.phase === 'initial_placement')) {
+                  e.currentTarget.style.backgroundColor = '#555';
+                }
+              }}
+            >
+              {state.phase === 'initial_placement'
+                ? 'Place All Troops First'
+                : state.phase === 'deploy'
+                  ? state.deployableTroops > 0
+                    ? `Deploy ${state.deployableTroops} Remaining Troops`
+                    : 'Start Attack Phase'
+                  : state.phase === 'attack'
+                    ? 'Skip to Fortify'
+                    : 'End Turn'}
+            </button>
+          )}
         </>
       )}
 

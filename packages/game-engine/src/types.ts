@@ -2,7 +2,7 @@ import type { TerritoryName, ContinentName } from './territoryData';
 
 export type { TerritoryName, ContinentName };
 
-export type Player = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange';
+export type Player = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'neutral';
 
 export type TerritoryId = TerritoryName;
 
@@ -15,7 +15,14 @@ export interface Territory {
   adjacentTo: TerritoryId[];
 }
 
-export type GamePhase = 'deploy' | 'attack' | 'fortify';
+export type GamePhase =
+  | 'initial_placement'
+  | 'deploy'
+  | 'attack'
+  | 'attack_transfer'
+  | 'fortify';
+
+export type InitialPlacementSubPhase = 'claiming' | 'reinforcing';
 
 export interface PlayerState {
   id: Player;
@@ -31,6 +38,17 @@ export interface GameState {
   winner: Player | null;
   deployableTroops: number;
   conqueredTerritoryThisTurn: boolean;
+  fortifiedThisTurn: boolean;
+  // Initial placement state
+  initialPlacementSubPhase?: InitialPlacementSubPhase;
+  unplacedTroops?: Record<Player, number>;
+  // Attack transfer state
+  pendingTransfer?: {
+    from: TerritoryId;
+    to: TerritoryId;
+    minTroops: number;
+    maxTroops: number;
+  };
 }
 
 export interface DeployMove {
@@ -43,6 +61,13 @@ export interface AttackMove {
   type: 'attack';
   from: TerritoryId;
   to: TerritoryId;
+  attackerDice?: 1 | 2 | 3;
+  defenderDice?: 1 | 2;
+}
+
+export interface TransferMove {
+  type: 'transfer';
+  troops: number;
 }
 
 export interface FortifyMove {
@@ -56,10 +81,13 @@ export interface SkipMove {
   type: 'skip';
 }
 
-export type Move = DeployMove | AttackMove | FortifyMove | SkipMove;
+export type Move = DeployMove | AttackMove | TransferMove | FortifyMove | SkipMove;
 
 export interface AttackResult {
+  attackerRolls: number[];
+  defenderRolls: number[];
   attackerLost: number;
   defenderLost: number;
   conquered: boolean;
+  diceUsed: number;
 }

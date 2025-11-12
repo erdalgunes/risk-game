@@ -1,4 +1,4 @@
-import type { GameState, Move, TerritoryId, DeployMove } from './types';
+import type { GameState, Move, TerritoryId, DeployMove, AttackMove } from './types';
 import { getValidMoves, getContinentBonus } from './game';
 import { continents } from './territoryData';
 
@@ -83,9 +83,42 @@ function getSmartDeployment(state: GameState): DeployMove {
 }
 
 export function getAIMove(state: GameState): Move {
+  // Handle initial placement phase
+  if (state.phase === 'initial_placement') {
+    const validMoves = getValidMoves(state);
+    const subPhase = state.initialPlacementSubPhase;
+
+    if (subPhase === 'claiming') {
+      // During claiming, prefer territories in continents where we already have presence
+      const continentProgress = getContinentProgress(state, state.currentPlayer);
+      for (const continent of continentProgress) {
+        if (continent.owned > 0) {
+          const availableTerritories = continent.missing.filter(t =>
+            state.territories[t].owner === null
+          );
+          if (availableTerritories.length > 0) {
+            const territory = selectRandom(availableTerritories);
+            return { type: 'deploy', territory, troops: 1 };
+          }
+        }
+      }
+    }
+
+    // Fallback: random valid move
+    return selectRandom(validMoves);
+  }
+
   // Handle deploy phase with smart strategy
   if (state.phase === 'deploy') {
     return getSmartDeployment(state);
+  }
+
+  // Handle attack transfer phase
+  if (state.phase === 'attack_transfer') {
+    const validMoves = getValidMoves(state);
+    // Move as many troops as possible to strengthen the conquered territory
+    const maxTransfer = validMoves[validMoves.length - 1];
+    return maxTransfer;
   }
 
   const validMoves = getValidMoves(state);
@@ -100,7 +133,15 @@ export function getAIMove(state: GameState): Move {
   // Prefer attacks over fortify moves
   const attackMoves = actionMoves.filter(m => m.type === 'attack');
   if (attackMoves.length > 0) {
-    return selectRandom(attackMoves);
+    // Choose attack with dice (default to max dice for simplicity)
+    const attack = selectRandom(attackMoves) as AttackMove;
+    const from = state.territories[attack.from];
+    const to = state.territories[attack.to];
+
+    attack.attackerDice = Math.min(3, from.troops - 1) as 1 | 2 | 3;
+    attack.defenderDice = Math.min(2, to.troops) as 1 | 2;
+
+    return attack;
   }
 
   // Otherwise pick a random fortify move

@@ -59,9 +59,12 @@ export default function MultiplayerGame() {
     selectedTerritory,
     fortifyTroops,
     setFortifyTroops,
+    transferTroops,
+    setTransferTroops,
     message,
     handleTerritoryClick: handleTerritoryClickBase,
-    handleSkip: handleSkipBase
+    handleSkip: handleSkipBase,
+    handleTransfer
   } = useGameLogic(gameState, updateGameState);
 
   const handleTerritoryClick = (territoryId: TerritoryId, shiftKey?: boolean) => {
@@ -378,6 +381,9 @@ export default function MultiplayerGame() {
             onSkip={handleSkip}
             fortifyTroops={fortifyTroops}
             onFortifyTroopsChange={setFortifyTroops}
+            transferTroops={transferTroops}
+            onTransferTroopsChange={setTransferTroops}
+            onTransfer={handleTransfer}
           />
         </div>
       </div>
