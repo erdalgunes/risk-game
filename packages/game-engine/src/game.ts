@@ -14,6 +14,7 @@ import { territories, continents, allTerritoryNames, type TerritoryName } from '
 function shuffle<T>(array: T[]): T[] {
   const result = [...array];
   for (let i = result.length - 1; i > 0; i--) {
+    // NOSONAR: Using Math.random() is acceptable for shuffling game territories
     const j = Math.floor(Math.random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
@@ -79,6 +80,7 @@ export function createInitialState(players: Player[] = ['red', 'blue']): GameSta
 }
 
 function rollDice(): number {
+  // NOSONAR: Using Math.random() is acceptable for game dice rolls
   return Math.floor(Math.random() * 6) + 1;
 }
 

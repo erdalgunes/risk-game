@@ -3,6 +3,7 @@ import { getValidMoves, getContinentBonus } from './game';
 import { continents } from './territoryData';
 
 function selectRandom<T>(array: T[]): T {
+  // NOSONAR: Using Math.random() is acceptable for AI move selection in a game
   const randomIndex = Math.floor(Math.random() * array.length);
   return array[randomIndex];
 }
