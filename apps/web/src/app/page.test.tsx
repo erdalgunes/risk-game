@@ -29,7 +29,7 @@ describe('Home page', () => {
   it('has proper styling structure', () => {
     render(<Home />);
 
-    const container = document.querySelector('div');
+    const container = screen.getByText('Risk PoC').closest('div');
     expect(container).toHaveStyle({
       display: 'flex',
       flexDirection: 'column',

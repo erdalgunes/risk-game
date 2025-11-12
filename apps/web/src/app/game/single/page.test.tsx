@@ -84,8 +84,14 @@ describe('SinglePlayerGame page', () => {
   it('has proper page styling', () => {
     render(<SinglePlayerGame />);
 
-    const container = document.querySelector('div');
-    expect(container).toHaveStyle({
+    // Find the main container div with the background styling
+    const containers = document.querySelectorAll('div');
+    const mainContainer = Array.from(containers).find(div => 
+      div.style.backgroundColor === 'rgb(10, 10, 10)' || 
+      div.style.backgroundColor === '#0a0a0a'
+    );
+    
+    expect(mainContainer).toHaveStyle({
       minHeight: '100vh',
       backgroundColor: '#0a0a0a'
     });
