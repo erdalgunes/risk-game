@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { GameState, TerritoryId } from '@risk-poc/game-engine';
-import { territoryPaths, connectionLines } from '@/data/territoryPaths';
+import type { GameState, TerritoryId, Player } from '@risk-poc/game-engine';
+import { riskMapPaths } from '@/data/riskMapPaths';
 
 interface GameBoardProps {
   state: GameState;
@@ -12,8 +12,16 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
   const [hoveredTerritory, setHoveredTerritory] = useState<TerritoryId | null>(null);
   const territories = state.territories;
 
-  const getPlayerColor = (owner: string): string => {
-    return owner === 'red' ? '#e74c3c' : '#3498db';
+  const getPlayerColor = (owner: Player): string => {
+    const colors: Record<Player, string> = {
+      red: '#e74c3c',
+      blue: '#3498db',
+      green: '#2ecc71',
+      yellow: '#f1c40f',
+      purple: '#9b59b6',
+      orange: '#e67e22'
+    };
+    return colors[owner];
   };
 
   const getStrokeColor = (territoryId: TerritoryId): string => {
@@ -36,13 +44,15 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
 
   return (
     <svg
-      width="500"
-      height="360"
-      viewBox="0 0 500 360"
+      width="100%"
+      height="100%"
+      viewBox="0 0 750 520"
       style={{
         border: '2px solid #333',
         backgroundColor: '#2a2a2a',
-        borderRadius: '8px'
+        borderRadius: '8px',
+        maxWidth: '1200px',
+        maxHeight: '800px'
       }}
     >
       <defs>
@@ -60,28 +70,11 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
         </filter>
       </defs>
 
-      {/* Draw connection lines */}
-      <g opacity="0.3">
-        {connectionLines.map(({ from, to, points }) => {
-          const coords = points.split(' ').map(p => p.split(',').map(Number));
-          return (
-            <line
-              key={`${from}-${to}`}
-              x1={coords[0][0]}
-              y1={coords[0][1]}
-              x2={coords[1][0]}
-              y2={coords[1][1]}
-              stroke="#555"
-              strokeWidth="2"
-              strokeDasharray="5,5"
-            />
-          );
-        })}
-      </g>
-
       {/* Draw territories */}
       {Object.values(territories).map((territory) => {
-        const pathData = territoryPaths[territory.id];
+        const pathData = riskMapPaths[territory.id];
+        if (!pathData || !territory.owner) return null;
+
         const color = getPlayerColor(territory.owner);
         const isSelected = selectedTerritory === territory.id;
         const isHovered = hoveredTerritory === territory.id;
@@ -105,30 +98,13 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
               onMouseLeave={() => setHoveredTerritory(null)}
             />
 
-            {/* Territory label */}
-            <text
-              x={pathData.labelPosition.x}
-              y={pathData.labelPosition.y - 15}
-              textAnchor="middle"
-              fill="white"
-              fontSize="16"
-              fontWeight="bold"
-              pointerEvents="none"
-              style={{
-                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                userSelect: 'none'
-              }}
-            >
-              T{territory.id}
-            </text>
-
             {/* Troop count */}
             <text
-              x={pathData.labelPosition.x}
-              y={pathData.labelPosition.y + 15}
+              x={pathData.labelX}
+              y={pathData.labelY}
               textAnchor="middle"
               fill="white"
-              fontSize="28"
+              fontSize="14"
               fontWeight="bold"
               pointerEvents="none"
               style={{
@@ -137,22 +113,6 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
               }}
             >
               {territory.troops}
-            </text>
-
-            {/* Troops label */}
-            <text
-              x={pathData.labelPosition.x}
-              y={pathData.labelPosition.y + 30}
-              textAnchor="middle"
-              fill="rgba(255,255,255,0.8)"
-              fontSize="11"
-              pointerEvents="none"
-              style={{
-                textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                userSelect: 'none'
-              }}
-            >
-              troops
             </text>
           </g>
         );

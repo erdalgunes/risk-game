@@ -1,18 +1,31 @@
-export type Player = 'red' | 'blue';
+import type { TerritoryName, ContinentName } from './territoryData';
 
-export type TerritoryId = 1 | 2 | 3 | 4 | 5 | 6;
+export type { TerritoryName, ContinentName };
+
+export type Player = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange';
+
+export type TerritoryId = TerritoryName;
 
 export interface Territory {
   id: TerritoryId;
-  owner: Player;
+  name: TerritoryName;
+  continent: ContinentName;
+  owner: Player | null;
   troops: number;
   adjacentTo: TerritoryId[];
 }
 
 export type GamePhase = 'attack' | 'fortify';
 
+export interface PlayerState {
+  id: Player;
+  territories: TerritoryId[];
+  continentBonus: number;
+}
+
 export interface GameState {
   currentPlayer: Player;
+  players: Player[];
   phase: GamePhase;
   territories: Record<TerritoryId, Territory>;
   winner: Player | null;
