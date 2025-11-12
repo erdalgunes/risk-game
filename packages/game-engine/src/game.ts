@@ -3,6 +3,7 @@ import type {
   Move,
   AttackMove,
   FortifyMove,
+  DeployMove,
   AttackResult,
   TerritoryId,
   Player,
@@ -40,13 +41,20 @@ export function createInitialState(players: Player[] = ['red', 'blue']): GameSta
     };
   });
 
-  return {
+  const initialState: GameState = {
     currentPlayer: players[0],
     players,
-    phase: 'attack',
+    phase: 'deploy',
     territories: territoryMap,
-    winner: null
+    winner: null,
+    deployableTroops: 0,
+    conqueredTerritoryThisTurn: false
   };
+
+  // Calculate initial reinforcements for the first player
+  initialState.deployableTroops = calculateReinforcements(initialState, players[0]);
+
+  return initialState;
 }
 
 function rollDice(): number {
@@ -115,10 +123,49 @@ export function getPlayerTerritoryCount(player: Player, territoryMap: Record<Ter
   return Object.values(territoryMap).filter(t => t.owner === player).length;
 }
 
+export function calculateReinforcements(state: GameState, player: Player): number {
+  const territoryCount = getPlayerTerritoryCount(player, state.territories);
+  const continentBonus = getContinentBonus(player, state.territories);
+
+  // Base reinforcements: territories ÷ 3 (round down)
+  const baseReinforcements = Math.floor(territoryCount / 3);
+
+  // Total reinforcements with continent bonus, minimum 3
+  const totalReinforcements = baseReinforcements + continentBonus;
+
+  return Math.max(3, totalReinforcements);
+}
+
 export function validateMove(state: GameState, move: Move): string | null {
-  const { currentPlayer, phase, territories } = state;
+  const { currentPlayer, phase, territories, deployableTroops } = state;
 
   if (move.type === 'skip') {
+    // Cannot skip deploy phase if there are troops to deploy
+    if (phase === 'deploy' && deployableTroops > 0) {
+      return 'Must deploy all troops before skipping';
+    }
+    return null;
+  }
+
+  if (move.type === 'deploy') {
+    if (phase !== 'deploy') {
+      return 'Can only deploy during deploy phase';
+    }
+
+    const territory = territories[move.territory];
+
+    if (territory.owner !== currentPlayer) {
+      return 'You do not own this territory';
+    }
+
+    if (move.troops < 1) {
+      return 'Must deploy at least 1 troop';
+    }
+
+    if (move.troops > deployableTroops) {
+      return `Only ${deployableTroops} troops available to deploy`;
+    }
+
     return null;
   }
 
@@ -194,11 +241,28 @@ export function applyMove(state: GameState, move: Move): GameState {
   if (move.type === 'skip') {
     if (newState.phase === 'attack') {
       newState.phase = 'fortify';
-    } else {
-      newState.phase = 'attack';
+    } else if (newState.phase === 'fortify') {
+      // End turn, move to next player
       const currentIndex = newState.players.indexOf(newState.currentPlayer);
       newState.currentPlayer = newState.players[(currentIndex + 1) % newState.players.length];
+      newState.phase = 'deploy';
+      newState.conqueredTerritoryThisTurn = false;
+      newState.deployableTroops = calculateReinforcements(newState, newState.currentPlayer);
     }
+    return newState;
+  }
+
+  if (move.type === 'deploy') {
+    const territory = newState.territories[move.territory];
+
+    territory.troops += move.troops;
+    newState.deployableTroops -= move.troops;
+
+    // Auto-transition to attack phase when all troops are deployed
+    if (newState.deployableTroops === 0) {
+      newState.phase = 'attack';
+    }
+
     return newState;
   }
 
@@ -215,6 +279,7 @@ export function applyMove(state: GameState, move: Move): GameState {
       to.owner = from.owner;
       to.troops = 1;
       from.troops -= 1;
+      newState.conqueredTerritoryThisTurn = true;
     }
 
     const winner = checkWinner(newState.territories, newState.players);
@@ -232,9 +297,12 @@ export function applyMove(state: GameState, move: Move): GameState {
     from.troops -= move.troops;
     to.troops += move.troops;
 
-    newState.phase = 'attack';
+    // End turn, move to next player
     const currentIndex = newState.players.indexOf(newState.currentPlayer);
     newState.currentPlayer = newState.players[(currentIndex + 1) % newState.players.length];
+    newState.phase = 'deploy';
+    newState.conqueredTerritoryThisTurn = false;
+    newState.deployableTroops = calculateReinforcements(newState, newState.currentPlayer);
 
     return newState;
   }
@@ -254,11 +322,34 @@ function checkWinner(territoryMap: Record<TerritoryId, Territory>, players: Play
 
 export function getValidMoves(state: GameState): Move[] {
   const moves: Move[] = [];
-  const { currentPlayer, phase, territories } = state;
+  const { currentPlayer, phase, territories, deployableTroops } = state;
 
-  moves.push({ type: 'skip' });
+  // Can only skip if not in deploy phase or if all troops are deployed
+  if (phase !== 'deploy' || deployableTroops === 0) {
+    moves.push({ type: 'skip' });
+  }
 
-  if (phase === 'attack') {
+  if (phase === 'deploy') {
+    // Generate deploy moves for all owned territories
+    for (const territoryId in territories) {
+      const territory = territories[territoryId as TerritoryId];
+      if (territory.owner === currentPlayer) {
+        // Allow deploying 1 troop at a time, or all remaining troops
+        moves.push({
+          type: 'deploy',
+          territory: territory.id,
+          troops: 1
+        });
+        if (deployableTroops > 1) {
+          moves.push({
+            type: 'deploy',
+            territory: territory.id,
+            troops: deployableTroops
+          });
+        }
+      }
+    }
+  } else if (phase === 'attack') {
     for (const territoryId in territories) {
       const from = territories[territoryId as TerritoryId];
       if (from.owner === currentPlayer && from.troops > 1) {

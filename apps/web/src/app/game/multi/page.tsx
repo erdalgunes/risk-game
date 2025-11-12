@@ -64,13 +64,13 @@ export default function MultiplayerGame() {
     handleSkip: handleSkipBase
   } = useGameLogic(gameState, updateGameState);
 
-  const handleTerritoryClick = (territoryId: TerritoryId) => {
+  const handleTerritoryClick = (territoryId: TerritoryId, shiftKey?: boolean) => {
     if (!gameState || !localPlayer) return;
     if (gameState.currentPlayer !== localPlayer) {
       setGameStateMessage(`It's ${gameState.currentPlayer}'s turn. You are playing as ${localPlayer}.`);
       return;
     }
-    handleTerritoryClickBase(territoryId);
+    handleTerritoryClickBase(territoryId, undefined, shiftKey);
   };
 
   const handleSkip = async () => {
