@@ -103,7 +103,7 @@ export default function MultiplayerGame() {
     return createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    ) as any;
+    ) as ReturnType<typeof createSupabaseClient>;
   }, [supabaseReady]);
 
   // Subscribe to game updates
@@ -120,8 +120,8 @@ export default function MultiplayerGame() {
           table: 'games',
           filter: `id=eq.${gameId}`
         },
-        (payload: any) => {
-          setGameState(payload.new.state as GameState);
+        (payload: { new: { state: GameState } }) => {
+          setGameState(payload.new.state);
         }
       )
       .subscribe();

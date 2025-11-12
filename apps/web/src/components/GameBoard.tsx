@@ -152,7 +152,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
   }, [isPanning, panStart, viewBox]);
 
   // Mouse pan end
-  const handleMouseUp = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+  const handleMouseUp = useCallback(() => {
     setIsPanning(false);
   }, []);
 
@@ -234,7 +234,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
     }
 
     setTouches(touchList);
-  }, [touches, initialPinchDistance, initialPinchViewBox, panStart, viewBox, screenToSVG]);
+  }, [initialPinchDistance, initialPinchViewBox, panStart, viewBox, screenToSVG]);
 
   // Touch end
   const handleTouchEnd = useCallback((e: React.TouchEvent<SVGSVGElement>) => {
