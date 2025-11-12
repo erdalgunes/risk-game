@@ -1,45 +1,45 @@
 {
   "pages": {
-    "/_not-found": [
-      "static/chunks/webpack-5e9bedb58c3695d7.js",
-      "static/chunks/05c43bfd-a98b9c0443f0add3.js",
-      "static/chunks/533-21a0ea9f6780be5c.js",
-      "static/chunks/main-app-8b523b1f9731122f.js",
-      "static/chunks/app/_not-found-547a3c0251e435d7.js"
+    "/_not-found/page": [
+      "static/chunks/webpack-35b091ca5c5192ac.js",
+      "static/chunks/f28872f0-0dbe39ccf802aad7.js",
+      "static/chunks/844-ade7ad8f5fb1cfb2.js",
+      "static/chunks/main-app-f62dd815b31ae447.js",
+      "static/chunks/app/_not-found/page-0bb647a92b526203.js"
     ],
     "/layout": [
-      "static/chunks/webpack-5e9bedb58c3695d7.js",
-      "static/chunks/05c43bfd-a98b9c0443f0add3.js",
-      "static/chunks/533-21a0ea9f6780be5c.js",
-      "static/chunks/main-app-8b523b1f9731122f.js",
-      "static/chunks/app/layout-4a54c93ca2e209da.js"
+      "static/chunks/webpack-35b091ca5c5192ac.js",
+      "static/chunks/f28872f0-0dbe39ccf802aad7.js",
+      "static/chunks/844-ade7ad8f5fb1cfb2.js",
+      "static/chunks/main-app-f62dd815b31ae447.js",
+      "static/chunks/app/layout-2a698cd8b1ca33a7.js"
     ],
     "/game/multi/page": [
-      "static/chunks/webpack-5e9bedb58c3695d7.js",
-      "static/chunks/05c43bfd-a98b9c0443f0add3.js",
-      "static/chunks/533-21a0ea9f6780be5c.js",
-      "static/chunks/main-app-8b523b1f9731122f.js",
-      "static/chunks/161-be209754aa9aad68.js",
-      "static/chunks/543-1c42daba93107cce.js",
-      "static/chunks/464-b5a2091c2e5b5521.js",
-      "static/chunks/app/game/multi/page-de1649d9c6873f64.js"
+      "static/chunks/webpack-35b091ca5c5192ac.js",
+      "static/chunks/f28872f0-0dbe39ccf802aad7.js",
+      "static/chunks/844-ade7ad8f5fb1cfb2.js",
+      "static/chunks/main-app-f62dd815b31ae447.js",
+      "static/chunks/865-826139e57606d915.js",
+      "static/chunks/162-07a0ae3cb9226944.js",
+      "static/chunks/760-275f9f1cf925bd58.js",
+      "static/chunks/app/game/multi/page-aa249c38de118bcd.js"
     ],
     "/game/single/page": [
-      "static/chunks/webpack-5e9bedb58c3695d7.js",
-      "static/chunks/05c43bfd-a98b9c0443f0add3.js",
-      "static/chunks/533-21a0ea9f6780be5c.js",
-      "static/chunks/main-app-8b523b1f9731122f.js",
-      "static/chunks/161-be209754aa9aad68.js",
-      "static/chunks/464-b5a2091c2e5b5521.js",
-      "static/chunks/app/game/single/page-ae4daea5e35e876b.js"
+      "static/chunks/webpack-35b091ca5c5192ac.js",
+      "static/chunks/f28872f0-0dbe39ccf802aad7.js",
+      "static/chunks/844-ade7ad8f5fb1cfb2.js",
+      "static/chunks/main-app-f62dd815b31ae447.js",
+      "static/chunks/865-826139e57606d915.js",
+      "static/chunks/760-275f9f1cf925bd58.js",
+      "static/chunks/app/game/single/page-f92afc9da31170dd.js"
     ],
     "/page": [
-      "static/chunks/webpack-5e9bedb58c3695d7.js",
-      "static/chunks/05c43bfd-a98b9c0443f0add3.js",
-      "static/chunks/533-21a0ea9f6780be5c.js",
-      "static/chunks/main-app-8b523b1f9731122f.js",
-      "static/chunks/161-be209754aa9aad68.js",
-      "static/chunks/app/page-5856dab36d25c79c.js"
+      "static/chunks/webpack-35b091ca5c5192ac.js",
+      "static/chunks/f28872f0-0dbe39ccf802aad7.js",
+      "static/chunks/844-ade7ad8f5fb1cfb2.js",
+      "static/chunks/main-app-f62dd815b31ae447.js",
+      "static/chunks/865-826139e57606d915.js",
+      "static/chunks/app/page-df99796d3498eaba.js"
     ]
   }
 }

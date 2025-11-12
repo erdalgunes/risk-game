@@ -53,7 +53,8 @@ export function createInitialState(players = ['red', 'blue']) {
         deployableTroops: 0,
         conqueredTerritoryThisTurn: false,
         fortifiedThisTurn: false,
-        unplacedTroops
+        unplacedTroops,
+        lastAttackResult: null
     };
     return initialState;
 }
@@ -363,6 +364,8 @@ export function applyMove(state, move) {
         const attackerDice = move.attackerDice || Math.min(3, from.troops - 1);
         const defenderDice = move.defenderDice || Math.min(2, to.troops);
         const result = resolveAttack(from.troops, to.troops, attackerDice, defenderDice);
+        // Store the attack result for UI display
+        newState.lastAttackResult = result;
         from.troops -= result.attackerLost;
         to.troops -= result.defenderLost;
         if (result.conquered) {
