@@ -94,7 +94,8 @@ function resolveAttack(
   attackerTroops: number,
   defenderTroops: number,
   attackerDice: 1 | 2 | 3,
-  defenderDice: 1 | 2
+  defenderDice: 1 | 2,
+  defender: Player | null
 ): AttackResult {
   // Validate dice counts
   const maxAttackerDice = Math.min(3, attackerTroops - 1);
@@ -127,7 +128,8 @@ function resolveAttack(
     attackerLost,
     defenderLost,
     conquered,
-    diceUsed: actualAttackerDice
+    diceUsed: actualAttackerDice,
+    defender
   };
 }
 
@@ -468,7 +470,7 @@ export function applyMove(state: GameState, move: Move): GameState {
     const attackerDice = move.attackerDice || Math.min(3, from.troops - 1) as 1 | 2 | 3;
     const defenderDice = move.defenderDice || Math.min(2, to.troops) as 1 | 2;
 
-    const result = resolveAttack(from.troops, to.troops, attackerDice, defenderDice);
+    const result = resolveAttack(from.troops, to.troops, attackerDice, defenderDice, to.owner);
 
     // Store the attack result for UI display
     newState.lastAttackResult = result;

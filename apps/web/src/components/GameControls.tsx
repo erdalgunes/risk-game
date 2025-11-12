@@ -170,11 +170,7 @@ export function GameControls({
                 <DiceDisplay
                   attackResult={state.lastAttackResult}
                   attackerColor={currentColor}
-                  defenderColor={playerColors[
-                    Object.values(state.territories).find(t =>
-                      t.owner && t.owner !== state.currentPlayer
-                    )?.owner || 'red'
-                  ]}
+                  defenderColor={playerColors[state.lastAttackResult.defender || 'neutral']}
                 />
               )}
               <div style={{ marginBottom: '20px' }}>

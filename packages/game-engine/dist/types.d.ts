@@ -69,5 +69,6 @@ export interface AttackResult {
     defenderLost: number;
     conquered: boolean;
     diceUsed: number;
+    defender: Player | null;
 }
 //# sourceMappingURL=types.d.ts.map
