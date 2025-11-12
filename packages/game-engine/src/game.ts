@@ -25,7 +25,7 @@ function getSecureRandom(): number {
     return array[0] / (0xffffffff + 1);
   } else {
     // Fallback for older environments - still using Math.random but isolated
-    return Math.random();
+    return Math.random(); // NOSONAR
   }
 }
 
