@@ -12,6 +12,7 @@ export function useGameLogic(
 ) {
   const [selectedTerritory, setSelectedTerritory] = useState<TerritoryId | null>(null);
   const [fortifyTroops, setFortifyTroops] = useState(1);
+  const [transferTroops, setTransferTroops] = useState(1);
   const [message, setMessage] = useState<string>('');
 
   const handleTerritoryClick = async (territoryId: TerritoryId, currentPlayerOnly?: string, shiftKey?: boolean) => {
@@ -20,6 +21,44 @@ export function useGameLogic(
     const territory = gameState.territories[territoryId];
     const activePlayer = currentPlayerOnly || gameState.currentPlayer;
 
+    // Initial placement phase
+    if (gameState.phase === 'initial_placement') {
+      const move: Move = {
+        type: 'deploy',
+        territory: territoryId,
+        troops: 1
+      };
+
+      const error = validateMove(gameState, move);
+      if (error) {
+        setMessage(error);
+      } else {
+        try {
+          const newState = applyMove(gameState, move);
+          if (onStateUpdate) {
+            await onStateUpdate(newState);
+          }
+          const subPhase = gameState.initialPlacementSubPhase;
+          const remaining = gameState.unplacedTroops?.[gameState.currentPlayer] ?? 0;
+          if (subPhase === 'claiming') {
+            setMessage(`${formatTerritoryName(territoryId)} claimed! ${remaining - 1} troops remaining.`);
+          } else {
+            setMessage(`Troop placed on ${formatTerritoryName(territoryId)}. ${remaining - 1} remaining.`);
+          }
+        } catch (error) {
+          setMessage('Placement failed: ' + (error as Error).message);
+        }
+      }
+      return;
+    }
+
+    // Attack transfer phase
+    if (gameState.phase === 'attack_transfer') {
+      setMessage('Choose number of troops to transfer using the controls below.');
+      return;
+    }
+
+    // Deploy phase
     if (gameState.phase === 'deploy') {
       if (territory.owner !== activePlayer) {
         setMessage('You can only deploy troops to territories you own.');
@@ -59,7 +98,11 @@ export function useGameLogic(
           setMessage('Deploy failed: ' + (error as Error).message);
         }
       }
-    } else if (gameState.phase === 'attack') {
+      return;
+    }
+
+    // Attack phase
+    if (gameState.phase === 'attack') {
       if (!selectedTerritory) {
         if (territory.owner === activePlayer && territory.troops > 1) {
           setSelectedTerritory(territoryId);
@@ -84,7 +127,14 @@ export function useGameLogic(
             if (onStateUpdate) {
               await onStateUpdate(newState);
             }
-            setMessage('Attack executed!');
+
+            if (newState.phase === 'attack_transfer') {
+              const pending = newState.pendingTransfer!;
+              setTransferTroops(pending.minTroops);
+              setMessage(`Territory conquered! Choose ${pending.minTroops}-${pending.maxTroops} troops to move.`);
+            } else {
+              setMessage('Attack executed!');
+            }
             setSelectedTerritory(null);
           } catch (error) {
             setMessage('Attack failed: ' + (error as Error).message);
@@ -92,7 +142,16 @@ export function useGameLogic(
           }
         }
       }
-    } else if (gameState.phase === 'fortify') {
+      return;
+    }
+
+    // Fortify phase
+    if (gameState.phase === 'fortify') {
+      if (gameState.fortifiedThisTurn) {
+        setMessage('Already fortified this turn. Click "End Turn" to continue.');
+        return;
+      }
+
       if (!selectedTerritory) {
         if (territory.owner === activePlayer && territory.troops > 1) {
           setSelectedTerritory(territoryId);
@@ -119,7 +178,7 @@ export function useGameLogic(
             if (onStateUpdate) {
               await onStateUpdate(newState);
             }
-            setMessage('Troops moved!');
+            setMessage('Troops moved! Turn ended.');
             setSelectedTerritory(null);
           } catch (error) {
             setMessage('Move failed: ' + (error as Error).message);
@@ -146,6 +205,25 @@ export function useGameLogic(
     }
   };
 
+  const handleTransfer = async () => {
+    if (!gameState || gameState.phase !== 'attack_transfer') return;
+
+    const move: Move = {
+      type: 'transfer',
+      troops: transferTroops
+    };
+
+    try {
+      const newState = applyMove(gameState, move);
+      if (onStateUpdate) {
+        await onStateUpdate(newState);
+      }
+      setMessage(`Transferred ${transferTroops} troops. Returned to attack phase.`);
+    } catch (error) {
+      setMessage('Transfer failed: ' + (error as Error).message);
+    }
+  };
+
   const resetSelection = useCallback(() => {
     setSelectedTerritory(null);
   }, []);
@@ -154,9 +232,12 @@ export function useGameLogic(
     selectedTerritory,
     fortifyTroops,
     setFortifyTroops,
+    transferTroops,
+    setTransferTroops,
     message,
     handleTerritoryClick,
     handleSkip,
+    handleTransfer,
     resetSelection
   };
 }

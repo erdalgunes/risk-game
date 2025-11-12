@@ -38,18 +38,23 @@ export default function SinglePlayerGame() {
     selectedTerritory,
     fortifyTroops,
     setFortifyTroops,
+    transferTroops,
+    setTransferTroops,
     message,
     handleTerritoryClick: handleTerritoryClickBase,
     handleSkip,
+    handleTransfer,
     resetSelection
   } = useGameLogic(gameState, setGameState);
 
-  // AI player logic
+  // AI player logic (handles blue and neutral players)
   useEffect(() => {
-    if (gameState.currentPlayer === 'blue' && !gameState.winner) {
+    const isAIPlayer = gameState.currentPlayer === 'blue' || gameState.currentPlayer === 'neutral';
+
+    if (isAIPlayer && !gameState.winner) {
       const timer = setTimeout(() => {
-        const aiMove = getAIMove(gameState);
         try {
+          const aiMove = getAIMove(gameState);
           const newState = applyMove(gameState, aiMove);
           setGameState(newState);
           resetSelection();
@@ -121,6 +126,9 @@ export default function SinglePlayerGame() {
             onSkip={handleSkip}
             fortifyTroops={fortifyTroops}
             onFortifyTroopsChange={setFortifyTroops}
+            transferTroops={transferTroops}
+            onTransferTroopsChange={setTransferTroops}
+            onTransfer={handleTransfer}
           />
         </div>
       </div>
