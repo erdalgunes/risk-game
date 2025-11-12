@@ -306,11 +306,11 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
       const dx = Math.abs(e.clientX - mouseStart.x);
       const dy = Math.abs(e.clientY - mouseStart.y);
       if (dx < TAP_THRESHOLD && dy < TAP_THRESHOLD) {
-        onTerritoryClick(territoryId);
+        onTerritoryClick(territoryId, 'shiftKey' in e ? e.shiftKey : false);
       }
     } else {
       // Touch handled separately in touch handlers
-      onTerritoryClick(territoryId);
+      onTerritoryClick(territoryId, false);
     }
   }, [mouseStart, onTerritoryClick]);
 
@@ -364,7 +364,6 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
           </filter>
         </defs>
 
-<<<<<<< HEAD
         {/* Draw connection lines (under territories) */}
         <g opacity="0.4">
           {connectionLines.map((connection) => (
@@ -378,55 +377,6 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
               strokeWidth="2"
               strokeDasharray="6,3"
               strokeLinecap="round"
-=======
-      {/* Draw connection lines (under territories) */}
-      <g opacity="0.4">
-        {connectionLines.map((connection, index) => (
-          <line
-            key={`connection-${index}`}
-            x1={connection.x1}
-            y1={connection.y1}
-            x2={connection.x2}
-            y2={connection.y2}
-            stroke="#888888"
-            strokeWidth="2"
-            strokeDasharray="6,3"
-            strokeLinecap="round"
-          />
-        ))}
-      </g>
-
-      {/* Draw territories */}
-      {Object.values(territories).map((territory) => {
-        const pathData = riskMapPaths[territory.id];
-        if (!pathData || !territory.owner) return null;
-
-        const color = getPlayerColor(territory.owner);
-        const isSelected = selectedTerritory === territory.id;
-        const isHovered = hoveredTerritory === territory.id;
-
-        return (
-          <g key={territory.id}>
-            {/* Territory path */}
-            <path
-              d={pathData.path}
-              fill={color}
-              stroke={getStrokeColor(territory.id)}
-              strokeWidth={getStrokeWidth(territory.id)}
-              opacity={getOpacity(territory.id)}
-              filter={isSelected ? "url(#glow)" : "url(#shadow)"}
-              style={{
-                cursor: 'pointer',
-                transition: 'all 0.2s ease-in-out',
-                WebkitTapHighlightColor: 'transparent'
-              }}
-              onClick={(e) => onTerritoryClick(territory.id, e.shiftKey)}
-              onMouseEnter={() => setHoveredTerritory(territory.id)}
-              onMouseLeave={() => setHoveredTerritory(null)}
-              onTouchStart={() => setActiveTouchTerritory(territory.id)}
-              onTouchEnd={() => setActiveTouchTerritory(null)}
-              onTouchCancel={() => setActiveTouchTerritory(null)}
->>>>>>> 2bcd6f1 (Fix game phase transition logic and remove redundant code)
             />
           ))}
         </g>
@@ -474,7 +424,7 @@ export function GameBoard({ state, onTerritoryClick, selectedTerritory }: GameBo
                     const dy = Math.abs(touch.clientY - mouseStart.y);
 
                     if (dx < TAP_THRESHOLD && dy < TAP_THRESHOLD) {
-                      onTerritoryClick(territory.id);
+                      onTerritoryClick(territory.id, false);
                     }
                   }
                   setActiveTouchTerritory(null);

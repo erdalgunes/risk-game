@@ -53,7 +53,7 @@ function getSmartDeployment(state: GameState): DeployMove {
 
       if (continentBorders.length > 0) {
         // Deploy to weakest border territory in this continent
-        const weakest = continentBorders.reduce((min, t) => t.troops < min.troops ? t : min);
+        const weakest = continentBorders.reduce((min, t) => t.troops < min.troops ? t : min, continentBorders[0]);
         return {
           type: 'deploy',
           territory: weakest.id,
@@ -65,7 +65,7 @@ function getSmartDeployment(state: GameState): DeployMove {
 
   // Fallback: reinforce weakest border territory
   if (borderTerritories.length > 0) {
-    const weakest = borderTerritories.reduce((min, t) => t.troops < min.troops ? t : min);
+    const weakest = borderTerritories.reduce((min, t) => t.troops < min.troops ? t : min, borderTerritories[0]);
     return {
       type: 'deploy',
       territory: weakest.id,
