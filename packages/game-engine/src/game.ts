@@ -11,10 +11,28 @@ import type {
 } from './types';
 import { territories, continents, allTerritoryNames, type TerritoryName } from './territoryData';
 
+// Crypto-secure random number generator to satisfy SonarCloud security requirements
+function getSecureRandom(): number {
+  if (typeof window !== 'undefined' && window.crypto) {
+    // Browser environment
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0] / (0xffffffff + 1);
+  } else if (typeof global !== 'undefined' && global.crypto) {
+    // Node.js environment
+    const array = new Uint32Array(1);
+    global.crypto.getRandomValues(array);
+    return array[0] / (0xffffffff + 1);
+  } else {
+    // Fallback for older environments - still using Math.random but isolated
+    return Math.random();
+  }
+}
+
 function shuffle<T>(array: T[]): T[] {
   const result = [...array];
   for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1)); // NOSONAR S2245
+    const j = Math.floor(getSecureRandom() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
@@ -79,7 +97,7 @@ export function createInitialState(players: Player[] = ['red', 'blue']): GameSta
 }
 
 function rollDice(): number {
-  return Math.floor(Math.random() * 6) + 1; // NOSONAR S2245
+  return Math.floor(getSecureRandom() * 6) + 1;
 }
 
 function rollMultipleDice(count: number): number[] {

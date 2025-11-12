@@ -2,8 +2,26 @@ import type { GameState, Move, TerritoryId, DeployMove, AttackMove } from './typ
 import { getValidMoves, getContinentBonus } from './game';
 import { continents } from './territoryData';
 
+// Crypto-secure random number generator to satisfy SonarCloud security requirements
+function getSecureRandom(): number {
+  if (typeof window !== 'undefined' && window.crypto) {
+    // Browser environment
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0] / (0xffffffff + 1);
+  } else if (typeof global !== 'undefined' && global.crypto) {
+    // Node.js environment
+    const array = new Uint32Array(1);
+    global.crypto.getRandomValues(array);
+    return array[0] / (0xffffffff + 1);
+  } else {
+    // Fallback for older environments - still using Math.random but isolated
+    return Math.random();
+  }
+}
+
 function selectRandom<T>(array: T[]): T {
-  const randomIndex = Math.floor(Math.random() * array.length); // NOSONAR S2245
+  const randomIndex = Math.floor(getSecureRandom() * array.length);
   return array[randomIndex];
 }
 
