@@ -269,9 +269,12 @@ export function validateMove(state, move) {
     return 'Invalid move type';
 }
 function nextPlayer(state) {
-    const humanPlayers = state.players.filter(p => p !== 'neutral');
-    const currentIndex = humanPlayers.indexOf(state.currentPlayer);
-    return humanPlayers[(currentIndex + 1) % humanPlayers.length];
+    // During initial placement, include all players (including neutral)
+    const activePlayers = state.phase === 'initial_placement'
+        ? state.players
+        : state.players.filter(p => p !== 'neutral');
+    const currentIndex = activePlayers.indexOf(state.currentPlayer);
+    return activePlayers[(currentIndex + 1) % activePlayers.length];
 }
 function endTurn(state) {
     state.currentPlayer = nextPlayer(state);

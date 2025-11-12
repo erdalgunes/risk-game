@@ -353,9 +353,13 @@ export function validateMove(state: GameState, move: Move): string | null {
 }
 
 function nextPlayer(state: GameState): Player {
-  const humanPlayers = state.players.filter(p => p !== 'neutral') as Exclude<Player, 'neutral'>[];
-  const currentIndex = humanPlayers.indexOf(state.currentPlayer as Exclude<Player, 'neutral'>);
-  return humanPlayers[(currentIndex + 1) % humanPlayers.length];
+  // During initial placement, include all players (including neutral)
+  const activePlayers = state.phase === 'initial_placement'
+    ? state.players
+    : state.players.filter(p => p !== 'neutral') as Exclude<Player, 'neutral'>[];
+
+  const currentIndex = activePlayers.indexOf(state.currentPlayer);
+  return activePlayers[(currentIndex + 1) % activePlayers.length];
 }
 
 function endTurn(state: GameState): void {
