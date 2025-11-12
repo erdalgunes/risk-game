@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createInitialState, applyMove, calculateReinforcements, getValidMoves } from './game';
-import type { GameState, Move } from './types';
+import type { GameState } from './types';
 
 describe('game integration - full turn cycle', () => {
   let gameState: GameState;
@@ -48,7 +48,7 @@ describe('game integration - full turn cycle', () => {
   });
 
   it('should calculate reinforcements correctly after territory changes', () => {
-    const initialReinforcements = calculateReinforcements(gameState, 'red');
+    calculateReinforcements(gameState, 'red');
 
     // Simulate gaining territories (this would happen through conquest)
     // For testing, we'll manually modify the state
@@ -95,7 +95,6 @@ describe('game integration - multi-turn scenarios', () => {
     // Play a few turns
     for (let turn = 0; turn < 4; turn++) {
       const initialPlayer = gameState.currentPlayer;
-      const initialPhase = gameState.phase;
 
       // Complete the current player's turn
       while (gameState.currentPlayer === initialPlayer && gameState.phase !== 'deploy') {

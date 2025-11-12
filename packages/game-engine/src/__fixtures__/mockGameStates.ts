@@ -56,9 +56,9 @@ export const createMockStalemateState = (): GameState => {
   const state = createMockEarlyGameState();
   state.phase = 'attack';
   // Set all territories to have only 1 troop
-  Object.values(state.territories).forEach(territory => {
+  for (const territory of Object.values(state.territories)) {
     territory.troops = 1;
-  });
+  }
   return state;
 };
 

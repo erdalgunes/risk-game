@@ -10,7 +10,7 @@ import {
 } from './game';
 import { territories, allTerritoryNames } from './territoryData';
 import type { GameState, Move, Player } from './types';
-import { createMockEarlyGameState, createMockMidGameState } from './__fixtures__/mockGameStates';
+import { createMockEarlyGameState } from './__fixtures__/mockGameStates';
 import { mockValidDeployMove, mockValidAttackMove, mockSkipMove } from './__fixtures__/mockMoves';
 
 describe('createInitialState', () => {

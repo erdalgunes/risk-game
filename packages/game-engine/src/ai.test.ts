@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getAIMove } from './ai';
-import { createMockEarlyGameState, createMockMidGameState } from './__fixtures__/mockGameStates';
-import type { Move } from './types';
+import { createMockEarlyGameState } from './__fixtures__/mockGameStates';
 
 describe('getAIMove', () => {
   it('should return a valid move during deploy phase', () => {
