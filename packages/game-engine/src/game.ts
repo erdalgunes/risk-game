@@ -360,7 +360,25 @@ function nextPlayer(state: GameState): Player {
     : state.players.filter(p => p !== 'neutral') as Exclude<Player, 'neutral'>[];
 
   const currentIndex = activePlayers.indexOf(state.currentPlayer);
-  return activePlayers[(currentIndex + 1) % activePlayers.length];
+  let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+  // During reinforcing sub-phase, skip players who have run out of troops
+  if (
+    state.phase === 'initial_placement' &&
+    state.initialPlacementSubPhase === 'reinforcing' &&
+    state.unplacedTroops &&
+    Object.values(state.unplacedTroops).some(count => count > 0)
+  ) {
+    // Skip players with 0 troops remaining
+    while (
+      state.unplacedTroops[activePlayers[nextIndex]] === 0 &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+  }
+
+  return activePlayers[nextIndex];
 }
 
 function endTurn(state: GameState): void {
