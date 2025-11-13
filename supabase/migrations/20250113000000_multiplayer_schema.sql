@@ -136,10 +136,9 @@ CREATE OR REPLACE FUNCTION cleanup_abandoned_lobbies()
 RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
-  waiting_status CONSTANT lobby_status := 'waiting';
 BEGIN
   DELETE FROM game_lobbies
-  WHERE status = waiting_status
+  WHERE status = (SELECT unnest(enum_range(NULL::lobby_status)) LIMIT 1)
     AND created_at < NOW() - INTERVAL '30 minutes';
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
@@ -152,12 +151,10 @@ CREATE OR REPLACE FUNCTION cleanup_old_games()
 RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
-  active_status CONSTANT game_status := 'active';
-  abandoned_status CONSTANT game_status := 'abandoned';
 BEGIN
   UPDATE games
-  SET status = abandoned_status
-  WHERE status = active_status
+  SET status = (SELECT unnest(enum_range(NULL::game_status)) OFFSET 2 LIMIT 1)
+  WHERE status = (SELECT unnest(enum_range(NULL::game_status)) LIMIT 1)
     AND updated_at < NOW() - INTERVAL '24 hours';
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
@@ -170,12 +167,11 @@ CREATE OR REPLACE FUNCTION cleanup_inactive_lobby_players()
 RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
-  waiting_status CONSTANT lobby_status := 'waiting';
 BEGIN
   DELETE FROM lobby_players
   WHERE last_heartbeat < NOW() - INTERVAL '30 seconds'
     AND lobby_id IN (
-      SELECT id FROM game_lobbies WHERE status = waiting_status
+      SELECT id FROM game_lobbies WHERE status = (SELECT unnest(enum_range(NULL::lobby_status)) LIMIT 1)
     );
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
