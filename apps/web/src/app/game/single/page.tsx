@@ -5,7 +5,11 @@ import { createInitialState, getAIMove, applyMove } from '@risk-poc/game-engine'
 import type { GameState, TerritoryId } from '@risk-poc/game-engine';
 import { GameBoard } from '@/components/GameBoard';
 import { GameControls } from '@/components/GameControls';
+import { GameStatsDrawer } from '@/components/GameStatsDrawer';
+import { GameActionDrawer } from '@/components/GameActionDrawer';
+import { ContextFab } from '@/components/ContextFab';
 import { useGameLogic } from '@/hooks/useGameLogic';
+import { useMobileDrawers } from '@/hooks/useMobileDrawers';
 import Link from 'next/link';
 
 export default function SinglePlayerGame() {
@@ -72,6 +76,12 @@ export default function SinglePlayerGame() {
     handleTerritoryClickBase(territoryId, 'red', shiftKey);
   };
 
+  const {
+    activeDrawer,
+    openDrawer,
+    closeDrawer,
+  } = useMobileDrawers(selectedTerritory);
+
   return (
     <>
       <style>{responsiveStyles}</style>
@@ -131,6 +141,33 @@ export default function SinglePlayerGame() {
             onTransfer={handleTransfer}
           />
         </div>
+
+        {/* Mobile Drawers */}
+        <GameStatsDrawer
+          open={activeDrawer === 'stats'}
+          onOpen={() => openDrawer('stats')}
+          onClose={closeDrawer}
+          gameState={gameState}
+        />
+
+        <GameActionDrawer
+          open={activeDrawer === 'action'}
+          onOpen={() => openDrawer('action')}
+          onClose={closeDrawer}
+          gameState={gameState}
+          selectedTerritory={selectedTerritory}
+          fortifyTroops={fortifyTroops}
+          onFortifyTroopsChange={setFortifyTroops}
+          transferTroops={transferTroops}
+          onTransferTroopsChange={setTransferTroops}
+        />
+
+        {/* Context FAB */}
+        <ContextFab
+          gameState={gameState}
+          onSkip={handleSkip}
+          onTransfer={handleTransfer}
+        />
       </div>
     </div>
     </>
