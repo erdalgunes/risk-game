@@ -30,7 +30,7 @@ export async function createLobby(
       host_player_id: hostPlayerId,
       max_players: maxPlayers,
       status: 'waiting'
-    })
+    } as any)
     .select()
     .single();
 
@@ -38,10 +38,12 @@ export async function createLobby(
     throw new Error(`Failed to create lobby: ${lobbyError?.message || 'Unknown error'}`);
   }
 
-  // Add host as first player
-  await joinLobby(supabase, lobby.id, hostPlayerId);
+  const typedLobby = lobby as Lobby;
 
-  return lobby;
+  // Add host as first player
+  await joinLobby(supabase, typedLobby.id, hostPlayerId);
+
+  return typedLobby;
 }
 
 /**
@@ -64,20 +66,22 @@ export async function joinLobbyByCode(
     throw new Error('Lobby not found or already started');
   }
 
+  const typedLobby = lobby as Lobby;
+
   // Check if lobby is full
   const { count } = await supabase
     .from('lobby_players')
     .select('*', { count: 'exact', head: true })
-    .eq('lobby_id', lobby.id);
+    .eq('lobby_id', typedLobby.id);
 
-  if (count !== null && count >= lobby.max_players) {
+  if (count !== null && count >= typedLobby.max_players) {
     throw new Error('Lobby is full');
   }
 
   // Join lobby
-  await joinLobby(supabase, lobby.id, playerId);
+  await joinLobby(supabase, typedLobby.id, playerId);
 
-  return lobby;
+  return typedLobby;
 }
 
 /**
@@ -119,7 +123,7 @@ async function joinLobby(
       player_id: playerId,
       player_color: playerColor,
       join_order: joinOrder
-    });
+    } as any);
 
   if (error) {
     throw new Error(`Failed to join lobby: ${error.message}`);
@@ -151,7 +155,8 @@ export async function leaveLobby(
     .eq('id', lobbyId)
     .single();
 
-  if (lobby && lobby.host_player_id === playerId) {
+  const typedLobby = lobby as Lobby | null;
+  if (typedLobby && typedLobby.host_player_id === playerId) {
     // Host left, delete lobby
     await supabase
       .from('game_lobbies')
@@ -195,7 +200,7 @@ export async function updateHeartbeat(
   lobbyId: string,
   playerId: string
 ): Promise<void> {
-  await supabase
+  await (supabase as any)
     .from('lobby_players')
     .update({ last_heartbeat: new Date().toISOString() })
     .eq('lobby_id', lobbyId)
@@ -217,11 +222,12 @@ export async function startGameFromLobby(
     .eq('id', lobbyId)
     .single();
 
-  if (!lobby || lobby.host_player_id !== hostPlayerId) {
+  const typedLobby = lobby as Lobby | null;
+  if (!typedLobby || typedLobby.host_player_id !== hostPlayerId) {
     throw new Error('Only the host can start the game');
   }
 
-  if (lobby.status !== 'waiting') {
+  if (typedLobby.status !== 'waiting') {
     throw new Error('Lobby is not in waiting status');
   }
 
@@ -233,7 +239,7 @@ export async function startGameFromLobby(
   }
 
   // Update lobby status to 'starting'
-  await supabase
+  await (supabase as any)
     .from('game_lobbies')
     .update({
       status: 'starting',
@@ -261,7 +267,8 @@ export async function kickPlayer(
     .eq('id', lobbyId)
     .single();
 
-  if (!lobby || lobby.host_player_id !== hostPlayerId) {
+  const typedLobby2 = lobby as Lobby | null;
+  if (!typedLobby2 || typedLobby2.host_player_id !== hostPlayerId) {
     throw new Error('Only the host can kick players');
   }
 

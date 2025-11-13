@@ -71,7 +71,7 @@ export async function ensurePlayer(
 
     if (data && !error) {
       // Update last_active timestamp
-      await supabase
+      await (supabase as any)
         .from('players')
         .update({ last_active: new Date().toISOString() })
         .eq('id', stored.id);
@@ -85,7 +85,7 @@ export async function ensurePlayer(
 
   const { data, error } = await supabase
     .from('players')
-    .insert({ display_name: displayName })
+    .insert({ display_name: displayName } as any)
     .select()
     .single();
 
@@ -93,10 +93,12 @@ export async function ensurePlayer(
     throw new Error(`Failed to create player: ${error?.message || 'Unknown error'}`);
   }
 
-  // Store in localStorage
-  storePlayer(data.id, data.display_name);
+  const typedData = data as Player;
 
-  return data;
+  // Store in localStorage
+  storePlayer(typedData.id, typedData.display_name);
+
+  return typedData;
 }
 
 /**
@@ -107,7 +109,7 @@ export async function updatePlayerName(
   playerId: string,
   newName: string
 ): Promise<void> {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('players')
     .update({ display_name: newName })
     .eq('id', playerId);
