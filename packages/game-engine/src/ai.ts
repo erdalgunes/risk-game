@@ -4,13 +4,8 @@ import { continents } from './territoryData';
 
 // Crypto-secure random number generator to satisfy SonarCloud security requirements
 function getSecureRandom(): number {
-  if (typeof window !== 'undefined' && window.crypto) {
-    // Browser environment
-    const array = new Uint32Array(1);
-    window.crypto.getRandomValues(array);
-    return array[0] / (0xffffffff + 1);
-  } else if (typeof globalThis !== 'undefined' && globalThis.crypto) {
-    // Node.js/universal environment
+  if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+    // Universal environment (Node.js/Browser)
     const array = new Uint32Array(1);
     globalThis.crypto.getRandomValues(array);
     return array[0] / (0xffffffff + 1);

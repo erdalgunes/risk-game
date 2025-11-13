@@ -1,17 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   createInitialState,
   applyMove,
   validateMove,
   calculateReinforcements,
   getContinentBonus,
-  getPlayerTerritoryCount,
-  getValidMoves
+  getPlayerTerritoryCount
 } from './game';
-import { territories, allTerritoryNames } from './territoryData';
 import type { GameState, Move, Player } from './types';
 import { createMockEarlyGameState } from './__fixtures__/mockGameStates';
-import { mockValidDeployMove, mockValidAttackMove, mockSkipMove } from './__fixtures__/mockMoves';
 
 describe('createInitialState', () => {
   it('should create initial state with 2 players distributing 42 territories evenly', () => {
@@ -32,12 +29,12 @@ describe('createInitialState', () => {
     expect(blueTerritories).toHaveLength(21);
 
     // Check initial troops
-    redTerritories.forEach(territory => {
+    for (const territory of redTerritories) {
       expect(territory.troops).toBe(3);
-    });
-    blueTerritories.forEach(territory => {
+    }
+    for (const territory of blueTerritories) {
       expect(territory.troops).toBe(3);
-    });
+    }
   });
 
   it('should handle 3 players with correct territory distribution', () => {
@@ -196,10 +193,15 @@ describe('applyMove', () => {
       }
     };
 
-    // Mock Math.random to ensure conquest (attacker wins)
-    vi.spyOn(Math, 'random')
-      .mockReturnValueOnce(0.9)  // Attacker roll: 6
-      .mockReturnValueOnce(0.1); // Defender roll: 1
+    // Mock crypto.getRandomValues for deterministic test
+    const mockGetRandomValues = vi.fn((array: ArrayBufferView) => {
+      // First call: attacker roll = 6 (high value)
+      // Second call: defender roll = 1 (low value)
+      const uint32Array = array as Uint32Array;
+      uint32Array[0] = mockGetRandomValues.mock.calls.length === 1 ? 0xffffffff : 0x1;
+      return array;
+    });
+    vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(mockGetRandomValues as never);
 
     const move: Move = { type: 'attack', from: 'alaska', to: 'northwest_territory' };
     const newState = applyMove(conquestState, move);
@@ -217,10 +219,15 @@ describe('applyMove', () => {
     const initialAlaskaTroops = state.territories.alaska.troops;
     const initialNWTroops = state.territories.northwest_territory.troops;
 
-    // Mock Math.random for defender victory (defender wins)
-    vi.spyOn(Math, 'random')
-      .mockReturnValueOnce(0.1)  // Attacker roll: 1
-      .mockReturnValueOnce(0.9); // Defender roll: 6
+    // Mock crypto.getRandomValues for deterministic test (defender wins)
+    const mockGetRandomValues = vi.fn((array: ArrayBufferView) => {
+      // First call: attacker roll = 1 (low value)
+      // Second call: defender roll = 6 (high value)
+      const uint32Array = array as Uint32Array;
+      uint32Array[0] = mockGetRandomValues.mock.calls.length === 1 ? 0x1 : 0xffffffff;
+      return array;
+    });
+    vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(mockGetRandomValues as never);
 
     const move: Move = { type: 'attack', from: 'alaska', to: 'northwest_territory' };
     const newState = applyMove(state, move);

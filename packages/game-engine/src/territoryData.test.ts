@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { territories, continents, allTerritoryNames, type TerritoryName, type ContinentName } from './territoryData';
+import { territories, continents, allTerritoryNames, type ContinentName } from './territoryData';
 
 describe('territories data structure', () => {
   it('should have exactly 42 territories', () => {
@@ -8,23 +8,23 @@ describe('territories data structure', () => {
   });
 
   it('should have all territories defined', () => {
-    allTerritoryNames.forEach(territoryName => {
+    for (const territoryName of allTerritoryNames) {
       expect(territories[territoryName]).toBeDefined();
       expect(territories[territoryName].name).toBe(territoryName);
-    });
+    }
   });
 
   it('should have valid continent assignments', () => {
     const validContinents: ContinentName[] = ['oceania', 'south_america', 'africa', 'europe', 'north_america', 'asia'];
 
-    allTerritoryNames.forEach(territoryName => {
+    for (const territoryName of allTerritoryNames) {
       const territory = territories[territoryName];
       expect(validContinents).toContain(territory.continent);
-    });
+    }
   });
 
   it('should have valid neighbor relationships', () => {
-    allTerritoryNames.forEach(territoryName => {
+    for (const territoryName of allTerritoryNames) {
       const territory = territories[territoryName];
 
       // Each territory should have at least one neighbor
@@ -32,26 +32,26 @@ describe('territories data structure', () => {
       expect(territory.neighbors.length).toBeGreaterThan(0);
 
       // All neighbors should exist in the territories data
-      territory.neighbors.forEach(neighbor => {
+      for (const neighbor of territory.neighbors) {
         expect(allTerritoryNames).toContain(neighbor);
-      });
+      }
 
       // Neighbor relationships should be bidirectional
-      territory.neighbors.forEach(neighbor => {
+      for (const neighbor of territory.neighbors) {
         const neighborTerritory = territories[neighbor];
         expect(neighborTerritory.neighbors).toContain(territoryName);
-      });
-    });
+      }
+    }
   });
 
   it('should have correct initial troop counts', () => {
-    allTerritoryNames.forEach(territoryName => {
+    for (const territoryName of allTerritoryNames) {
       // Note: This test assumes territories start with 3 troops as per createInitialState
       // In the actual game state, troops are set to 3 initially
       const territory = territories[territoryName];
       expect(territory).toBeDefined();
       // The territory definition doesn't include troops, that's set in game state
-    });
+    }
   });
 });
 
@@ -77,23 +77,23 @@ describe('continents data structure', () => {
       asia: 7
     };
 
-    continents.forEach(continent => {
+    for (const continent of continents) {
       expect(continent.bonus).toBe(expectedBonuses[continent.name]);
-    });
+    }
   });
 
   it('should have correct territory assignments', () => {
-    continents.forEach(continent => {
+    for (const continent of continents) {
       // Each continent should have territories
       expect(continent.territories).toHaveLength(continent.territories.length);
       expect(continent.territories.length).toBeGreaterThan(0);
 
       // All territories in continent should exist
-      continent.territories.forEach(territoryName => {
+      for (const territoryName of continent.territories) {
         expect(allTerritoryNames).toContain(territoryName);
         expect(territories[territoryName].continent).toBe(continent.name);
-      });
-    });
+      }
+    }
   });
 
   it('should have no overlapping territories between continents', () => {
@@ -114,30 +114,27 @@ describe('continents data structure', () => {
       asia: 12
     };
 
-    continents.forEach(continent => {
+    for (const continent of continents) {
       expect(continent.territories).toHaveLength(expectedSizes[continent.name]);
-    });
+    }
   });
 });
 
 describe('territory connectivity', () => {
   it('should ensure all territories are connected within their continents', () => {
     // This is a basic connectivity test - in a real implementation you'd do a full graph traversal
-    continents.forEach(continent => {
+    for (const continent of continents) {
       const continentTerritories = continent.territories;
 
       // Each territory in the continent should be connected to at least one other
-      continentTerritories.forEach(territoryName => {
+      for (const territoryName of continentTerritories) {
         const territory = territories[territoryName];
-        const connectedToContinent = territory.neighbors.some(neighbor =>
-          territories[neighbor].continent === continent.name
-        );
 
         // Most territories should be connected within their continent
         // (Some edge territories might only connect to other continents)
         expect(territory.neighbors.length).toBeGreaterThan(0);
-      });
-    });
+      }
+    }
   });
 
   it('should validate specific adjacency rules', () => {
@@ -158,17 +155,17 @@ describe('data integrity', () => {
   });
 
   it('should have consistent data types', () => {
-    allTerritoryNames.forEach(territoryName => {
+    for (const territoryName of allTerritoryNames) {
       const territory = territories[territoryName];
 
       expect(typeof territory.name).toBe('string');
       expect(typeof territory.continent).toBe('string');
       expect(Array.isArray(territory.neighbors)).toBe(true);
 
-      territory.neighbors.forEach(neighbor => {
+      for (const neighbor of territory.neighbors) {
         expect(typeof neighbor).toBe('string');
-      });
-    });
+      }
+    }
   });
 
   it('should export all required data', () => {
