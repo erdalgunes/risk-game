@@ -87,7 +87,9 @@ export default function LobbyPage() {
           join_order: 1, // Will be corrected by the utility
           last_heartbeat: new Date().toISOString()
         };
-        const { error: joinError } = await supabase
+        // Type assertion needed due to Supabase client type inference limitation
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: joinError } = await (supabase as any)
           .from('lobby_players')
           .upsert(upsertData, {
             onConflict: 'lobby_id,player_id'
