@@ -4,17 +4,17 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseClient } from '@risk-poc/database';
-import type { Database, PlayerColor } from '@risk-poc/database';
+import type { Database } from '@risk-poc/database';
 import { ensurePlayer } from '@/utils/player';
 import { getLobbyPlayers, updateHeartbeat, leaveLobby, kickPlayer, startGameFromLobby } from '@/utils/lobby';
 
 type LobbyPlayer = {
   lobby_id: string;
   player_id: string;
-  player_color: PlayerColor | null;
+  player_color: string | null;
   join_order: number;
-  joined_at: string;
-  last_heartbeat: string;
+  joined_at: string | null;
+  last_heartbeat: string | null;
   display_name: string;
 };
 
@@ -133,7 +133,7 @@ export default function LobbyPage() {
 
     const lobbyChannel = supabase
       .channel(`lobby:${lobbyId}`)
-      .on(
+      .on<Lobby>(
         'postgres_changes',
         {
           event: '*',
@@ -141,12 +141,13 @@ export default function LobbyPage() {
           table: 'game_lobbies',
           filter: `id=eq.${lobbyId}`
         },
-        (payload: { eventType: string; new: Lobby; old?: Lobby }) => {
+        (payload) => {
           if (payload.eventType === 'UPDATE') {
-            setLobby(payload.new);
+            setLobby(payload.new as Lobby);
 
             // If game started, redirect to game page
-            if (payload.new.status === 'starting' || payload.new.status === 'in_progress') {
+            const newLobby = payload.new as Lobby;
+            if (newLobby.status === 'starting' || newLobby.status === 'in_progress') {
               router.push(`/game/multi/${lobbyId}`);
             }
           } else if (payload.eventType === 'DELETE') {

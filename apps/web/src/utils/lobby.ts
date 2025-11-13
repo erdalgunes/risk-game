@@ -29,6 +29,7 @@ export async function createLobby(
     max_players: maxPlayers,
     status: 'waiting'
   };
+
   const { data: lobby, error: lobbyError } = await supabase
     .from('game_lobbies')
     .insert(insertData)
@@ -123,6 +124,7 @@ async function joinLobby(
     player_color: playerColor,
     join_order: joinOrder
   };
+
   const { error } = await supabase
     .from('lobby_players')
     .insert(insertData);
