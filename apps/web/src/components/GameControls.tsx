@@ -1,5 +1,5 @@
 import type { GameState, TerritoryId, Player } from '@risk-poc/game-engine';
-import { getContinentBonus, getPlayerTerritoryCount, continents, calculateReinforcements } from '@risk-poc/game-engine';
+import { getContinentBonus, getPlayerTerritoryCount, continents } from '@risk-poc/game-engine';
 import { DiceDisplay } from './DiceDisplay';
 
 interface GameControlsProps {
@@ -66,7 +66,7 @@ export function GameControls({
               fontWeight: 'bold',
               fontSize: '18px'
             }}>
-              {state.currentPlayer.toUpperCase()}'S TURN
+              {state.currentPlayer.toUpperCase()}&apos;S TURN
             </div>
           </div>
 
@@ -198,7 +198,7 @@ export function GameControls({
                 ✓ Already fortified this turn
               </div>
               <p style={{ fontSize: '14px', color: '#888' }}>
-                Click "End Turn" to pass to the next player.
+                Click &quot;End Turn&quot; to pass to the next player.
               </p>
             </div>
           )}
