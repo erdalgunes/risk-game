@@ -39,9 +39,6 @@ function getDeployIncome(gameState: GameState): {
     (t) => t.owner === gameState.currentPlayer
   ).length;
   const base = Math.max(3, Math.floor(territoryCount / 3));
-  const continents = Object.values(gameState.territories)
-    .filter((t) => t.owner === gameState.currentPlayer)
-    .reduce((sum, t) => sum, 0);
 
   // Get continent bonus from player state
   const continentBonus = gameState.deployableTroops > 0

@@ -54,14 +54,6 @@ export function GameStatsDrawer({
   onClose,
   gameState,
 }: GameStatsDrawerProps) {
-  const currentPlayerTerritories = getPlayerTerritories(
-    gameState,
-    gameState.currentPlayer
-  );
-  const continentBonus = getContinentBonus(
-    gameState.currentPlayer,
-    gameState.territories
-  );
   const ownedContinents = getOwnedContinents(gameState, gameState.currentPlayer);
 
   return (
