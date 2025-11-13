@@ -23,14 +23,15 @@ export async function createLobby(
   const lobbyCode = lobbyCodeData as string;
 
   // Create lobby
+  const insertData: Database['public']['Tables']['game_lobbies']['Insert'] = {
+    lobby_code: lobbyCode,
+    host_player_id: hostPlayerId,
+    max_players: maxPlayers,
+    status: 'waiting'
+  };
   const { data: lobby, error: lobbyError } = await supabase
     .from('game_lobbies')
-    .insert({
-      lobby_code: lobbyCode,
-      host_player_id: hostPlayerId,
-      max_players: maxPlayers,
-      status: 'waiting'
-    } as any)
+    .insert(insertData)
     .select()
     .single();
 
@@ -116,14 +117,15 @@ async function joinLobby(
   const playerColor = PLAYER_COLORS[count || 0]; // Assign color based on join order
 
   // Insert player into lobby
+  const insertData: Database['public']['Tables']['lobby_players']['Insert'] = {
+    lobby_id: lobbyId,
+    player_id: playerId,
+    player_color: playerColor,
+    join_order: joinOrder
+  };
   const { error } = await supabase
     .from('lobby_players')
-    .insert({
-      lobby_id: lobbyId,
-      player_id: playerId,
-      player_color: playerColor,
-      join_order: joinOrder
-    } as any);
+    .insert(insertData);
 
   if (error) {
     throw new Error(`Failed to join lobby: ${error.message}`);
@@ -200,9 +202,12 @@ export async function updateHeartbeat(
   lobbyId: string,
   playerId: string
 ): Promise<void> {
-  await (supabase as any)
+  const updateData: Database['public']['Tables']['lobby_players']['Update'] = {
+    last_heartbeat: new Date().toISOString()
+  };
+  await supabase
     .from('lobby_players')
-    .update({ last_heartbeat: new Date().toISOString() })
+    .update(updateData)
     .eq('lobby_id', lobbyId)
     .eq('player_id', playerId);
 }
@@ -239,12 +244,13 @@ export async function startGameFromLobby(
   }
 
   // Update lobby status to 'starting'
-  await (supabase as any)
+  const updateData: Database['public']['Tables']['game_lobbies']['Update'] = {
+    status: 'starting',
+    started_at: new Date().toISOString()
+  };
+  await supabase
     .from('game_lobbies')
-    .update({
-      status: 'starting',
-      started_at: new Date().toISOString()
-    })
+    .update(updateData)
     .eq('id', lobbyId);
 
   // Return lobby ID (the game creation will be handled by the lobby page)

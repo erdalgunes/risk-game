@@ -74,9 +74,12 @@ export async function ensurePlayer(
 
     if (data && !error) {
       // Update last_active timestamp
-      await (supabase as any)
+      const updateData: Database['public']['Tables']['players']['Update'] = {
+        last_active: new Date().toISOString()
+      };
+      await supabase
         .from('players')
-        .update({ last_active: new Date().toISOString() })
+        .update(updateData)
         .eq('id', stored.id);
 
       return data;
@@ -86,9 +89,12 @@ export async function ensurePlayer(
   // Create new player
   const displayName = customName || stored?.displayName || generateRandomName();
 
+  const insertData: Database['public']['Tables']['players']['Insert'] = {
+    display_name: displayName
+  };
   const { data, error } = await supabase
     .from('players')
-    .insert({ display_name: displayName } as any)
+    .insert(insertData)
     .select()
     .single();
 
@@ -112,9 +118,12 @@ export async function updatePlayerName(
   playerId: string,
   newName: string
 ): Promise<void> {
-  const { error } = await (supabase as any)
+  const updateData: Database['public']['Tables']['players']['Update'] = {
+    display_name: newName
+  };
+  const { error } = await supabase
     .from('players')
-    .update({ display_name: newName })
+    .update(updateData)
     .eq('id', playerId);
 
   if (error) {

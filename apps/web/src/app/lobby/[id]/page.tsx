@@ -81,14 +81,15 @@ export default function LobbyPage() {
         setLobby(lobbyData);
 
         // Join lobby (or update heartbeat if already joined)
+        const upsertData: Database['public']['Tables']['lobby_players']['Insert'] = {
+          lobby_id: lobbyId,
+          player_id: player.id,
+          join_order: 1, // Will be corrected by the utility
+          last_heartbeat: new Date().toISOString()
+        };
         const { error: joinError } = await supabase
           .from('lobby_players')
-          .upsert({
-            lobby_id: lobbyId,
-            player_id: player.id,
-            join_order: 1, // Will be corrected by the utility
-            last_heartbeat: new Date().toISOString()
-          } as any, {
+          .upsert(upsertData, {
             onConflict: 'lobby_id,player_id'
           });
 
