@@ -1,30 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface Database {
-  public: {
-    Tables: {
-      games: {
-        Row: {
-          id: string;
-          state: any;
-          mode: 'single' | 'multi';
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          state: any;
-          mode: 'single' | 'multi';
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          state?: any;
-          mode?: 'single' | 'multi';
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-    };
-  };
-}
+// Re-export generated types
+export * from './types-generated';
+
+// Custom type aliases for better type safety
+export type PlayerColor = 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'orange' | 'neutral';
+export type LobbyStatus = 'waiting' | 'starting' | 'in_progress' | 'finished';
+export type GameStatus = 'active' | 'finished' | 'abandoned';

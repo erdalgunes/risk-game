@@ -18,12 +18,13 @@ describe('Home page', () => {
     render(<Home />);
 
     const singlePlayerLink = screen.getByText('Single Player (vs AI)');
-    const multiplayerLink = screen.getByText('Multiplayer');
+    const multiplayerSection = screen.getByText('Multiplayer');
 
     expect(singlePlayerLink).toBeInTheDocument();
-    expect(multiplayerLink).toBeInTheDocument();
+    expect(multiplayerSection).toBeInTheDocument();
     expect(singlePlayerLink.closest('a')).toHaveAttribute('href', '/game/single');
-    expect(multiplayerLink.closest('a')).toHaveAttribute('href', '/game/multi');
+    // Multiplayer is a section heading, not a link
+    expect(screen.getByText('Create New Lobby')).toBeInTheDocument();
   });
 
   it('has proper styling structure', () => {
