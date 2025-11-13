@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import ThemeRegistry from '../components/ThemeRegistry';
 
 export const metadata: Metadata = {
   title: 'Risk Game',
@@ -38,8 +39,8 @@ export default function RootLayout({
           }
         `}</style>
       </head>
-      <body style={{ margin: 0, padding: 0, fontFamily: 'system-ui, sans-serif' }}>
-        {children}
+      <body style={{ margin: 0, padding: 0 }}>
+        <ThemeRegistry>{children}</ThemeRegistry>
       </body>
     </html>
   );
