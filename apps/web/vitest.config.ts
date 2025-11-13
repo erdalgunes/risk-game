@@ -7,11 +7,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
-    }
+    },
+    conditions: ['node', 'default']
   },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts']
+  },
+  ssr: {
+    noExternal: ['@mui/icons-material', '@mui/material']
   }
 });

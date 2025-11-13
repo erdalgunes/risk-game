@@ -19,7 +19,9 @@ vi.mock('@risk-poc/game-engine', () => ({
     lastAttackResult: null
   })),
   getAIMove: vi.fn(),
-  applyMove: vi.fn()
+  applyMove: vi.fn(),
+  continents: [],
+  getContinentBonus: vi.fn(() => 0)
 }));
 
 // Mock the components
@@ -39,7 +41,27 @@ vi.mock('@/components/GameControls', () => ({
   )
 }));
 
-// Mock the hook
+vi.mock('@/components/GameStatsDrawer', () => ({
+  GameStatsDrawer: () => <div data-testid="game-stats-drawer">Stats Drawer</div>
+}));
+
+vi.mock('@/components/GameActionDrawer', () => ({
+  GameActionDrawer: () => <div data-testid="game-action-drawer">Action Drawer</div>
+}));
+
+vi.mock('@/components/ContextFab', () => ({
+  ContextFab: () => <div data-testid="context-fab">Context FAB</div>
+}));
+
+vi.mock('@/components/BottomNav', () => ({
+  BottomNav: () => <div data-testid="bottom-nav">Bottom Nav</div>
+}));
+
+vi.mock('@/components/NavigationRail', () => ({
+  NavigationRail: () => <div data-testid="navigation-rail">Navigation Rail</div>
+}));
+
+// Mock the hooks
 vi.mock('@/hooks/useGameLogic', () => ({
   useGameLogic: vi.fn(() => ({
     selectedTerritory: null,
@@ -52,6 +74,15 @@ vi.mock('@/hooks/useGameLogic', () => ({
     handleSkip: vi.fn(),
     handleTransfer: vi.fn(),
     resetSelection: vi.fn()
+  }))
+}));
+
+vi.mock('@/hooks/useMobileDrawers', () => ({
+  useMobileDrawers: vi.fn(() => ({
+    activeDrawer: null,
+    openDrawer: vi.fn(),
+    closeDrawer: vi.fn(),
+    toggleDrawer: vi.fn()
   }))
 }));
 
@@ -73,9 +104,11 @@ describe('SinglePlayerGame page', () => {
     expect(screen.getByTestId('game-board')).toBeInTheDocument();
   });
 
-  it('renders the game controls component', () => {
+  it('renders the new navigation components', () => {
     render(<SinglePlayerGame />);
-    expect(screen.getByTestId('game-controls')).toBeInTheDocument();
+    expect(screen.getByTestId('navigation-rail')).toBeInTheDocument();
+    expect(screen.getByTestId('bottom-nav')).toBeInTheDocument();
+    expect(screen.getByTestId('context-fab')).toBeInTheDocument();
   });
 
   it('has responsive layout styles', () => {
@@ -85,22 +118,18 @@ describe('SinglePlayerGame page', () => {
     const styleTag = document.querySelector('style');
     expect(styleTag).toBeInTheDocument();
     expect(styleTag?.textContent).toContain('@media');
-    expect(styleTag?.textContent).toContain('grid-template-columns');
+    expect(styleTag?.textContent).toContain('flex');
   });
 
   it('has proper page styling', () => {
     render(<SinglePlayerGame />);
 
-    // Find the main container div with the background styling
+    // Find the app-container div with flexbox layout
     const containers = document.querySelectorAll('div');
-    const mainContainer = Array.from(containers).find(div => 
-      div.style.backgroundColor === 'rgb(10, 10, 10)' || 
-      div.style.backgroundColor === '#0a0a0a'
+    const appContainer = Array.from(containers).find(div =>
+      div.className === 'app-container'
     );
-    
-    expect(mainContainer).toHaveStyle({
-      minHeight: '100vh',
-      backgroundColor: '#0a0a0a'
-    });
+
+    expect(appContainer).toBeInTheDocument();
   });
 });
