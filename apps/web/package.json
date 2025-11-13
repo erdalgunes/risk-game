@@ -10,6 +10,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@emotion/cache": "^11.13.5",
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/material": "^6.1.10",
+    "@mui/material-nextjs": "^6.1.10",
     "@risk-poc/database": "workspace:*",
     "@risk-poc/game-engine": "workspace:*",
     "next": "14.2.33",
