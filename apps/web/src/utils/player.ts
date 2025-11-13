@@ -29,7 +29,7 @@ function generateRandomName(): string {
  * Get the current player from localStorage, or null if none exists
  */
 export function getStoredPlayer(): { id: string; displayName: string } | null {
-  if (typeof globalThis.window === 'undefined') return null;
+  if (globalThis.window === undefined) return null;
 
   const playerId = localStorage.getItem(PLAYER_ID_KEY);
   const playerName = localStorage.getItem(PLAYER_NAME_KEY);
@@ -126,7 +126,7 @@ export async function updatePlayerName(
  * Clear stored player (for testing or logout)
  */
 export function clearStoredPlayer(): void {
-  if (typeof globalThis.window === 'undefined') return;
+  if (globalThis.window === undefined) return;
   localStorage.removeItem(PLAYER_ID_KEY);
   localStorage.removeItem(PLAYER_NAME_KEY);
 }

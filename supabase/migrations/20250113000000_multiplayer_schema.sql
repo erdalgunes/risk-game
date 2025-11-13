@@ -120,9 +120,10 @@ RETURNS TEXT AS $$
 DECLARE
   chars TEXT := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; -- Exclude confusing chars (0,O,1,I)
   code_length CONSTANT INTEGER := 6;
-  result TEXT := '';
+  result TEXT;
   i INTEGER;
 BEGIN
+  result := '';
   FOR i IN 1..code_length LOOP
     result := result || substr(chars, floor(random() * length(chars) + 1)::integer, 1);
   END LOOP;
@@ -135,9 +136,10 @@ CREATE OR REPLACE FUNCTION cleanup_abandoned_lobbies()
 RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
+  waiting_status CONSTANT lobby_status := 'waiting';
 BEGIN
   DELETE FROM game_lobbies
-  WHERE status = 'waiting'
+  WHERE status = waiting_status
     AND created_at < NOW() - INTERVAL '30 minutes';
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
@@ -150,10 +152,12 @@ CREATE OR REPLACE FUNCTION cleanup_old_games()
 RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
+  active_status CONSTANT game_status := 'active';
+  abandoned_status CONSTANT game_status := 'abandoned';
 BEGIN
   UPDATE games
-  SET status = 'abandoned'
-  WHERE status = 'active'
+  SET status = abandoned_status
+  WHERE status = active_status
     AND updated_at < NOW() - INTERVAL '24 hours';
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
@@ -166,11 +170,12 @@ CREATE OR REPLACE FUNCTION cleanup_inactive_lobby_players()
 RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
+  waiting_status CONSTANT lobby_status := 'waiting';
 BEGIN
   DELETE FROM lobby_players
   WHERE last_heartbeat < NOW() - INTERVAL '30 seconds'
     AND lobby_id IN (
-      SELECT id FROM game_lobbies WHERE status = 'waiting'
+      SELECT id FROM game_lobbies WHERE status = waiting_status
     );
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
