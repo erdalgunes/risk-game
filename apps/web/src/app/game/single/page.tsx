@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { createInitialState, getAIMove, applyMove } from '@risk-poc/game-engine';
 import type { GameState, TerritoryId } from '@risk-poc/game-engine';
 import { GameBoard } from '@/components/GameBoard';
-import { GameControls } from '@/components/GameControls';
 import { GameStatsDrawer } from '@/components/GameStatsDrawer';
 import { GameActionDrawer } from '@/components/GameActionDrawer';
 import { ContextFab } from '@/components/ContextFab';
+import { BottomNav } from '@/components/BottomNav';
+import { NavigationRail } from '@/components/NavigationRail';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import { useMobileDrawers } from '@/hooks/useMobileDrawers';
 import Link from 'next/link';
@@ -15,26 +16,33 @@ import Link from 'next/link';
 export default function SinglePlayerGame() {
   const [gameState, setGameState] = useState<GameState>(createInitialState);
 
-  // Responsive styles
+  // Responsive styles - Google Maps layout
   const responsiveStyles = `
-    .game-layout {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+      background-color: #0a0a0a;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      padding-bottom: 80px; /* Space for bottom nav on mobile */
     }
 
     @media (min-width: 768px) {
-      .game-layout {
-        grid-template-columns: 2fr 1fr;
-        gap: 24px;
+      .main-content {
+        margin-left: 72px; /* Space for navigation rail on desktop */
+        padding-bottom: 20px; /* No bottom nav on desktop */
       }
     }
 
-    @media (min-width: 1024px) {
-      .game-layout {
-        grid-template-columns: 3fr 1fr;
-        gap: 32px;
-      }
+    .game-board-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
   `;
 
@@ -82,67 +90,70 @@ export default function SinglePlayerGame() {
     closeDrawer,
   } = useMobileDrawers(selectedTerritory);
 
+  const handleNavigationChange = (value: 'stats' | 'action') => {
+    if (activeDrawer === value) {
+      closeDrawer();
+    } else {
+      openDrawer(value);
+    }
+  };
+
   return (
     <>
       <style>{responsiveStyles}</style>
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#0a0a0a',
-        padding: '20px'
-      }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px'
-        }}>
-          <h1 style={{ color: 'white', margin: 0 }}>Risk PoC - Single Player</h1>
-          <Link
-            href="/"
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#555',
-              color: 'white',
-              textDecoration: 'none',
-              borderRadius: '8px'
-            }}
-          >
-            Back to Menu
-          </Link>
-        </div>
+      <div className="app-container">
+        {/* Navigation Rail (Desktop Only) */}
+        <NavigationRail
+          value={activeDrawer === 'stats' || activeDrawer === 'action' ? activeDrawer : null}
+          onChange={handleNavigationChange}
+        />
 
-        {message && (
+        {/* Main Content */}
+        <div className="main-content">
           <div style={{
-            padding: '15px',
-            backgroundColor: '#2a2a2a',
-            color: 'white',
-            borderRadius: '8px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: '20px'
           }}>
-            {message}
+            <h1 style={{ color: 'white', margin: 0 }}>Risk PoC - Single Player</h1>
+            <Link
+              href="/"
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#555',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '8px'
+              }}
+            >
+              Back to Menu
+            </Link>
           </div>
-        )}
 
-        <div className="game-layout">
-          <GameBoard
-            state={gameState}
-            onTerritoryClick={handleTerritoryClick}
-            selectedTerritory={selectedTerritory}
-          />
-          <GameControls
-            state={gameState}
-            selectedTerritory={selectedTerritory}
-            onSkip={handleSkip}
-            fortifyTroops={fortifyTroops}
-            onFortifyTroopsChange={setFortifyTroops}
-            transferTroops={transferTroops}
-            onTransferTroopsChange={setTransferTroops}
-            onTransfer={handleTransfer}
-          />
+          {message && (
+            <div style={{
+              padding: '15px',
+              backgroundColor: '#2a2a2a',
+              color: 'white',
+              borderRadius: '8px',
+              marginBottom: '20px'
+            }}>
+              {message}
+            </div>
+          )}
+
+          {/* Game Board - Full Screen */}
+          <div className="game-board-container">
+            <GameBoard
+              state={gameState}
+              onTerritoryClick={handleTerritoryClick}
+              selectedTerritory={selectedTerritory}
+            />
+          </div>
         </div>
 
-        {/* Mobile Drawers */}
+        {/* Drawers */}
         <GameStatsDrawer
           open={activeDrawer === 'stats'}
           onOpen={() => openDrawer('stats')}
@@ -168,8 +179,13 @@ export default function SinglePlayerGame() {
           onSkip={handleSkip}
           onTransfer={handleTransfer}
         />
+
+        {/* Bottom Navigation (Mobile Only) */}
+        <BottomNav
+          value={activeDrawer === 'stats' || activeDrawer === 'action' ? activeDrawer : null}
+          onChange={handleNavigationChange}
+        />
       </div>
-    </div>
     </>
   );
 }

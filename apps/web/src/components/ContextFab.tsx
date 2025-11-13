@@ -63,7 +63,7 @@ export function ContextFab({ gameState, onSkip, onTransfer }: ContextFabProps) {
       disabled={isDisabled()}
       sx={{
         position: 'fixed',
-        bottom: 80, // Above bottom nav
+        bottom: { xs: 80, md: 16 }, // Above bottom nav on mobile, bottom right on desktop
         right: 16,
         minHeight: '48px',
         minWidth: '48px',

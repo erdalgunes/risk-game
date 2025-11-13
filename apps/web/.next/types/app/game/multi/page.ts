@@ -1,4 +1,4 @@
-// File: /home/user/risk-game/apps/web/src/app/game/multi/page.tsx
+// File: /Users/erdalgunes/risk-worktrees/mui/apps/web/src/app/game/multi/page.tsx
 import * as entry from '../../../../../src/app/game/multi/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
