@@ -37,10 +37,16 @@ describe('game integration - full turn cycle', () => {
         expect(simpleState.currentPlayer).toBe('red');
     });
     it('should calculate reinforcements correctly after territory changes', () => {
-        const initialReinforcements = calculateReinforcements(gameState, 'red');
+        calculateReinforcements(gameState, 'red');
         // Simulate gaining territories (this would happen through conquest)
         // For testing, we'll manually modify the state
-        const modifiedState = Object.assign(Object.assign({}, gameState), { territories: Object.assign({}, gameState.territories) });
+        const modifiedState = {
+            ...gameState,
+            territories: {
+                ...gameState.territories,
+                // Simulate red gaining more territories
+            }
+        };
         const newReinforcements = calculateReinforcements(modifiedState, 'red');
         expect(typeof newReinforcements).toBe('number');
         expect(newReinforcements).toBeGreaterThanOrEqual(3);
@@ -73,7 +79,6 @@ describe('game integration - multi-turn scenarios', () => {
         // Play a few turns
         for (let turn = 0; turn < 4; turn++) {
             const initialPlayer = gameState.currentPlayer;
-            const initialPhase = gameState.phase;
             // Complete the current player's turn
             while (gameState.currentPlayer === initialPlayer && gameState.phase !== 'deploy') {
                 gameState = applyMove(gameState, { type: 'skip' });

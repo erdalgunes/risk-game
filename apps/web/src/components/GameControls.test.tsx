@@ -9,13 +9,18 @@ import type { TerritoryId } from '@risk-poc/game-engine';
 describe('GameControls', () => {
   const mockOnSkip = vi.fn();
   const mockOnFortifyTroopsChange = vi.fn();
+  const mockOnTransferTroopsChange = vi.fn();
+  const mockOnTransfer = vi.fn();
 
   const defaultProps = {
     state: createInitialState(),
     selectedTerritory: null as TerritoryId | null,
     onSkip: mockOnSkip,
     fortifyTroops: 1,
-    onFortifyTroopsChange: mockOnFortifyTroopsChange
+    onFortifyTroopsChange: mockOnFortifyTroopsChange,
+    transferTroops: 1,
+    onTransferTroopsChange: mockOnTransferTroopsChange,
+    onTransfer: mockOnTransfer
   };
 
   beforeEach(() => {

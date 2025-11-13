@@ -1,30 +1,32 @@
 import { createInitialState } from '../game';
-export const mockEarlyGameState = (() => {
+export const createMockEarlyGameState = () => {
     const state = createInitialState(['red', 'blue']);
     // Modify some territories for consistent testing
-    state.territories.alaska = Object.assign(Object.assign({}, state.territories.alaska), { owner: 'red', troops: 3 });
-    state.territories.alberta = Object.assign(Object.assign({}, state.territories.alberta), { owner: 'red', troops: 3 });
-    state.territories.northwest_territory = Object.assign(Object.assign({}, state.territories.northwest_territory), { owner: 'blue', troops: 3 });
-    state.territories.ontario = Object.assign(Object.assign({}, state.territories.ontario), { owner: 'blue', troops: 3 });
-    state.territories.quebec = Object.assign(Object.assign({}, state.territories.quebec), { owner: 'red', troops: 3 });
-    state.territories.eastern_us = Object.assign(Object.assign({}, state.territories.eastern_us), { owner: 'red', troops: 3 });
-    state.territories.western_us = Object.assign(Object.assign({}, state.territories.western_us), { owner: 'blue', troops: 3 });
-    state.territories.central_america = Object.assign(Object.assign({}, state.territories.central_america), { owner: 'red', troops: 3 });
-    state.territories.greenland = Object.assign(Object.assign({}, state.territories.greenland), { owner: 'blue', troops: 3 });
+    state.territories.alaska = { ...state.territories.alaska, owner: 'red', troops: 3 };
+    state.territories.alberta = { ...state.territories.alberta, owner: 'red', troops: 3 };
+    state.territories.northwest_territory = { ...state.territories.northwest_territory, owner: 'blue', troops: 3 };
+    state.territories.ontario = { ...state.territories.ontario, owner: 'blue', troops: 3 };
+    state.territories.quebec = { ...state.territories.quebec, owner: 'red', troops: 3 };
+    state.territories.eastern_us = { ...state.territories.eastern_us, owner: 'red', troops: 3 };
+    state.territories.western_us = { ...state.territories.western_us, owner: 'blue', troops: 3 };
+    state.territories.central_america = { ...state.territories.central_america, owner: 'red', troops: 3 };
+    state.territories.greenland = { ...state.territories.greenland, owner: 'blue', troops: 3 };
     state.phase = 'deploy';
     state.deployableTroops = 3;
     return state;
-})();
-export const mockMidGameState = (() => {
-    const state = Object.assign({}, mockEarlyGameState);
+};
+export const mockEarlyGameState = createMockEarlyGameState();
+export const createMockMidGameState = () => {
+    const state = createMockEarlyGameState();
     state.phase = 'attack';
     state.territories.alaska.troops = 5;
     state.territories.alberta.troops = 4;
     state.territories.northwest_territory.troops = 2;
     return state;
-})();
-export const mockNearVictoryState = (() => {
-    const state = Object.assign({}, mockEarlyGameState);
+};
+export const mockMidGameState = createMockMidGameState();
+export const createMockNearVictoryState = () => {
+    const state = createMockEarlyGameState();
     state.phase = 'attack';
     state.territories.alaska.troops = 10;
     state.territories.alberta.troops = 8;
@@ -40,13 +42,15 @@ export const mockNearVictoryState = (() => {
     state.territories.greenland.owner = 'red';
     state.territories.greenland.troops = 3;
     return state;
-})();
-export const mockStalemateState = (() => {
-    const state = Object.assign({}, mockEarlyGameState);
+};
+export const mockNearVictoryState = createMockNearVictoryState();
+export const createMockStalemateState = () => {
+    const state = createMockEarlyGameState();
     state.phase = 'attack';
     // Set all territories to have only 1 troop
-    Object.values(state.territories).forEach(territory => {
+    for (const territory of Object.values(state.territories)) {
         territory.troops = 1;
-    });
+    }
     return state;
-})();
+};
+export const mockStalemateState = createMockStalemateState();
