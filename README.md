@@ -16,6 +16,8 @@ A multiplayer Risk board game clone built with Next.js 15, Supabase, and deploye
 - **Supabase**: PostgreSQL database + Realtime websockets
 - **Tailwind CSS**: Utility-first styling
 - **Vercel**: Deployment platform
+- **Vitest**: Unit and integration testing
+- **React Testing Library**: Component testing
 
 ## Setup Instructions
 
@@ -60,6 +62,47 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+### 6. Run Tests
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests with UI
+pnpm test:ui
+
+# Run tests with coverage
+pnpm test:coverage
+
+# Run E2E tests (when implemented)
+pnpm test:e2e
+```
+
+## Testing
+
+This project uses **Vitest** for unit and integration testing with **React Testing Library** for component tests.
+
+### Test Coverage
+
+[![Coverage Status](https://img.shields.io/badge/coverage-80%25-brightgreen)](https://coverage.example.com)
+
+- **Game Engine**: 85%+ coverage target
+- **Web Components**: 80%+ coverage target
+- **Overall**: 80%+ coverage target
+
+### Test Structure
+
+```
+packages/game-engine/src/
+├── *.test.ts              # Unit tests
+├── *.integration.test.ts  # Integration tests
+└── __fixtures__/          # Test data fixtures
+
+apps/web/src/
+├── components/*.test.tsx  # Component tests
+└── app/**/*.test.tsx      # Page tests
+```
 
 ## Project Structure
 

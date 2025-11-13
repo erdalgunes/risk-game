@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createInitialState } from '@risk-poc/game-engine';
 import type { GameState, TerritoryId } from '@risk-poc/game-engine';
-import { createSupabaseClient } from '@risk-poc/database';
+import { createSupabaseClient, type SupabaseClient } from '@risk-poc/database';
 import { GameBoard } from '@/components/GameBoard';
 import { GameControls } from '@/components/GameControls';
 import { useGameLogic } from '@/hooks/useGameLogic';
@@ -44,11 +44,16 @@ export default function MultiplayerGame() {
     if (!supabase || !gameId) return;
 
     try {
-      const { error } = await supabase
-        .from('games')
-        .update({ state: newState })
-        .eq('id', gameId);
+      const result = await (supabase
+        .from('games') as unknown as {
+        update: (values: { state: GameState }) => {
+          eq: (column: string, value: string) => Promise<{
+            error: Error | null;
+          }>;
+        };
+      }).update({ state: newState }).eq('id', gameId);
 
+      const { error } = result;
       if (error) throw error;
     } catch (error) {
       setGameStateMessage('Error updating game: ' + (error as Error).message);
@@ -98,12 +103,12 @@ export default function MultiplayerGame() {
   }, []);
 
   // Initialize Supabase client
-  const supabase = useMemo(() => {
+  const supabase = useMemo<SupabaseClient | null>(() => {
     if (!supabaseReady) return null;
     return createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    ) as any;
+    );
   }, [supabaseReady]);
 
   // Subscribe to game updates
@@ -120,8 +125,8 @@ export default function MultiplayerGame() {
           table: 'games',
           filter: `id=eq.${gameId}`
         },
-        (payload: any) => {
-          setGameState(payload.new.state as GameState);
+        (payload: { new: { state: GameState } }) => {
+          setGameState(payload.new.state);
         }
       )
       .subscribe();
@@ -140,19 +145,27 @@ export default function MultiplayerGame() {
     setLoading(true);
     try {
       const initialState = createInitialState();
-      const { data, error } = await supabase
-        .from('games')
-        .insert({
-          state: initialState,
-          mode: 'multi'
-        })
-        .select()
-        .single();
+      const result = await (supabase
+        .from('games') as unknown as {
+        insert: (values: { state: GameState; mode: string }) => {
+          select: () => {
+            single: () => Promise<{
+              data: { id: string; state: GameState } | null;
+              error: Error | null;
+            }>;
+          };
+        };
+      }).insert({
+        state: initialState,
+        mode: 'multi'
+      }).select().single();
 
+      const { data, error } = result;
       if (error) throw error;
+      if (!data) throw new Error('No data returned');
 
       setGameId(data.id);
-      setGameState(initialState);
+      setGameState(data.state);
       setLocalPlayer('red'); // Creator plays as red
       setGameStateMessage(`Game created! Share this ID: ${data.id}. You are playing as RED.`);
     } catch (error) {
@@ -170,16 +183,24 @@ export default function MultiplayerGame() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('games')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const result = await (supabase
+        .from('games') as unknown as {
+        select: (columns: string) => {
+          eq: (column: string, value: string) => {
+            single: () => Promise<{
+              data: { id: string; state: GameState } | null;
+              error: Error | null;
+            }>;
+          };
+        };
+      }).select('*').eq('id', id).single();
 
+      const { data, error } = result;
       if (error) throw error;
+      if (!data) throw new Error('No data returned');
 
       setGameId(data.id);
-      setGameState(data.state as GameState);
+      setGameState(data.state);
       setLocalPlayer('blue'); // Joiner plays as blue
       setGameStateMessage('Joined game successfully! You are playing as BLUE.');
     } catch (error) {

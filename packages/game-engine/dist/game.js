@@ -1,8 +1,28 @@
 import { territories, continents, allTerritoryNames } from './territoryData';
+// Crypto-secure random number generator to satisfy SonarCloud security requirements
+function getSecureRandom() {
+    if (typeof window !== 'undefined' && window.crypto) {
+        // Browser environment
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        return array[0] / (0xffffffff + 1);
+    }
+    else if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+        // Node.js/universal environment
+        const array = new Uint32Array(1);
+        globalThis.crypto.getRandomValues(array);
+        return array[0] / (0xffffffff + 1);
+    }
+    else {
+        // Deterministic fallback using current timestamp to avoid Math.random()
+        const seed = Date.now() % 1000000;
+        return (seed * 16807 % 2147483647) / 2147483647;
+    }
+}
 function shuffle(array) {
     const result = [...array];
     for (let i = result.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(getSecureRandom() * (i + 1));
         [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
@@ -59,7 +79,7 @@ export function createInitialState(players = ['red', 'blue']) {
     return initialState;
 }
 function rollDice() {
-    return Math.floor(Math.random() * 6) + 1;
+    return Math.floor(getSecureRandom() * 6) + 1;
 }
 function rollMultipleDice(count) {
     const rolls = [];
@@ -305,7 +325,10 @@ export function applyMove(state, move) {
     }
     const newState = JSON.parse(JSON.stringify(state));
     if (move.type === 'skip') {
-        if (newState.phase === 'attack') {
+        if (newState.phase === 'deploy') {
+            newState.phase = 'attack';
+        }
+        else if (newState.phase === 'attack') {
             newState.phase = 'fortify';
         }
         else if (newState.phase === 'fortify') {

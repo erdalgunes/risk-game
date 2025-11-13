@@ -1,4 +1,4 @@
-import type { AttackResult, Player } from '@risk-poc/game-engine';
+import type { AttackResult } from '@risk-poc/game-engine';
 import { useState, useEffect } from 'react';
 
 interface DiceDisplayProps {

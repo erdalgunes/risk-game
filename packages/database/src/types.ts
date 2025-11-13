@@ -2,6 +2,7 @@ export type PlayerColor = 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'oran
 export type LobbyStatus = 'waiting' | 'starting' | 'in_progress' | 'finished';
 export type GameStatus = 'active' | 'finished' | 'abandoned';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface Database {
   public: {
     Tables: {
