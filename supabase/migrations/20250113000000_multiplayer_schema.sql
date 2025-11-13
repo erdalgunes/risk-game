@@ -2,6 +2,21 @@
 -- Created: 2025-01-13
 
 -- ============================================================================
+-- ENUMS: Define status types
+-- ============================================================================
+DO $$ BEGIN
+  CREATE TYPE lobby_status AS ENUM ('waiting', 'starting', 'in_progress', 'finished');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE game_status AS ENUM ('active', 'finished', 'abandoned');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+-- ============================================================================
 -- PLAYERS TABLE: Anonymous player sessions
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS players (
@@ -21,7 +36,7 @@ CREATE TABLE IF NOT EXISTS game_lobbies (
   lobby_code TEXT UNIQUE NOT NULL,
   host_player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
   max_players INTEGER NOT NULL CHECK (max_players >= 2 AND max_players <= 6),
-  status TEXT NOT NULL CHECK (status IN ('waiting', 'starting', 'in_progress', 'finished')) DEFAULT 'waiting',
+  status lobby_status NOT NULL DEFAULT 'waiting',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   started_at TIMESTAMPTZ,
   finished_at TIMESTAMPTZ
@@ -54,7 +69,7 @@ CREATE INDEX idx_lobby_players_heartbeat ON lobby_players(last_heartbeat);
 ALTER TABLE games
   ADD COLUMN IF NOT EXISTS lobby_id UUID REFERENCES game_lobbies(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS player_count INTEGER DEFAULT 2,
-  ADD COLUMN IF NOT EXISTS status TEXT CHECK (status IN ('active', 'finished', 'abandoned')) DEFAULT 'active';
+  ADD COLUMN IF NOT EXISTS status game_status DEFAULT 'active';
 
 CREATE INDEX idx_games_lobby ON games(lobby_id);
 CREATE INDEX idx_games_status ON games(status);
@@ -104,10 +119,11 @@ CREATE OR REPLACE FUNCTION generate_lobby_code()
 RETURNS TEXT AS $$
 DECLARE
   chars TEXT := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; -- Exclude confusing chars (0,O,1,I)
+  code_length CONSTANT INTEGER := 6;
   result TEXT := '';
   i INTEGER;
 BEGIN
-  FOR i IN 1..6 LOOP
+  FOR i IN 1..code_length LOOP
     result := result || substr(chars, floor(random() * length(chars) + 1)::integer, 1);
   END LOOP;
   RETURN result;

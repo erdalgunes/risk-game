@@ -156,7 +156,7 @@ export async function leaveLobby(
     .single();
 
   const typedLobby = lobby as Lobby | null;
-  if (typedLobby && typedLobby.host_player_id === playerId) {
+  if (typedLobby?.host_player_id === playerId) {
     // Host left, delete lobby
     await supabase
       .from('game_lobbies')
@@ -223,11 +223,11 @@ export async function startGameFromLobby(
     .single();
 
   const typedLobby = lobby as Lobby | null;
-  if (!typedLobby || typedLobby.host_player_id !== hostPlayerId) {
+  if (typedLobby?.host_player_id !== hostPlayerId) {
     throw new Error('Only the host can start the game');
   }
 
-  if (typedLobby.status !== 'waiting') {
+  if (typedLobby?.status !== 'waiting') {
     throw new Error('Lobby is not in waiting status');
   }
 
@@ -268,7 +268,7 @@ export async function kickPlayer(
     .single();
 
   const typedLobby2 = lobby as Lobby | null;
-  if (!typedLobby2 || typedLobby2.host_player_id !== hostPlayerId) {
+  if (typedLobby2?.host_player_id !== hostPlayerId) {
     throw new Error('Only the host can kick players');
   }
 

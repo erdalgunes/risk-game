@@ -52,7 +52,7 @@ export default function LobbyPage() {
     return createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    ) as any;
+    );
   }, [supabaseReady]);
 
   // Initialize player and load lobby
@@ -88,7 +88,7 @@ export default function LobbyPage() {
             player_id: player.id,
             join_order: 1, // Will be corrected by the utility
             last_heartbeat: new Date().toISOString()
-          }, {
+          } as any, {
             onConflict: 'lobby_id,player_id'
           });
 
