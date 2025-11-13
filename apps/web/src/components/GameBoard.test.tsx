@@ -91,11 +91,13 @@ describe('GameBoard', () => {
     const svg = document.querySelector('svg');
     expect(svg).toBeInTheDocument();
 
-    // Simulate wheel event
+    const initialViewBox = svg!.getAttribute('viewBox');
+
+    // Simulate wheel event (zoom in)
     fireEvent.wheel(svg!, { deltaY: -100 });
 
-    // Component should still render
-    expect(svg).toBeInTheDocument();
+    const newViewBox = svg!.getAttribute('viewBox');
+    expect(newViewBox).not.toBe(initialViewBox);
   });
 
   it('handles mouse pan', async () => {
@@ -104,17 +106,15 @@ describe('GameBoard', () => {
     const svg = document.querySelector('svg');
     expect(svg).toBeInTheDocument();
 
-    // Simulate mouse down
+    const initialViewBox = svg!.getAttribute('viewBox');
+
+    // Simulate mouse down and drag
     fireEvent.mouseDown(svg!, { clientX: 100, clientY: 100, button: 0 });
-
-    // Simulate mouse move
     fireEvent.mouseMove(svg!, { clientX: 150, clientY: 150 });
-
-    // Simulate mouse up
     fireEvent.mouseUp(svg!);
 
-    // Component should still render
-    expect(svg).toBeInTheDocument();
+    const newViewBox = svg!.getAttribute('viewBox');
+    expect(newViewBox).not.toBe(initialViewBox);
   });
 
   it('renders zoom controls', () => {
@@ -134,33 +134,48 @@ describe('GameBoard', () => {
     const user = userEvent.setup();
     render(<GameBoard {...defaultProps} />);
 
+    const svg = document.querySelector('svg');
+    const initialViewBox = svg!.getAttribute('viewBox');
+
     const zoomInButton = screen.getByLabelText('Zoom in');
     await user.click(zoomInButton);
 
-    // Component should still render
-    expect(zoomInButton).toBeInTheDocument();
+    const newViewBox = svg!.getAttribute('viewBox');
+    expect(newViewBox).not.toBe(initialViewBox);
   });
 
   it('handles zoom out button click', async () => {
     const user = userEvent.setup();
     render(<GameBoard {...defaultProps} />);
 
+    const svg = document.querySelector('svg');
+    const initialViewBox = svg!.getAttribute('viewBox');
+
     const zoomOutButton = screen.getByLabelText('Zoom out');
     await user.click(zoomOutButton);
 
-    // Component should still render
-    expect(zoomOutButton).toBeInTheDocument();
+    const newViewBox = svg!.getAttribute('viewBox');
+    expect(newViewBox).not.toBe(initialViewBox);
   });
 
   it('handles reset zoom button click', async () => {
     const user = userEvent.setup();
     render(<GameBoard {...defaultProps} />);
 
+    const svg = document.querySelector('svg');
+
+    // First zoom in
+    const zoomInButton = screen.getByLabelText('Zoom in');
+    await user.click(zoomInButton);
+
+    const zoomedViewBox = svg!.getAttribute('viewBox');
+
+    // Then reset
     const resetButton = screen.getByLabelText('Reset zoom');
     await user.click(resetButton);
 
-    // Component should still render
-    expect(resetButton).toBeInTheDocument();
+    const resetViewBox = svg!.getAttribute('viewBox');
+    expect(resetViewBox).not.toBe(zoomedViewBox);
   });
 
   it('renders connection lines between territories', () => {

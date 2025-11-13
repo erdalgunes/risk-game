@@ -71,21 +71,30 @@ describe('game integration - full turn cycle', () => {
   });
 
   it('should calculate reinforcements correctly after territory changes', () => {
-    calculateReinforcements(gameState, 'red');
+    const initialReinforcements = calculateReinforcements(gameState, 'red');
 
-    // Simulate gaining territories (this would happen through conquest)
-    // For testing, we'll manually modify the state
+    // Give red all of North America for continent bonus
     const modifiedState = {
       ...gameState,
       territories: {
         ...gameState.territories,
-        // Simulate red gaining more territories
+        alaska: { ...gameState.territories.alaska, owner: 'red' as const },
+        northwest_territory: { ...gameState.territories.northwest_territory, owner: 'red' as const },
+        greenland: { ...gameState.territories.greenland, owner: 'red' as const },
+        alberta: { ...gameState.territories.alberta, owner: 'red' as const },
+        ontario: { ...gameState.territories.ontario, owner: 'red' as const },
+        quebec: { ...gameState.territories.quebec, owner: 'red' as const },
+        western_us: { ...gameState.territories.western_us, owner: 'red' as const },
+        eastern_us: { ...gameState.territories.eastern_us, owner: 'red' as const },
+        central_america: { ...gameState.territories.central_america, owner: 'red' as const }
       }
     };
 
     const newReinforcements = calculateReinforcements(modifiedState, 'red');
-    expect(typeof newReinforcements).toBe('number');
-    expect(newReinforcements).toBeGreaterThanOrEqual(3);
+    // With all of North America (9 territories + 5 bonus), should get more reinforcements
+    expect(newReinforcements).toBeGreaterThan(initialReinforcements);
+    // 9 territories / 3 = 3, plus 5 for North America = 8
+    expect(newReinforcements).toBeGreaterThanOrEqual(8);
   });
 });
 

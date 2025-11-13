@@ -45,9 +45,12 @@ vi.mock('@/hooks/useGameLogic', () => ({
     selectedTerritory: null,
     fortifyTroops: 1,
     setFortifyTroops: vi.fn(),
+    transferTroops: 1,
+    setTransferTroops: vi.fn(),
     message: null,
     handleTerritoryClick: vi.fn(),
     handleSkip: vi.fn(),
+    handleTransfer: vi.fn(),
     resetSelection: vi.fn()
   }))
 }));
