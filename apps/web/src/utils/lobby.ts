@@ -188,7 +188,7 @@ export async function getLobbyPlayers(
   }
 
   // Transform the data to flatten the player info
-  return (data || []).map((item: any) => ({
+  return (data || []).map((item: LobbyPlayer & { players?: { display_name: string } | null }) => ({
     ...item,
     display_name: item.players?.display_name || 'Unknown'
   }));

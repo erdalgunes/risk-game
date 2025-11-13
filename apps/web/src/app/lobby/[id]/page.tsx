@@ -139,7 +139,7 @@ export default function LobbyPage() {
           table: 'game_lobbies',
           filter: `id=eq.${lobbyId}`
         },
-        (payload: any) => {
+        (payload: { eventType: string; new: Lobby; old?: Lobby }) => {
           if (payload.eventType === 'UPDATE') {
             setLobby(payload.new);
 
