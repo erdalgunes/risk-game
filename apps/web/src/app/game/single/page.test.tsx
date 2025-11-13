@@ -7,12 +7,16 @@ import SinglePlayerGame from './page';
 vi.mock('@risk-poc/game-engine', () => ({
   createInitialState: vi.fn(() => ({
     currentPlayer: 'red',
-    players: ['red', 'blue'],
-    phase: 'deploy',
+    players: ['red', 'blue', 'neutral'],
+    phase: 'initial_placement',
+    initialPlacementSubPhase: 'claiming',
     territories: {},
     winner: null,
-    deployableTroops: 3,
-    conqueredTerritoryThisTurn: false
+    deployableTroops: 0,
+    conqueredTerritoryThisTurn: false,
+    fortifiedThisTurn: false,
+    unplacedTroops: { red: 40, blue: 40, neutral: 40 },
+    lastAttackResult: null
   })),
   getAIMove: vi.fn(),
   applyMove: vi.fn()

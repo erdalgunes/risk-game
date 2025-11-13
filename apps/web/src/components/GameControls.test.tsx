@@ -33,7 +33,7 @@ describe('GameControls', () => {
     expect(screen.getByText('Game Status')).toBeInTheDocument();
     expect(screen.getByText('RED\'S TURN')).toBeInTheDocument();
     expect(screen.getByText('Phase:')).toBeInTheDocument();
-    expect(screen.getByText('DEPLOY')).toBeInTheDocument();
+    expect(screen.getByText('INITIAL_PLACEMENT')).toBeInTheDocument();
   });
 
   it('shows winner when game is won', () => {
@@ -47,11 +47,11 @@ describe('GameControls', () => {
     expect(screen.getByText('RED WINS!')).toBeInTheDocument();
   });
 
-  it('displays deploy phase information', () => {
+  it('displays initial_placement phase information', () => {
     render(<GameControls {...defaultProps} />);
 
-    expect(screen.getByText(/Troops Available/)).toBeInTheDocument();
-    expect(screen.getByText(/Income Breakdown/)).toBeInTheDocument();
+    expect(screen.getByText(/Initial Setup Phase/)).toBeInTheDocument();
+    expect(screen.getByText(/Troops Left/)).toBeInTheDocument();
   });
 
   it('displays attack phase information', () => {
@@ -91,12 +91,13 @@ describe('GameControls', () => {
 
   it('calls onSkip when skip button is clicked', async () => {
     const user = userEvent.setup();
-    // Create a state where all troops are deployed so skip is enabled
+    // Create a state in deploy phase where all troops are deployed so skip is enabled
     const readyToSkipState = {
       ...defaultProps.state,
+      phase: 'deploy' as const,
       deployableTroops: 0
     };
-    
+
     render(<GameControls {...defaultProps} state={readyToSkipState} />);
 
     const skipButton = screen.getByRole('button', { name: /Start Attack Phase/ });
@@ -108,6 +109,7 @@ describe('GameControls', () => {
   it('disables skip button when troops are available in deploy phase', () => {
     const deployState = {
       ...defaultProps.state,
+      phase: 'deploy' as const,
       deployableTroops: 3
     };
 
@@ -142,6 +144,7 @@ describe('GameControls', () => {
     expect(screen.getByText('Player Stats')).toBeInTheDocument();
     expect(screen.getAllByText(/RED/)).toHaveLength(2); // Current player and stats
     expect(screen.getByText(/BLUE/)).toBeInTheDocument();
+    expect(screen.getByText(/NEUTRAL/)).toBeInTheDocument();
   });
 
   it('shows continent bonuses in player stats', () => {

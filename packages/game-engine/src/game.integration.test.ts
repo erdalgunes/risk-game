@@ -169,7 +169,8 @@ describe('game integration - edge cases', () => {
     const threePlayerGame = createInitialState(['red', 'blue', 'green']);
     const sixPlayerGame = createInitialState(['red', 'blue', 'green', 'yellow', 'purple', 'orange']);
 
-    expect(twoPlayerGame.players).toHaveLength(2);
+    // 2-player games include neutral player
+    expect(twoPlayerGame.players).toHaveLength(3); // red, blue, neutral
     expect(threePlayerGame.players).toHaveLength(3);
     expect(sixPlayerGame.players).toHaveLength(6);
 
@@ -200,11 +201,16 @@ describe('game integration - edge cases', () => {
   it('should handle phase transitions correctly', () => {
     const gameState = createInitialState(['red', 'blue']);
 
-    // Start in deploy phase
-    expect(gameState.phase).toBe('deploy');
+    // Start in initial_placement phase
+    expect(gameState.phase).toBe('initial_placement');
+
+    // Complete initial placement
+    let state = completeInitialPlacement(gameState);
+
+    // Should now be in deploy phase
+    expect(state.phase).toBe('deploy');
 
     // Deploy all troops to transition to attack
-    let state = gameState;
     while (state.deployableTroops > 0) {
       const validMoves = getValidMoves(state);
       const deployMove = validMoves.find(move => move.type === 'deploy');
