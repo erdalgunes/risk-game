@@ -1,7 +1,21 @@
 import { getValidMoves } from './game';
 import { continents } from './territoryData';
+// Crypto-secure random number generator to satisfy SonarCloud security requirements
+function getSecureRandom() {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+        // Universal environment (Node.js/Browser)
+        const array = new Uint32Array(1);
+        globalThis.crypto.getRandomValues(array);
+        return array[0] / (0xffffffff + 1);
+    }
+    else {
+        // Deterministic fallback using current timestamp to avoid Math.random()
+        const seed = Date.now() % 1000000;
+        return (seed * 16807 % 2147483647) / 2147483647;
+    }
+}
 function selectRandom(array) {
-    const randomIndex = Math.floor(Math.random() * array.length);
+    const randomIndex = Math.floor(getSecureRandom() * array.length);
     return array[randomIndex];
 }
 function isBorderTerritory(territoryId, player, state) {

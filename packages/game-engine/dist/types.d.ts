@@ -17,6 +17,11 @@ export interface PlayerState {
     territories: TerritoryId[];
     continentBonus: number;
 }
+export interface PlayerState {
+    id: Player;
+    territories: TerritoryId[];
+    continentBonus: number;
+}
 export interface GameState {
     currentPlayer: Player;
     players: Player[];
