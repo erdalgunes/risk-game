@@ -11,59 +11,71 @@ import type { GameState, Move, Player } from './types';
 import { createMockEarlyGameState } from './__fixtures__/mockGameStates';
 
 describe('createInitialState', () => {
-  it('should create initial state with 2 players distributing 42 territories evenly', () => {
+  it('should create initial state with 2 players in initial placement phase', () => {
     const state = createInitialState(['red', 'blue']);
 
-    expect(state.players).toEqual(['red', 'blue']);
+    // 2-player games include neutral player
+    expect(state.players).toEqual(['red', 'blue', 'neutral']);
     expect(state.currentPlayer).toBe('red');
-    expect(state.phase).toBe('deploy');
+    expect(state.phase).toBe('initial_placement');
+    expect(state.initialPlacementSubPhase).toBe('claiming');
     expect(state.winner).toBeNull();
     expect(state.conqueredTerritoryThisTurn).toBe(false);
     expect(Object.keys(state.territories)).toHaveLength(42);
 
-    // Check territory distribution
-    const redTerritories = Object.values(state.territories).filter(t => t.owner === 'red');
-    const blueTerritories = Object.values(state.territories).filter(t => t.owner === 'blue');
+    // In initial placement, territories start unclaimed
+    const unclaimedTerritories = Object.values(state.territories).filter(t => t.owner === null);
+    expect(unclaimedTerritories).toHaveLength(42);
 
-    expect(redTerritories).toHaveLength(21);
-    expect(blueTerritories).toHaveLength(21);
+    // Check all territories have 0 troops initially
+    for (const territory of Object.values(state.territories)) {
+      expect(territory.troops).toBe(0);
+    }
 
-    // Check initial troops
-    for (const territory of redTerritories) {
-      expect(territory.troops).toBe(3);
-    }
-    for (const territory of blueTerritories) {
-      expect(territory.troops).toBe(3);
-    }
+    // Check unplaced troops for 2-player game (40 armies each for human players)
+    expect(state.unplacedTroops).toBeDefined();
+    expect(state.unplacedTroops!['red']).toBe(40);
+    expect(state.unplacedTroops!['blue']).toBe(40);
+    expect(state.unplacedTroops!['neutral']).toBe(40);
   });
 
-  it('should handle 3 players with correct territory distribution', () => {
+  it('should handle 3 players with correct army allocation', () => {
     const state = createInitialState(['red', 'blue', 'green']);
 
-    const redCount = Object.values(state.territories).filter(t => t.owner === 'red').length;
-    const blueCount = Object.values(state.territories).filter(t => t.owner === 'blue').length;
-    const greenCount = Object.values(state.territories).filter(t => t.owner === 'green').length;
+    // 3+ player games don't add neutral
+    expect(state.players).toEqual(['red', 'blue', 'green']);
+    expect(state.phase).toBe('initial_placement');
 
-    expect(redCount + blueCount + greenCount).toBe(42);
-    expect([redCount, blueCount, greenCount]).toEqual([14, 14, 14]);
+    // All territories start unclaimed
+    const unclaimedCount = Object.values(state.territories).filter(t => t.owner === null).length;
+    expect(unclaimedCount).toBe(42);
+
+    // 3 players get 35 armies each
+    expect(state.unplacedTroops!['red']).toBe(35);
+    expect(state.unplacedTroops!['blue']).toBe(35);
+    expect(state.unplacedTroops!['green']).toBe(35);
   });
 
-  it('should handle 6 players with correct territory distribution', () => {
+  it('should handle 6 players with correct army allocation', () => {
     const players: Player[] = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
     const state = createInitialState(players);
 
-    const counts = players.map(player =>
-      Object.values(state.territories).filter(t => t.owner === player).length
-    );
+    expect(state.players).toEqual(players);
+    expect(state.phase).toBe('initial_placement');
 
-    expect(counts).toEqual([7, 7, 7, 7, 7, 7]);
+    // 6 players get 20 armies each
+    for (const player of players) {
+      expect(state.unplacedTroops![player]).toBe(20);
+    }
   });
 
   it('should handle any number of players', () => {
     const singlePlayerState = createInitialState(['red']);
-    expect(singlePlayerState.players).toEqual(['red']);
+    // Single player game adds neutral
+    expect(singlePlayerState.players).toEqual(['red', 'neutral']);
 
     const manyPlayersState = createInitialState(['red', 'blue', 'green', 'yellow', 'purple', 'orange']);
+    // 6-player game doesn't add neutral
     expect(manyPlayersState.players).toHaveLength(6);
   });
 

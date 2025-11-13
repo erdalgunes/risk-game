@@ -2,6 +2,21 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createInitialState, applyMove, calculateReinforcements, getValidMoves } from './game';
 import type { GameState } from './types';
 
+// Helper function to complete initial placement phase
+function completeInitialPlacement(state: GameState): GameState {
+  let currentState = state;
+
+  // Complete initial placement by placing all troops
+  while (currentState.phase === 'initial_placement') {
+    const validMoves = getValidMoves(currentState);
+    const deployMove = validMoves.find(move => move.type === 'deploy');
+    if (!deployMove) break;
+    currentState = applyMove(currentState, deployMove);
+  }
+
+  return currentState;
+}
+
 describe('game integration - full turn cycle', () => {
   let gameState: GameState;
 
@@ -10,7 +25,14 @@ describe('game integration - full turn cycle', () => {
   });
 
   it('should complete a full turn cycle: deploy -> attack -> fortify', () => {
-    // Start with deploy phase
+    // Start with initial placement phase
+    expect(gameState.phase).toBe('initial_placement');
+    expect(gameState.currentPlayer).toBe('red');
+
+    // Complete initial placement to get to regular game
+    gameState = completeInitialPlacement(gameState);
+
+    // Should now be in deploy phase
     expect(gameState.phase).toBe('deploy');
     expect(gameState.currentPlayer).toBe('red');
 
@@ -43,7 +65,8 @@ describe('game integration - full turn cycle', () => {
 
     // Simulate a scenario where blue loses all territories
     // This would require many moves, so we'll just test the concept
-    expect(simpleState.players).toEqual(['red', 'blue']);
+    // 2-player games now include neutral player
+    expect(simpleState.players).toEqual(['red', 'blue', 'neutral']);
     expect(simpleState.currentPlayer).toBe('red');
   });
 
@@ -70,8 +93,10 @@ describe('game integration - multi-turn scenarios', () => {
   it('should handle turn rotation correctly', () => {
     const gameState = createInitialState(['red', 'blue', 'green']);
 
+    // Complete initial placement first
+    let currentState = completeInitialPlacement(gameState);
+
     // Complete red's turn
-    let currentState = gameState;
     while (currentState.currentPlayer === 'red' && !currentState.winner) {
       if (currentState.phase === 'deploy' && currentState.deployableTroops > 0) {
         const validMoves = getValidMoves(currentState);
@@ -92,6 +117,9 @@ describe('game integration - multi-turn scenarios', () => {
   it('should maintain game state consistency across turns', () => {
     let gameState = createInitialState(['red', 'blue']);
 
+    // Complete initial placement
+    gameState = completeInitialPlacement(gameState);
+
     // Play a few turns
     for (let turn = 0; turn < 4; turn++) {
       const initialPlayer = gameState.currentPlayer;
@@ -107,7 +135,8 @@ describe('game integration - multi-turn scenarios', () => {
 
     // Game should still be valid
     expect(gameState.winner).toBeNull();
-    expect(gameState.players).toEqual(['red', 'blue']);
+    // 2-player games include neutral
+    expect(gameState.players).toEqual(['red', 'blue', 'neutral']);
   });
 });
 
@@ -119,7 +148,8 @@ describe('game integration - victory conditions', () => {
 
     // Test that the game state remains valid during play
     expect(gameState.winner).toBeNull();
-    expect(gameState.players).toEqual(['red', 'blue']);
+    // 2-player games include neutral
+    expect(gameState.players).toEqual(['red', 'blue', 'neutral']);
   });
 
   it('should handle continent bonuses in reinforcement calculations', () => {
@@ -161,7 +191,8 @@ describe('game integration - edge cases', () => {
     }
 
     // State should still be valid
-    expect(gameState.players).toEqual(['red', 'blue']);
+    // 2-player games include neutral
+    expect(gameState.players).toEqual(['red', 'blue', 'neutral']);
     expect(gameState.winner).toBeNull();
     expect(Object.keys(gameState.territories)).toHaveLength(42);
   });
