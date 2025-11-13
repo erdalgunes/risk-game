@@ -1,0 +1,54 @@
+.appContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: #0a0a0a;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  padding-bottom: 80px; /* Space for bottom nav on mobile */
+}
+
+@media (min-width: 768px) {
+  .mainContent {
+    margin-left: 72px; /* Space for navigation rail on desktop */
+    padding-bottom: 20px; /* No bottom nav on desktop */
+  }
+}
+
+.gameBoardContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  color: white;
+  margin: 0;
+}
+
+.backButton {
+  padding: 10px 20px;
+  background-color: #555;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.message {
+  padding: 15px;
+  background-color: #2a2a2a;
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
