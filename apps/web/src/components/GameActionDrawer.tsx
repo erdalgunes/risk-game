@@ -12,6 +12,7 @@ import {
   Chip,
 } from '@mui/material';
 import type { GameState, TerritoryId } from '@risk-poc/game-engine';
+import { getContinentBonus } from '@risk-poc/game-engine';
 import { playerColors } from '../theme/theme';
 
 interface GameActionDrawerProps {
@@ -40,15 +41,16 @@ function getDeployIncome(gameState: GameState): {
   ).length;
   const base = Math.max(3, Math.floor(territoryCount / 3));
 
-  // Get continent bonus from player state
-  const continentBonus = gameState.deployableTroops > 0
-    ? Math.max(0, gameState.deployableTroops - base)
-    : 0;
+  // Calculate continent bonus directly from owned continents
+  const continentBonus = getContinentBonus(
+    gameState.currentPlayer,
+    gameState.territories
+  );
 
   return {
     base,
     continents: continentBonus,
-    total: gameState.deployableTroops,
+    total: base + continentBonus,
   };
 }
 
@@ -145,7 +147,9 @@ export function GameActionDrawer({
             <Chip
               label={`${formatTerritoryName(selectedTerritory)} (${fromTerritory.troops} troops)`}
               sx={{
-                backgroundColor: playerColors[fromTerritory.owner!],
+                backgroundColor: fromTerritory.owner
+                  ? playerColors[fromTerritory.owner]
+                  : 'grey.500',
                 color: 'white',
                 mb: 2,
                 minHeight: '48px',
@@ -275,7 +279,9 @@ export function GameActionDrawer({
             <Chip
               label={`${formatTerritoryName(selectedTerritory)} (${fromTerritory.troops} troops)`}
               sx={{
-                backgroundColor: playerColors[fromTerritory.owner!],
+                backgroundColor: fromTerritory.owner
+                  ? playerColors[fromTerritory.owner]
+                  : 'grey.500',
                 color: 'white',
                 mb: 2,
                 minHeight: '48px',
