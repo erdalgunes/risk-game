@@ -19,9 +19,12 @@ const nouns = [
  * Generate a random display name like "SwiftTiger" or "BraveEagle"
  */
 function generateRandomName(): string {
-  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const num = Math.floor(Math.random() * 100);
+  const randomValues = new Uint32Array(3);
+  crypto.getRandomValues(randomValues);
+
+  const adj = adjectives[randomValues[0] % adjectives.length];
+  const noun = nouns[randomValues[1] % nouns.length];
+  const num = randomValues[2] % 100;
   return `${adj}${noun}${num}`;
 }
 
