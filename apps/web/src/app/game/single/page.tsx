@@ -3,36 +3,22 @@
 import { useState, useEffect } from 'react';
 import { createInitialState, getAIMove, applyMove } from '@risk-poc/game-engine';
 import type { GameState, TerritoryId } from '@risk-poc/game-engine';
+import { CircularProgress, Box } from '@mui/material';
 import { GameBoard } from '@/components/GameBoard';
-import { GameControls } from '@/components/GameControls';
+import { GameStatsDrawer } from '@/components/GameStatsDrawer';
+import { GameActionDrawer } from '@/components/GameActionDrawer';
+import { ContextFab } from '@/components/ContextFab';
+import { BottomNav } from '@/components/BottomNav';
+import { NavigationRail } from '@/components/NavigationRail';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useGameLogic } from '@/hooks/useGameLogic';
+import { useMobileDrawers } from '@/hooks/useMobileDrawers';
 import Link from 'next/link';
+import styles from './page.module.css';
 
 export default function SinglePlayerGame() {
   const [gameState, setGameState] = useState<GameState>(createInitialState);
-
-  // Responsive styles
-  const responsiveStyles = `
-    .game-layout {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    @media (min-width: 768px) {
-      .game-layout {
-        grid-template-columns: 2fr 1fr;
-        gap: 24px;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .game-layout {
-        grid-template-columns: 3fr 1fr;
-        gap: 32px;
-      }
-    }
-  `;
+  const [isAIThinking, setIsAIThinking] = useState(false);
 
   const {
     selectedTerritory,
@@ -52,6 +38,7 @@ export default function SinglePlayerGame() {
     const isAIPlayer = gameState.currentPlayer === 'blue' || gameState.currentPlayer === 'neutral';
 
     if (isAIPlayer && !gameState.winner) {
+      setIsAIThinking(true);
       const timer = setTimeout(() => {
         try {
           const aiMove = getAIMove(gameState);
@@ -60,10 +47,15 @@ export default function SinglePlayerGame() {
           resetSelection();
         } catch (error) {
           console.error('AI move error:', error);
+        } finally {
+          setIsAIThinking(false);
         }
       }, 1000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setIsAIThinking(false);
+      };
     }
   }, [gameState, resetSelection]);
 
@@ -72,67 +64,102 @@ export default function SinglePlayerGame() {
     handleTerritoryClickBase(territoryId, 'red', shiftKey);
   };
 
+  const {
+    activeDrawer,
+    openDrawer,
+    closeDrawer,
+  } = useMobileDrawers(selectedTerritory);
+
+  const handleNavigationChange = (value: 'stats' | 'action') => {
+    if (activeDrawer === value) {
+      closeDrawer();
+    } else {
+      openDrawer(value);
+    }
+  };
+
   return (
-    <>
-      <style>{responsiveStyles}</style>
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#0a0a0a',
-        padding: '20px'
-      }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px'
-        }}>
-          <h1 style={{ color: 'white', margin: 0 }}>Risk PoC - Single Player</h1>
-          <Link
-            href="/"
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#555',
-              color: 'white',
-              textDecoration: 'none',
-              borderRadius: '8px'
-            }}
-          >
-            Back to Menu
-          </Link>
-        </div>
+    <ErrorBoundary>
+      <div className={styles.appContainer}>
+        {/* Navigation Rail (Desktop Only) */}
+        <NavigationRail
+          value={activeDrawer === 'stats' || activeDrawer === 'action' ? activeDrawer : null}
+          onChange={handleNavigationChange}
+        />
 
-        {message && (
-          <div style={{
-            padding: '15px',
-            backgroundColor: '#2a2a2a',
-            color: 'white',
-            borderRadius: '8px',
-            marginBottom: '20px'
-          }}>
-            {message}
+        {/* Main Content */}
+        <div className={styles.mainContent}>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Risk PoC - Single Player</h1>
+            <Link href="/" className={styles.backButton}>
+              Back to Menu
+            </Link>
           </div>
-        )}
 
-        <div className="game-layout">
-          <GameBoard
-            state={gameState}
-            onTerritoryClick={handleTerritoryClick}
-            selectedTerritory={selectedTerritory}
-          />
-          <GameControls
-            state={gameState}
-            selectedTerritory={selectedTerritory}
-            onSkip={handleSkip}
-            fortifyTroops={fortifyTroops}
-            onFortifyTroopsChange={setFortifyTroops}
-            transferTroops={transferTroops}
-            onTransferTroopsChange={setTransferTroops}
-            onTransfer={handleTransfer}
-          />
+          {message && <div className={styles.message}>{message}</div>}
+
+          {isAIThinking && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                mb: 2,
+                p: 2,
+                backgroundColor: '#2a2a2a',
+                borderRadius: '8px',
+              }}
+            >
+              <CircularProgress size={24} />
+              <span style={{ color: 'white' }}>
+                {gameState.currentPlayer.toUpperCase()} is thinking...
+              </span>
+            </Box>
+          )}
+
+          {/* Game Board - Full Screen */}
+          <div className={styles.gameBoardContainer}>
+            <GameBoard
+              state={gameState}
+              onTerritoryClick={handleTerritoryClick}
+              selectedTerritory={selectedTerritory}
+            />
+          </div>
         </div>
+
+        {/* Drawers */}
+        <GameStatsDrawer
+          open={activeDrawer === 'stats'}
+          onOpen={() => openDrawer('stats')}
+          onClose={closeDrawer}
+          gameState={gameState}
+        />
+
+        <GameActionDrawer
+          open={activeDrawer === 'action'}
+          onOpen={() => openDrawer('action')}
+          onClose={closeDrawer}
+          gameState={gameState}
+          selectedTerritory={selectedTerritory}
+          fortifyTroops={fortifyTroops}
+          onFortifyTroopsChange={setFortifyTroops}
+          transferTroops={transferTroops}
+          onTransferTroopsChange={setTransferTroops}
+        />
+
+        {/* Context FAB */}
+        <ContextFab
+          gameState={gameState}
+          onSkip={handleSkip}
+          onTransfer={handleTransfer}
+        />
+
+        {/* Bottom Navigation (Mobile Only) */}
+        <BottomNav
+          value={activeDrawer === 'stats' || activeDrawer === 'action' ? activeDrawer : null}
+          onChange={handleNavigationChange}
+        />
       </div>
-    </div>
-    </>
+    </ErrorBoundary>
   );
 }

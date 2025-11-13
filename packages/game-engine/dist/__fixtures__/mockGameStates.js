@@ -1,18 +1,23 @@
 import { createInitialState } from '../game';
+import { allTerritoryNames } from '../territoryData';
 export const createMockEarlyGameState = () => {
     const state = createInitialState(['red', 'blue']);
-    // Modify some territories for consistent testing
-    state.territories.alaska = { ...state.territories.alaska, owner: 'red', troops: 3 };
-    state.territories.alberta = { ...state.territories.alberta, owner: 'red', troops: 3 };
-    state.territories.northwest_territory = { ...state.territories.northwest_territory, owner: 'blue', troops: 3 };
-    state.territories.ontario = { ...state.territories.ontario, owner: 'blue', troops: 3 };
-    state.territories.quebec = { ...state.territories.quebec, owner: 'red', troops: 3 };
-    state.territories.eastern_us = { ...state.territories.eastern_us, owner: 'red', troops: 3 };
-    state.territories.western_us = { ...state.territories.western_us, owner: 'blue', troops: 3 };
-    state.territories.central_america = { ...state.territories.central_america, owner: 'red', troops: 3 };
-    state.territories.greenland = { ...state.territories.greenland, owner: 'blue', troops: 3 };
+    // Distribute all territories between red, blue, and neutral (2-player game includes neutral)
+    // Assign territories in round-robin to ensure all are claimed
+    const players = state.players; // ['red', 'blue', 'neutral']
+    allTerritoryNames.forEach((territoryName, index) => {
+        const owner = players[index % players.length];
+        state.territories[territoryName] = {
+            ...state.territories[territoryName],
+            owner,
+            troops: 3
+        };
+    });
+    // Set to deploy phase (after initial placement)
     state.phase = 'deploy';
     state.deployableTroops = 3;
+    state.unplacedTroops = { red: 0, blue: 0, neutral: 0, green: 0, yellow: 0, purple: 0, orange: 0 };
+    delete state.initialPlacementSubPhase;
     return state;
 };
 export const mockEarlyGameState = createMockEarlyGameState();

@@ -35,15 +35,6 @@ describe('territories data structure', () => {
             }
         }
     });
-    it('should have correct initial troop counts', () => {
-        for (const territoryName of allTerritoryNames) {
-            // Note: This test assumes territories start with 3 troops as per createInitialState
-            // In the actual game state, troops are set to 3 initially
-            const territory = territories[territoryName];
-            expect(territory).toBeDefined();
-            // The territory definition doesn't include troops, that's set in game state
-        }
-    });
 });
 describe('continents data structure', () => {
     it('should have exactly 6 continents', () => {
