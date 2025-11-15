@@ -14,7 +14,6 @@ export const metadata: Metadata = {
     telephone: false,
   },
   manifest: '/manifest.json',
-  themeColor: '#1a1a1a',
 };
 
 export const viewport: Viewport = {
